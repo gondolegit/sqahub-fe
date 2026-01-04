@@ -1,3 +1,5 @@
+// src/pages/TestCasesPage.tsx
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -17,14 +19,21 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'; 
 import { toast } from 'sonner';
 
-// Import Hooks yang Dibutuhkan
+// 🚨 PERBAIKAN: Import Tipe Langsung dari Sumbernya
+import type { TestCase, DeleteTestCaseParams } from '@/types/testCase'; // <-- TAMBAHKAN BARIS INI
+
+// Import Hooks yang Dibutuhkan (Hanya hook, tanpa tipe)
 import { useFeatureDetail } from '@/hooks/useFeatures'; 
 import { 
-    useTestCases, 
+    useTestCasesByFeature, // Ganti dari useTestCases ke useTestCasesByFeature
     useDeleteTestCase, 
-    type TestCase, 
-    type DeleteTestCaseParams 
 } from '@/hooks/useTestCases'; 
+
+// 🚨 DEFINISI INTERFACE DENGAN MODE (Tetap menggunakan TestCase yang sudah diimpor)
+interface TestCaseWithMode extends TestCase {
+    mode?: 'view' | 'edit';
+}
+
 import TestCaseFormDialog from '@/components/testcase/TestCaseFormDialog';
 
 // 🚨 DEFINISI INTERFACE DENGAN MODE (Sama seperti di TestCaseFormDialog)
@@ -55,8 +64,9 @@ const TestCasesPage: React.FC = () => {
     const { data: featureDetail, isLoading: isLoadingFeature } = 
         useFeatureDetail(isValidFeatureId ? featureId : -1);
     
+    // 🚨 PERBAIKAN: Menggunakan hook yang sudah diekspor dengan nama yang benar
     const { data: testCases, isLoading: isLoadingTestCases, isError: isErrorTestCases } = 
-        useTestCases(isValidFeatureId ? featureId : -1); 
+        useTestCasesByFeature(isValidFeatureId ? featureId : -1); 
     
     const deleteMutation = useDeleteTestCase();
 
@@ -114,7 +124,8 @@ const TestCasesPage: React.FC = () => {
         
         deleteMutation.mutate(params, {
             onSuccess: () => {
-                toast.success("Test Case Dihapus", { description: `TC '${tcName}' berhasil dihapus.` });
+                // Notifikasi sukses sudah ditangani di hook useDeleteTestCase, tapi bisa juga ditambahkan di sini
+                // toast.success("Test Case Dihapus", { description: `TC '${tcName}' berhasil dihapus.` }); 
                 setCaseToDelete(null); // Tutup dialog konfirmasi
             },
             onError: (err: any) => {
@@ -124,7 +135,6 @@ const TestCasesPage: React.FC = () => {
         });
     };
     
-
     // --- RENDER KONDISIONAL ---
     if (!isValidFeatureId) {
         return (
@@ -219,7 +229,7 @@ const TestCasesPage: React.FC = () => {
                                             {/* Kolom Aksi */}
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end space-x-1">
-                                                    {/* 🚨 View Detail (Memanggil dialog dengan mode 'view') */}
+                                                    {/* View Detail (Memanggil dialog dengan mode 'view') */}
                                                     <Button 
                                                         variant="ghost" 
                                                         size="icon" 
@@ -237,7 +247,7 @@ const TestCasesPage: React.FC = () => {
                                                     >
                                                         <Pencil className="h-4 w-4" />
                                                     </Button>
-                                                    {/* 🚨 Hapus (Memanggil handler persiapan delete) */}
+                                                    {/* Hapus (Memanggil handler persiapan delete) */}
                                                     <Button 
                                                         variant="ghost" 
                                                         size="icon" 
@@ -282,7 +292,7 @@ const TestCasesPage: React.FC = () => {
                 idProject={projectId} 
             />
 
-            {/* 🚨 ALERT DIALOG UNTUK KONFIRMASI PENGHAPUSAN 🚨 */}
+            {/* ALERT DIALOG UNTUK KONFIRMASI PENGHAPUSAN */}
             <AlertDialog 
                 open={!!caseToDelete} 
                 onOpenChange={(open) => {

@@ -1,12 +1,11 @@
-// src/pages/Auth/LoginPage.tsx
-import React, { useState, useEffect } from 'react'; // <-- PENTING: Import useEffect
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft, UserPlus, CheckCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 const LoginPage: React.FC = () => {
@@ -14,44 +13,30 @@ const LoginPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    
-    // Gunakan isAuthenticated atau token (keduanya harusnya sinkron)
-    const { login, isAuthenticated } = useAuth(); // Saya ganti token ke isAuthenticated
-    const navigate = useNavigate();
+    const [registrationSuccessMessage, setRegistrationSuccessMessage] = useState<string | null>(null);
 
-    // --- SOLUSI: Menggunakan useEffect untuk semua Redirect ---
+    const { login, isAuthenticated } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // --- Efek untuk Menampilkan Pesan Sukses Registrasi ---
+    useEffect(() => {
+        if (location.state?.registeredUsername) {
+            setUsername(location.state.registeredUsername); 
+            setRegistrationSuccessMessage(`Registrasi berhasil untuk ${location.state.registeredUsername}. Silakan login.`);
+            
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location.state, location.pathname, navigate]);
+
+    // --- Efek untuk Redirect ke Dashboard ---
     useEffect(() => {
         if (isAuthenticated) {
-            // Jika sudah terotentikasi (baik saat load awal atau setelah login sukses)
-            // Lakukan redirect hanya di sini, di dalam useEffect.
             navigate('/dashboard', { replace: true });
         }
     }, [isAuthenticated, navigate]); 
-    // Dependency array: navigate stabil, jadi hanya menunggu isAuthenticated berubah.
-    // ---------------------------------------------------------
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setIsLoading(true);
-
-        const success = await login(username, password);
-
-        // Catatan: Setelah login berhasil (success=true), fungsi login akan 
-        // memperbarui state Context menjadi isAuthenticated=true.
-        // PERHATIKAN: Kita tidak lagi memanggil navigate di sini! 
-        // Perubahan isAuthenticated akan memicu useEffect di atas.
-        
-        if (!success) {
-            // Login gagal (error ditampilkan oleh fungsi login di AuthContext)
-            setError('Login gagal. Periksa username dan password Anda.');
-        } 
-        
-        setIsLoading(false);
-    };
-
-    // Opsional: Jika isAuthenticated sudah true, tampilkan loading/null sementara
-    // sebelum redirect oleh useEffect dijalankan.
+    // --- Loading/Redirect View ---
     if (isAuthenticated) {
         return (
             <div className="flex items-center justify-center h-screen bg-muted/40">
@@ -60,16 +45,39 @@ const LoginPage: React.FC = () => {
         );
     }
 
+    // --- Handler Login ---
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setRegistrationSuccessMessage(null); 
+        setIsLoading(true);
+
+        const success = await login(username, password);
+        
+        if (!success) {
+            setError('Login gagal. Periksa username dan password Anda.');
+        } 
+        
+        setIsLoading(false);
+    };
 
     return (
-        <div className="flex h-screen items-center justify-center bg-muted/40">
+        <div className="flex h-screen items-center justify-center bg-gray-50 p-4">
             <Card className="w-[400px]">
                 <CardHeader className="text-center">
-                    <CardTitle className="text-3xl font-bold text-primary">SQAHUB</CardTitle>
-                    <CardDescription>Aplikasi Manajemen Proyek dan Kualitas</CardDescription>
+                    <CardTitle className="text-3xl font-extrabold text-primary">SQAHUB</CardTitle>
+                    <CardDescription>Masuk untuk mengakses Dashboard Kualitas</CardDescription>
                     <Separator className="mt-2" />
                 </CardHeader>
+                
                 <CardContent>
+                    {/* Pesan Sukses Registrasi */}
+                    {registrationSuccessMessage && (
+                        <div className="p-3 mb-4 text-sm text-green-700 bg-green-100 rounded-lg flex items-center">
+                            <CheckCircle className="h-4 w-4 mr-2" /> {registrationSuccessMessage}
+                        </div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="username">Username</Label>
@@ -96,16 +104,32 @@ const LoginPage: React.FC = () => {
                             />
                         </div>
 
-                        {error && <p className="text-sm text-destructive text-center">{error}</p>}
+                        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
-                        <Button type="submit" className="w-full" disabled={isLoading}>
+                        <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isLoading}>
                             {isLoading ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
-                                'Login'
+                                'Login ke SQAHub'
                             )}
                         </Button>
                     </form>
+                    
+                    <Separator className="my-6" />
+
+                    {/* Tombol Register dan Kembali ke Landing Page */}
+                    <div className="space-y-3">
+                        <Link to="/register" className="block">
+                            <Button variant="outline" className="w-full text-gray-700 border-gray-300 hover:bg-gray-100">
+                                <UserPlus className="mr-2 h-4 w-4" /> Belum punya akun? Daftar
+                            </Button>
+                        </Link>
+                        <Link to="/" className="block">
+                            <Button variant="link" className="w-full text-gray-500 hover:text-primary">
+                                <ArrowLeft className="mr-2 h-4 w-4" /> Kembali ke Landing Page
+                            </Button>
+                        </Link>
+                    </div>
                 </CardContent>
             </Card>
         </div>

@@ -1,8 +1,5 @@
-// src/App.tsx (VERSI PERBAIKAN LENGKAP - DENGAN RUTE TEST SUITE BARU)
-
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom'; 
-// *** PENTING: Import Toaster dari sonner ***
 import { Toaster } from 'sonner';
 
 // Import Contexts dan Types
@@ -15,22 +12,23 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 // Import Halaman NYATA
 import LoginPage from './pages/Auth/LoginPage';
+// 🚨 IMPORT HALAMAN BARU
+import LandingPage from './pages/LandingPage'; 
+import RegisterPage from './pages/Auth/RegisterPage'; 
+
 import DashboardPage from './pages/DashboardPage';
 import ProjectsPage from './pages/ProjectsPage';
 import FeaturesPage from './pages/FeaturesPage';
-import TestCasesPage from './pages/TestCasesPage'; // Sudah ada
-
+import TestCasesPage from './pages/TestCasesPage'; 
 import NotFoundPage from './pages/NotFoundPage';
 import UserManagementPage from './pages/UserManagementPage';
 
-// 🚨 IMPORT BARU/REVISI: Halaman Test Suites
+// Halaman Test Suites
 import TestSuitesPage from './pages/TestSuitePage'; 
 import TestSuiteDetailPage from './pages/TestSuiteDetailPage'; 
-// 🚨 IMPORT BARU: Halaman Detail Test Suite Statis
-import TestSuiteDetailView from './pages/TestSuiteDetailView'; 
+import TestRunDetailPage from './pages/TestRunDetailPage'; 
 
 
-// Asumsi ReportsPage sudah diimpor/didefinisikan
 const ReportsPage = () => <div className="p-4"><h1>Quality Reports (QAM/TESTER Only)</h1></div>;
 
 
@@ -38,7 +36,6 @@ const App: React.FC = () => {
     const { isAuthenticated, loading } = useAuth(); 
 
     if (loading) {
-        // Tampilkan layar loading sementara saat status auth belum pasti
         return (
             <div className="flex h-screen items-center justify-center">
                 <h1 className="text-2xl font-semibold text-primary">Loading Application...</h1>
@@ -46,15 +43,21 @@ const App: React.FC = () => {
         );
     }
     
-    // Logika utama untuk rute default (path="/")
-    const HomeRedirect = isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
+    // 🚨 LOGIKA BARU: Jika sudah login, rute default (/) mengarah ke Dashboard. 
+    // Jika belum login, rute default (/) mengarah ke Landing Page.
+    const HomeRedirect = isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />;
 
     return (
         <>
             <Routes>
                 {/* 1. Rute Default (/) & Rute Publik */}
-                <Route path="/" element={HomeRedirect} />
+                
+                {/* 🚨 Rute ROOT: Jika sudah login -> Dashboard, jika belum -> Landing Page */}
+                <Route path="/" element={HomeRedirect} /> 
+                
+                {/* Rute Auth Publik (Bukan MainLayout) */}
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} /> {/* 🚨 RUTE REGISTER BARU */}
                 
                 {/* 2. Rute Terlindungi (Protected Routes) */}
                 <Route element={<ProtectedRoute />}>
@@ -74,22 +77,16 @@ const App: React.FC = () => {
                             element={<TestCasesPage />} 
                         />
                         
-                        {/* --------------------------------------------------- */}
-                        {/* 🚨 PENAMBAHAN RUTE BARU: TEST SUITES & TEST RUNS 🚨 */}
-                        {/* --------------------------------------------------- */}
-                        
-                        {/* 1. Halaman Daftar Riwayat Test Run (Level Proyek) */}
+                        {/* 🛠️ RUTE TEST SUITES & TEST RUNS */}
                         <Route path="/test-suites" element={<TestSuitesPage />} />
 
-                        {/* 2. Halaman Detail Test SUITE (STATIS) */}
-                        {/* Ini akan menampilkan detail statis Test Suite dan daftar Test Case-nya */}
+                        {/* 2. Halaman Detail Test SUITE (STATIS/Template) */}
                         <Route 
                             path="/test-suites/detail/:suiteId" 
-                            element={<TestSuiteDetailView />} 
+                            element={<TestRunDetailPage />} 
                         />
                         
-                        {/* 3. Halaman Detail Test RUN (DINAMIS - Hasil Eksekusi) */}
-                        {/* Menggunakan :runId untuk detail eksekusi tunggal */}
+                        {/* 3. Halaman Detail Test RUN (DINAMIS - Hasil Eksekusi, untuk Export PDF) */}
                         <Route 
                             path="/test-runs/:runId" 
                             element={<TestSuiteDetailPage />} 
@@ -121,7 +118,6 @@ const App: React.FC = () => {
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>
             
-            {/* Sonner Toaster ditempatkan di luar Routes agar persisten */}
             <Toaster position="bottom-right" richColors />
         </>
     );

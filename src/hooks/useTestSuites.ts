@@ -1,79 +1,64 @@
-// src/hooks/useTestSuites.ts (VERSI PERBAIKAN LENGKAP)
+// src/hooks/useTestSuites.ts (VERSI FINAL TERSELARAS)
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import API from '@/utils/api'; 
-// 🚨 Import tipe yang baru diubah namanya: RunDetail
+import API from '@/utils/api'; // Asumsi ini adalah wrapper Axios dengan header auth
 import type{ 
     TestSuite, 
-    TestSuiteRunRequest, 
+    TestSuiteRunRequest, // <-- Tipe Request CREATE yang sudah diperbarui
     TestSuiteFinalizeRequest,
-    RunDetail // <--- PASTIKAN INI DIIMPORT!
+    RunDetail // Tipe untuk detail per Test Case dalam sebuah Run
 } from '@/types/testSuite';
 
-import axios from 'axios';
-import type { TestRunDetail } from '@/types/testSuite'; // Pastikan Anda mengimpor TestRunDetail
-
-const API_URL = import.meta.env.VITE_API_URL; // Asumsi variabel lingkungan
-
-// --- HOOK BARU: Mengambil Detail Test Run ---
-export const useTestRunDetail = (runId: number | undefined) => {
-    return useQuery<TestRunDetail, Error>({
-        queryKey: ['testRunDetail', runId],
-        queryFn: async () => {
-            if (!runId || runId < 1) {
-                // Seharusnya tidak tercapai karena 'enabled' menangani ini, tapi untuk keamanan
-                throw new Error("Invalid Run ID provided.");
-            }
-            const { data } = await axios.get(`${API_URL}/testsuite/run/${runId}`);
-            return data;
-        },
-        // Hook hanya akan berjalan jika runId adalah angka positif yang valid
-        enabled: !!runId && runId > 0, 
-    });
-};
+import { toast } from 'sonner'; 
 
 const TEST_SUITE_QUERY_KEY = 'testSuites';
-const TEST_RUN_DETAIL_QUERY_KEY = 'testRunDetail'; // Key baru untuk detail Test Case
+const TEST_RUN_DETAIL_QUERY_KEY = 'testRunDetail'; // Key untuk detail Test Case Run
 
-// --- 1. GET ALL Test Suites by Project ---
-// 🚨 PERBAIKAN: Menerima 'number | undefined'
+// #########################################
+// --- HOOKS QUERY (READ) ---
+// #########################################
+
+/**
+ * 1. Mengambil semua Test Suites berdasarkan Project ID
+ */
 export const useTestSuitesByProject = (projectId: number | undefined) => {
-    return useQuery<TestSuite[]>({
+    return useQuery<TestSuite[], Error>({
         queryKey: [TEST_SUITE_QUERY_KEY, 'project', projectId],
         queryFn: async () => {
-            // Periksa di sini agar TypeScript puas dan logic berjalan lancar
             if (!projectId || projectId < 1) {
-                 return [];
+                return [];
             }
+            // ENDPOINT: /api/v1/testsuite/project/{projectId}
             const { data } = await API.get(`/testsuite/project/${projectId}`);
             return data;
         },
-        // 🚨 PERBAIKAN: Hanya aktifkan query jika projectId adalah angka positif
         enabled: !!projectId && projectId > 0,
     });
 };
 
-// --- 2. GET Test Suite by ID (Detail Suite Statis) ---
-// 🚨 PERBAIKAN: Menerima 'number | undefined' untuk fleksibilitas
+/**
+ * 2. Mengambil detail satu Test Suite (Data Statis Suite)
+ */
 export const useTestSuiteById = (testSuiteId: number | undefined) => {
-    return useQuery<TestSuite, Error>({ // Tambahkan Error Type
-        queryKey: [TEST_SUITE_QUERY_KEY, testSuiteId],
+    return useQuery<TestSuite, Error>({ 
+        queryKey: [TEST_SUITE_QUERY_KEY, 'detail', testSuiteId], 
         queryFn: async () => {
             if (!testSuiteId || testSuiteId < 1) {
                  throw new Error("Invalid Test Suite ID provided.");
             }
+            // ENDPOINT: /api/v1/testsuite/{testSuiteId}
             const { data } = await API.get(`/testsuite/${testSuiteId}`);
             return data;
         },
-        // Hanya aktifkan jika ID valid
         enabled: !!testSuiteId && testSuiteId > 0,
     });
 };
 
-// 🚨 TAMBAHAN BARU: 3. GET Single Test Case Run Detail (Log Detail)
-// 🚨 PERBAIKAN: Menerima 'number | undefined'
+/**
+ * 3. Mengambil Detail Run Case Tunggal (Log Detail per Test Case)
+ */
 export const useTestRunDetailById = (runDetailId: number | undefined) => {
-    return useQuery<RunDetail, Error>({ // Tambahkan Error Type
+    return useQuery<RunDetail, Error>({ 
         queryKey: [TEST_RUN_DETAIL_QUERY_KEY, runDetailId],
         queryFn: async () => {
              if (!runDetailId || runDetailId < 1) {
@@ -84,30 +69,40 @@ export const useTestRunDetailById = (runDetailId: number | undefined) => {
             return data;
         },
         enabled: !!runDetailId && runDetailId > 0,
-        // Data ini cenderung statis setelah dicatat, jadi bisa di-cache lebih lama
         staleTime: 5 * 60 * 1000, // 5 menit
     });
 };
 
-// --- 4. CREATE Test Suite Run ---
+// #########################################
+// --- HOOKS MUTATION (CREATE, UPDATE, DELETE) ---
+// #########################################
+
+/**
+ * 4. CREATE Test Suite Run
+ */
 export const useCreateTestSuiteRun = () => {
     const queryClient = useQueryClient();
-    return useMutation({
+    // Gunakan TestSuiteRunRequest yang sudah diselaraskan
+    return useMutation<TestSuite, Error, TestSuiteRunRequest>({ 
         mutationFn: async (payload: TestSuiteRunRequest) => {
+            // ENDPOINT: POST /api/v1/testsuite/run
             const { data } = await API.post('/testsuite/run', payload);
             return data;
         },
         onSuccess: (newSuite: TestSuite) => {
+            toast.success("Test Suite Run Dicatat", { description: `Run '${newSuite.name}' berhasil dibuat.` });
             queryClient.invalidateQueries({ queryKey: [TEST_SUITE_QUERY_KEY, 'project', newSuite.projectId] });
         },
-        onError: (error) => {
-            console.error("Gagal membuat Test Suite Run:", error);
-            // Tambahkan toast error di sini
+        onError: (error: any) => {
+            const errorMessage = error.response?.data?.message || error.message || "Terjadi kesalahan saat membuat Test Suite Run.";
+            toast.error("Gagal Mencatat Test Suite Run", { description: errorMessage });
         },
     });
 };
 
-// --- 5. UPDATE/FINALIZE Test Suite Run ---
+/**
+ * 5. UPDATE/FINALIZE Test Suite Run
+ */
 interface FinalizeParams {
     testSuiteId: number;
     payload: TestSuiteFinalizeRequest;
@@ -115,35 +110,55 @@ interface FinalizeParams {
 
 export const useFinalizeTestSuiteRun = () => {
     const queryClient = useQueryClient();
-    return useMutation({
+    return useMutation<TestSuite, Error, FinalizeParams>({
         mutationFn: async ({ testSuiteId, payload }: FinalizeParams) => {
+            // ENDPOINT: PUT /api/v1/testsuite/{testSuiteId}/finalize
             const { data } = await API.put(`/testsuite/${testSuiteId}/finalize`, payload);
             return data;
         },
         onSuccess: (updatedSuite: TestSuite) => {
-            queryClient.invalidateQueries({ queryKey: [TEST_SUITE_QUERY_KEY, updatedSuite.id] });
+            toast.success("Test Suite Run Diperbarui", { description: `Run '${updatedSuite.name}' telah difinalisasi.` });
+            queryClient.invalidateQueries({ queryKey: [TEST_SUITE_QUERY_KEY, 'detail', updatedSuite.id] });
             queryClient.invalidateQueries({ queryKey: [TEST_SUITE_QUERY_KEY, 'project', updatedSuite.projectId] });
         },
-        onError: (error) => {
-            console.error("Gagal Finalize Test Suite Run:", error);
+        onError: (error: any) => {
+            const errorMessage = error.response?.data?.message || error.message || "Terjadi kesalahan saat memfinalisasi run.";
+            toast.error("Gagal Finalize Test Suite Run", { description: errorMessage });
         },
     });
 };
 
 
-// --- 6. DELETE Test Suite ---
+export interface DeleteTestSuiteParams {
+    testSuiteId: number;
+    projectId: number; 
+}
+
+/**
+ * 6. DELETE Test Suite
+ */
 export const useDeleteTestSuite = () => {
     const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: async (testSuiteId: number) => {
+    
+    return useMutation<void, Error, DeleteTestSuiteParams>({
+        mutationFn: async (params: DeleteTestSuiteParams) => {
+            const { testSuiteId } = params;
+            // Endpoint: DELETE /api/v1/testsuite/{testSuiteId}
             await API.delete(`/testsuite/${testSuiteId}`);
         },
-        onSuccess: (_data, testSuiteId) => {
-            queryClient.invalidateQueries({ queryKey: [TEST_SUITE_QUERY_KEY, 'project'] });
-            queryClient.removeQueries({ queryKey: [TEST_SUITE_QUERY_KEY, testSuiteId] });
+        onSuccess: (_data, variables) => {
+            const { testSuiteId, projectId } = variables;
+            
+            toast.success("Test Suite Run Dihapus", { 
+                 description: `Run ID ${testSuiteId} berhasil dihapus.` 
+            });
+            
+            queryClient.invalidateQueries({ queryKey: [TEST_SUITE_QUERY_KEY, 'project', projectId] }); 
+            queryClient.removeQueries({ queryKey: [TEST_SUITE_QUERY_KEY, 'detail', testSuiteId] });
         },
-        onError: (error) => {
-            console.error("Gagal menghapus Test Suite:", error);
+        onError: (error: any) => {
+            const errorMessage = error.response?.data?.message || error.message || "Terjadi kesalahan saat menghapus run.";
+            toast.error("Gagal Hapus Test Suite Run", { description: errorMessage });
         }
     });
 };

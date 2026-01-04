@@ -16,7 +16,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
   const { isAuthenticated, user } = useAuth(); // isAuthenticated TIDAK BOLEH UNDEFINED
   
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
   
   // Logic Otorisasi
