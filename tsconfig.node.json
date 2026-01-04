@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    // 1. WAJIB: Memperbaiki error "must have setting composite: true"
+    "composite": true, 
+    
+    // Properti Dasar Node/Bundler
+    "module": "ESNext",
+    "moduleResolution": "bundler", 
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "target": "ES2020",
+    "strict": true,
+    "skipLibCheck": true,
+    
+    // 2. WAJIB: Memperbaiki error "may not disable emit"
+    // TypeScript harus diizinkan untuk menghasilkan output (biasanya hanya deklarasi)
+    "noEmit": false, 
+    
+    // Opsional: Memastikan file deklarasi dihasilkan
+    "declaration": true, 
+    "declarationDir": "./dist/types", 
+    
+    // Tipe global untuk environment Node
+    "types": ["node"] 
+  },
+  
+  // File yang dicakup oleh konfigurasi ini (file konfigurasi Node)
+  "include": ["vite.config.ts", "tsconfig.json", "src/global.d.ts", "src/setupTests.ts"],
+  
+}
