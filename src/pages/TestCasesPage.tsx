@@ -1,6 +1,4 @@
-// src/pages/TestCasesPage.tsx
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
     AlertDialog, 
@@ -19,24 +17,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'; 
 import { toast } from 'sonner';
 
-// 🚨 PERBAIKAN: Import Tipe Langsung dari Sumbernya
-import type { TestCase, DeleteTestCaseParams } from '@/types/testCase'; // <-- TAMBAHKAN BARIS INI
-
-// Import Hooks yang Dibutuhkan (Hanya hook, tanpa tipe)
+// --- TYPES & HOOKS ---
+import type { TestCase, DeleteTestCaseParams } from '@/types/testCase';
 import { useFeatureDetail } from '@/hooks/useFeatures'; 
-import { 
-    useTestCasesByFeature, // Ganti dari useTestCases ke useTestCasesByFeature
-    useDeleteTestCase, 
-} from '@/hooks/useTestCases'; 
-
-// 🚨 DEFINISI INTERFACE DENGAN MODE (Tetap menggunakan TestCase yang sudah diimpor)
-interface TestCaseWithMode extends TestCase {
-    mode?: 'view' | 'edit';
-}
-
+import { useTestCasesByFeature, useDeleteTestCase } from '@/hooks/useTestCases'; 
 import TestCaseFormDialog from '@/components/testcase/TestCaseFormDialog';
 
-// 🚨 DEFINISI INTERFACE DENGAN MODE (Sama seperti di TestCaseFormDialog)
+// Interface diperluas untuk menangani UI mode
 interface TestCaseWithMode extends TestCase {
     mode?: 'view' | 'edit';
 }
@@ -48,287 +35,238 @@ const TestCasesPage: React.FC = () => {
 
     const projectId = projectIdStr ? parseInt(projectIdStr) : -1;
     const featureId = featureIdStr ? parseInt(featureIdStr) : -1;
-    
-    const isValidFeatureId = featureId > 0 && !isNaN(featureId);
+    const isValidId = featureId > 0 && !isNaN(featureId);
 
-    // States untuk UI dan Dialog CRUD
+    // --- STATES ---
     const [searchQuery, setSearchQuery] = useState('');
     const [isTcDialogOpen, setIsTcDialogOpen] = useState(false);
-    // Menggunakan TestCaseWithMode untuk menampung data dan mode
     const [initialTcData, setInitialTcData] = useState<TestCaseWithMode | null>(null);
-
-    // STATE BARU: Untuk konfirmasi penghapusan
     const [caseToDelete, setCaseToDelete] = useState<{ id: number; name: string } | null>(null); 
 
-    // Data Hooks
+    // --- DATA FETCHING ---
     const { data: featureDetail, isLoading: isLoadingFeature } = 
-        useFeatureDetail(isValidFeatureId ? featureId : -1);
+        useFeatureDetail(isValidId ? featureId : -1);
     
-    // 🚨 PERBAIKAN: Menggunakan hook yang sudah diekspor dengan nama yang benar
-    const { data: testCases, isLoading: isLoadingTestCases, isError: isErrorTestCases } = 
-        useTestCasesByFeature(isValidFeatureId ? featureId : -1); 
+    const { 
+        data: testCases, 
+        isLoading: isLoadingTestCases, 
+        isError: isErrorTestCases 
+    } = useTestCasesByFeature(isValidId ? featureId : -1); 
     
     const deleteMutation = useDeleteTestCase();
 
-    const featureName = featureDetail?.name || `Fitur ID: ${featureId}`;
-    const projectName = featureDetail?.projectName || `Proyek ID: ${projectId}`;
-    
-    // --- LOGIKA FILTERING & SEARCHING ---
-    const filteredTestCases = testCases?.filter(tc => {
+    // --- LOGIKA FILTERING ---
+    const filteredTestCases = useMemo(() => {
+        if (!testCases) return [];
         const query = searchQuery.toLowerCase();
-        return (
-            (tc.name || '').toLowerCase().includes(query) ||
-            (tc.description || '').toLowerCase().includes(query) ||
-            (tc.type || '').toLowerCase().includes(query) ||
-            (tc.tag || '').toLowerCase().includes(query)
+        return testCases.filter(tc => 
+            tc.name?.toLowerCase().includes(query) ||
+            tc.description?.toLowerCase().includes(query) ||
+            tc.type?.toLowerCase().includes(query) ||
+            tc.tag?.toLowerCase().includes(query)
         );
-    }) || [];
+    }, [testCases, searchQuery]);
 
-    // --- HANDLERS DIALOG CRUD ---
+    // --- HANDLERS ---
+    const handleOpenCreateDialog = () => {
+        setInitialTcData(null);
+        setIsTcDialogOpen(true);
+    };
 
     const handleOpenEditDialog = (tc: TestCase) => {
         setInitialTcData({ ...tc, mode: 'edit' });
         setIsTcDialogOpen(true);
     };
 
-    // 🚨 HANDLER BARU: View Detail
     const handleViewDetail = (tc: TestCase) => {
-        setInitialTcData({ ...tc, mode: 'view' }); // Set mode ke 'view'
-        setIsTcDialogOpen(true);
-    };
-
-    const handleOpenCreateDialog = () => {
-        setInitialTcData(null); // Mode Create
+        setInitialTcData({ ...tc, mode: 'view' });
         setIsTcDialogOpen(true);
     };
 
     const handleDialogClose = (open: boolean) => {
         setIsTcDialogOpen(open);
-        if (!open) {
-            setInitialTcData(null); // Reset data setelah ditutup
-        }
+        if (!open) setInitialTcData(null);
     };
     
-    // 🚨 HANDLER MODIFIKASI: Mempersiapkan penghapusan (Memicu AlertDialog)
-    const handlePrepareDelete = (tc: TestCase) => {
-        setCaseToDelete({ id: tc.id, name: tc.name });
-    };
-
-    // 🚨 HANDLER MODIFIKASI: Eksekusi Penghapusan (Dipanggil dari AlertDialog)
     const handleDeleteTestCase = () => {
         if (!caseToDelete) return;
 
-        const { id: testCaseId, name: tcName } = caseToDelete;
-
-        const params: DeleteTestCaseParams = { testCaseId, idFeature: featureId };
+        const params: DeleteTestCaseParams = { 
+            testCaseId: caseToDelete.id, 
+            idFeature: featureId 
+        };
         
         deleteMutation.mutate(params, {
             onSuccess: () => {
-                // Notifikasi sukses sudah ditangani di hook useDeleteTestCase, tapi bisa juga ditambahkan di sini
-                // toast.success("Test Case Dihapus", { description: `TC '${tcName}' berhasil dihapus.` }); 
-                setCaseToDelete(null); // Tutup dialog konfirmasi
+                setCaseToDelete(null);
+                toast.success("Berhasil", { description: "Test case telah dihapus." });
             },
             onError: (err: any) => {
-                toast.error("Gagal Hapus Test Case", { description: err.message || "Terjadi kesalahan saat menghapus TC." });
-                setCaseToDelete(null); // Tutup dialog
+                toast.error("Gagal", { description: err.message || "Gagal menghapus data." });
+                setCaseToDelete(null);
             }
         });
     };
     
-    // --- RENDER KONDISIONAL ---
-    if (!isValidFeatureId) {
+    // --- RENDER LOGIC ---
+    if (!isValidId) {
         return (
-            <div className="flex flex-col items-center justify-center p-8 text-red-600">
-                <Frown className="h-10 w-10 mb-2" />
-                <p className="text-lg font-semibold">Feature ID tidak valid.</p>
+            <div className="flex flex-col items-center justify-center p-20 text-destructive">
+                <Frown className="h-12 w-12 mb-4" />
+                <p className="text-xl font-bold">Error: Feature ID tidak ditemukan.</p>
+                <Button variant="link" onClick={() => navigate(-1)}>Kembali</Button>
             </div>
         );
     }
     
     if (isLoadingFeature || isLoadingTestCases) {
          return (
-             <div className="flex justify-center p-8">
-                 <Loader2 className="mr-2 h-6 w-6 animate-spin text-primary" />
-                 <p className="text-gray-500 ml-2">Memuat fitur dan test case...</p>
+             <div className="flex flex-col items-center justify-center p-20 space-y-4">
+                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                 <p className="text-muted-foreground animate-pulse">Menyiapkan data test case...</p>
              </div>
          );
      }
 
     if (isErrorTestCases) {
         return (
-            <div className="flex flex-col items-center justify-center p-8 text-red-600">
-                <Frown className="h-10 w-10 mb-2" />
-                <p className="text-lg font-semibold">Gagal memuat Test Case.</p>
+            <div className="flex flex-col items-center justify-center p-20 text-destructive">
+                <Frown className="h-12 w-12 mb-4" />
+                <p className="text-xl font-bold">Gagal memuat data Test Case.</p>
+                <Button className="mt-4" onClick={() => window.location.reload()}>Coba Lagi</Button>
             </div>
         );
     }
 
     return (
         <div className="container mx-auto p-4 space-y-6">
-            {/* Header */}
-            <Card className="shadow-lg">
-                <CardHeader>
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <CardTitle className="text-3xl font-bold">
-                                Test Case untuk: {featureName} 
-                            </CardTitle>
-                            <CardDescription className="text-md mt-1">
-                                Proyek: {projectName} | Total TC: {testCases?.length || 0}
-                            </CardDescription>
-                        </div>
-                        <Button variant="outline" onClick={() => navigate(`/projects/${projectId}/features`)}>
-                            <ArrowLeft className="h-4 w-4 mr-2" /> Kembali ke Daftar Fitur
-                        </Button>
+            {/* Header Section */}
+            <Card className="border-l-4 border-l-primary shadow-sm">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                    <div>
+                        <CardTitle className="text-2xl font-bold tracking-tight">
+                            Test Cases: {featureDetail?.name || featureId} 
+                        </CardTitle>
+                        <CardDescription>
+                            Proyek ID: {projectId} • Total: {testCases?.length || 0} items
+                        </CardDescription>
                     </div>
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/projects/${projectId}/features`)}>
+                        <ArrowLeft className="h-4 w-4 mr-2" /> Kembali
+                    </Button>
                 </CardHeader>
             </Card>
 
-            {/* Aksi & Searching */}
-            <div className="flex justify-between items-center flex-wrap gap-4">
+            {/* Actions Bar */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="relative w-full max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        type="text"
-                        placeholder="Cari Test Case (Nama, Deskripsi, Tipe, Tag)..."
+                        placeholder="Cari test case..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-10"
                     />
                 </div>
-                <Button onClick={handleOpenCreateDialog}>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Tambah Test Case Baru
+                <Button onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Tambah Baru
                 </Button>
             </div>
 
-            {/* Tabel Konten */}
+            {/* Main Table */}
             <Card>
                 <CardContent className="p-0">
                     {filteredTestCases.length > 0 ? (
-                        <div className="overflow-x-auto">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-[50px]">ID</TableHead>
-                                        <TableHead>Nama Test Case</TableHead>
-                                        <TableHead className="w-[100px]">Tipe</TableHead>
-                                        <TableHead className="w-[150px]">Tag</TableHead>
-                                        <TableHead className="w-[100px]">Dibuat Oleh</TableHead>
-                                        <TableHead className="w-[150px] text-right">Aksi</TableHead> 
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[80px]">ID</TableHead>
+                                    <TableHead>Nama</TableHead>
+                                    <TableHead>Tipe</TableHead>
+                                    <TableHead>Tag</TableHead>
+                                    <TableHead>Author</TableHead>
+                                    <TableHead className="text-right">Aksi</TableHead> 
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredTestCases.map((tc) => (
+                                    <TableRow key={tc.id}>
+                                        <TableCell className="font-mono text-xs">{tc.id}</TableCell>
+                                        <TableCell className="font-medium">{tc.name}</TableCell>
+                                        <TableCell>
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary text-secondary-foreground">
+                                                {tc.type}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="text-sm text-muted-foreground">{tc.tag || '-'}</TableCell>
+                                        <TableCell className="text-sm">{tc.createdByUsername}</TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-1">
+                                                <Button variant="ghost" size="icon" onClick={() => handleViewDetail(tc)} title="Detail">
+                                                    <ClipboardList className="h-4 w-4 text-blue-500" />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(tc)} title="Edit">
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    onClick={() => setCaseToDelete({ id: tc.id, name: tc.name })}
+                                                    disabled={deleteMutation.isPending && deleteMutation.variables?.testCaseId === tc.id}
+                                                >
+                                                    {deleteMutation.isPending && deleteMutation.variables?.testCaseId === tc.id ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <Trash className="h-4 w-4 text-destructive" />
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        </TableCell>
                                     </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredTestCases.map((tc) => (
-                                        <TableRow key={tc.id}>
-                                            <TableCell className="font-medium">{tc.id}</TableCell>
-                                            <TableCell className="font-medium">{tc.name}</TableCell>
-                                            <TableCell>{tc.type}</TableCell>
-                                            <TableCell className="text-sm text-gray-500">{tc.tag || '-'}</TableCell>
-                                            <TableCell>{tc.createdByUsername}</TableCell>
-                                            
-                                            {/* Kolom Aksi */}
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end space-x-1">
-                                                    {/* View Detail (Memanggil dialog dengan mode 'view') */}
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="icon" 
-                                                        onClick={() => handleViewDetail(tc)}
-                                                        title="Lihat Detail"
-                                                    >
-                                                        <ClipboardList className="h-4 w-4 text-blue-600" />
-                                                    </Button>
-                                                    {/* Edit */}
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="icon" 
-                                                        onClick={() => handleOpenEditDialog(tc)}
-                                                        title="Edit Test Case"
-                                                    >
-                                                        <Pencil className="h-4 w-4" />
-                                                    </Button>
-                                                    {/* Hapus (Memanggil handler persiapan delete) */}
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="icon" 
-                                                        onClick={() => handlePrepareDelete(tc)}
-                                                        disabled={deleteMutation.isPending && deleteMutation.variables?.testCaseId === tc.id}
-                                                        title="Hapus Test Case"
-                                                    >
-                                                        {deleteMutation.isPending && deleteMutation.variables?.testCaseId === tc.id ? (
-                                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                                        ) : (
-                                                            <Trash className="h-4 w-4 text-red-500" />
-                                                        )}
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
+                                ))}
+                            </TableBody>
+                        </Table>
                     ) : (
-                        <div className="p-10 text-center border-none rounded-lg bg-white">
-                            <p className="text-lg text-gray-500">
-                                {searchQuery ? `Tidak ada Test Case yang cocok dengan kata kunci: "${searchQuery}"` : "Fitur ini belum memiliki Test Case."}
+                        <div className="flex flex-col items-center justify-center p-12 text-center">
+                            <p className="text-muted-foreground mb-4">
+                                {searchQuery ? `Hasil pencarian "${searchQuery}" tidak ditemukan.` : "Belum ada Test Case untuk fitur ini."}
                             </p>
-                            {!searchQuery && (
-                                <Button onClick={handleOpenCreateDialog} className="mt-4">
-                                    Tambahkan Test Case Baru
-                                </Button>
-                            )}
+                            {!searchQuery && <Button onClick={handleOpenCreateDialog}>Buat Test Case Pertama</Button>}
                         </div>
                     )}
                 </CardContent>
             </Card>
             
-            {/* TestCase Form Dialog untuk Create/Edit/View */}
+            {/* Form Dialog */}
             <TestCaseFormDialog 
                 open={isTcDialogOpen}
                 onOpenChange={handleDialogClose}
-                initialData={initialTcData} // Mengirim data dan mode
+                initialData={initialTcData}
                 idFeature={featureId} 
                 idProject={projectId} 
             />
 
-            {/* ALERT DIALOG UNTUK KONFIRMASI PENGHAPUSAN */}
-            <AlertDialog 
-                open={!!caseToDelete} 
-                onOpenChange={(open) => {
-                    if (!open) setCaseToDelete(null); 
-                }}
-            >
+            {/* Delete Confirmation */}
+            <AlertDialog open={!!caseToDelete} onOpenChange={(open) => !open && setCaseToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Konfirmasi Penghapusan Test Case</AlertDialogTitle>
+                        <AlertDialogTitle>Hapus Test Case?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Apakah Anda yakin ingin menghapus Test Case 
-                            "{caseToDelete?.name}"? 
-                            Tindakan ini tidak dapat dibatalkan.
+                            Anda akan menghapus <strong>{caseToDelete?.name}</strong>. Data yang dihapus tidak dapat dikembalikan.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel 
-                            disabled={deleteMutation.isPending}
-                        >
-                            Batal
-                        </AlertDialogCancel>
+                        <AlertDialogCancel disabled={deleteMutation.isPending}>Batal</AlertDialogCancel>
                         <AlertDialogAction 
                             onClick={handleDeleteTestCase} 
-                            className="bg-red-600 hover:bg-red-700"
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             disabled={deleteMutation.isPending}
                         >
-                            {deleteMutation.isPending ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                'Hapus Permanen'
-                            )}
+                            {deleteMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Ya, Hapus'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-            
         </div>
     );
 };

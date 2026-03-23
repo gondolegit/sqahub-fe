@@ -31,31 +31,34 @@ import {
     type FeatureRequest, 
     type UpdateFeatureParams 
 } from '@/hooks/useFeatures';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+    Select, 
+    SelectContent, 
+    SelectItem, 
+    SelectTrigger, 
+    SelectValue 
+} from '@/components/ui/select';
 
-// --- DEFINISI ARRAY ENUM UNTUK ZOD DAN JSX (Tambahkan ini) ---
-const FEATURE_TYPES = ["WEB", "MOBILE", "API"] as const; 
+// --- DEFINISI ARRAY ENUM ---
+const FEATURE_TYPES = ["CREATE", "READ", "UPDATE", "DELETE", "SEARCH", "OTHERS"] as const; 
 const FEATURE_STATUSES = ["active", "pending", "deprecated"] as const;
-
 
 // --- 1. DEFINISI SKEMA VALIDASI (Zod) ---
 const FeatureSchema = z.object({
+    name: z.string().trim().min(3, { message: "Nama fitur minimal 3 karakter." }),
     
-    name: z.string().min(3, { message: "Nama fitur minimal 3 karakter." }),
-    
-    // PERBAIKAN: Menggunakan pola 'error' yang bekerja di proyek Anda
+    // Perbaikan: Menggunakan required_error untuk validasi Select yang kosong
     type: z.enum(FEATURE_TYPES, { 
-        error: "Tipe fitur wajib dipilih.", // Menggantikan required_error/invalid_type_error
+        error: "Tipe fitur wajib dipilih.",
     }),
     
-    description: z.string().min(10, { message: "Deskripsi fitur minimal 10 karakter." }),
+    description: z.string().trim().min(10, { message: "Deskripsi fitur minimal 10 karakter." }),
     
-    // PERBAIKAN: Menggunakan pola 'error' yang bekerja di proyek Anda
     status: z.enum(FEATURE_STATUSES, {
         error: "Status fitur wajib dipilih.",
     }),
     
-    // Tag diperbolehkan kosong atau null
+    // Memastikan tag dikirim sebagai string atau null ke backend
     tag: z.string().optional().nullable(),
 });
 
@@ -65,7 +68,7 @@ type FeatureFormData = z.infer<typeof FeatureSchema>;
 interface FeatureFormDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    initialData: Feature | null; // Data fitur jika mode EDIT
+    initialData: Feature | null; 
     projectId: number;
 }
 
@@ -78,7 +81,7 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
 }) => {
     const isEditMode = !!initialData;
     
-    // Hooks Mutation
+    // Hooks Mutation dari React Query
     const createMutation = useCreateFeature();
     const updateMutation = useUpdateFeature();
     
@@ -89,53 +92,49 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
         resolver: zodResolver(FeatureSchema),
         defaultValues: {
             name: '',
-            type: undefined, // undefined untuk Select
+            type: undefined,
             description: '',
             status: 'pending',
             tag: '',
         },
     });
     
-    // Reset form saat initialData berubah (untuk mode Edit) atau saat ditutup
+    // Reset form saat dialog dibuka atau initialData berubah
     useEffect(() => {
         if (open) {
             form.reset({
                 name: initialData?.name || '',
-                type: initialData?.type as "WEB" | "MOBILE" | "API" | undefined,
+                type: (initialData?.type as FeatureFormData['type']) || undefined,
                 description: initialData?.description || '',
-                status: initialData?.status || 'pending',
+                status: (initialData?.status as FeatureFormData['status']) || 'pending',
                 tag: initialData?.tag || '',
             });
             form.clearErrors();
         }
     }, [open, initialData, form]);
 
-
     // --- 4. HANDLER SUBMIT ---
-    const onSubmit = (data: FeatureFormData) => {
+    const onSubmit = (values: FeatureFormData) => {
         const payload: FeatureRequest = {
-            ...data,
-            idProject: projectId, // Tambahkan Project ID dari props
-            // Pastikan tag adalah string atau null
-            tag: data.tag || null,
+            ...values,
+            idProject: projectId,
+            tag: values.tag || null, // Normalisasi string kosong menjadi null
         };
 
-        if (isEditMode) {
+        if (isEditMode && initialData) {
             const updateParams: UpdateFeatureParams = {
                 ...payload,
-                featureId: initialData!.id, // ID Fitur wajib ada saat Edit
+                featureId: initialData.id,
             };
             
             updateMutation.mutate(updateParams, {
-                onSuccess: () => {
-                    onOpenChange(false); // Tutup dialog setelah sukses
-                },
+                onSuccess: () => onOpenChange(false),
             });
         } else {
             createMutation.mutate(payload, {
                 onSuccess: () => {
-                    onOpenChange(false); // Tutup dialog setelah sukses
-                    form.reset(); // Reset form setelah Create
+                    onOpenChange(false);
+                    form.reset();
                 },
             });
         }
@@ -145,9 +144,13 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>{isEditMode ? `Edit Fitur: ${initialData?.name}` : "Buat Fitur Baru"}</DialogTitle>
+                    <DialogTitle>
+                        {isEditMode ? `Edit Fitur: ${initialData?.name}` : "Buat Fitur Baru"}
+                    </DialogTitle>
                     <DialogDescription>
-                        {isEditMode ? "Ubah detail fitur yang ada." : "Masukkan detail untuk fitur baru pada proyek ini."}
+                        {isEditMode 
+                            ? "Ubah detail fungsionalitas fitur yang sudah ada." 
+                            : "Masukkan detail fungsionalitas baru untuk proyek ini."}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -162,7 +165,11 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
                                 <FormItem>
                                     <FormLabel>Nama Fitur</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Contoh: Master Data User" {...field} disabled={isPending} />
+                                        <Input 
+                                            placeholder="Contoh: Otentikasi JWT" 
+                                            {...field} 
+                                            disabled={isPending} 
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -177,16 +184,22 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Tipe</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
+                                        <Select 
+                                            onValueChange={field.onChange} 
+                                            value={field.value} 
+                                            disabled={isPending}
+                                        >
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Pilih Tipe Fitur" />
+                                                    <SelectValue placeholder="Pilih Tipe" />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value="WEB">WEB</SelectItem>
-                                                <SelectItem value="MOBILE">MOBILE</SelectItem>
-                                                <SelectItem value="API">API</SelectItem>
+                                                {FEATURE_TYPES.map((type) => (
+                                                    <SelectItem key={type} value={type}>
+                                                        {type}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -201,7 +214,11 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Status</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
+                                        <Select 
+                                            onValueChange={field.onChange} 
+                                            value={field.value} 
+                                            disabled={isPending}
+                                        >
                                             <FormControl>
                                                 <SelectTrigger>
                                                     <SelectValue />
@@ -227,14 +244,19 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
                                 <FormItem>
                                     <FormLabel>Deskripsi</FormLabel>
                                     <FormControl>
-                                        <Textarea placeholder="Detail fungsionalitas fitur..." {...field} disabled={isPending} />
+                                        <Textarea 
+                                            placeholder="Jelaskan alur atau fungsi fitur ini..." 
+                                            className="min-h-[100px]"
+                                            {...field} 
+                                            disabled={isPending} 
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
 
-                        {/* Tag (Optional) */}
+                        {/* Tag */}
                         <FormField
                             control={form.control}
                             name="tag"
@@ -242,9 +264,8 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
                                 <FormItem>
                                     <FormLabel>Tag (Opsional)</FormLabel>
                                     <FormControl>
-                                        {/* Gunakan field.value || '' untuk mengontrol input jika nilai tag null */}
                                         <Input 
-                                            placeholder="Contoh: v2.0, hotfix" 
+                                            placeholder="Contoh: v1.0, sprint-1" 
                                             {...field} 
                                             value={field.value || ''} 
                                             disabled={isPending} 
@@ -255,11 +276,20 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
                             )}
                         />
 
-                        {/* Tombol Submit */}
-                        <Button type="submit" className="w-full" disabled={isPending}>
-                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {isEditMode ? 'Simpan Perubahan' : 'Buat Fitur'}
-                        </Button>
+                        <div className="flex justify-end gap-3 pt-4">
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                onClick={() => onOpenChange(false)}
+                                disabled={isPending}
+                            >
+                                Batal
+                            </Button>
+                            <Button type="submit" disabled={isPending}>
+                                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {isEditMode ? 'Simpan Perubahan' : 'Buat Fitur'}
+                            </Button>
+                        </div>
                     </form>
                 </Form>
             </DialogContent>

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQueries, useQuery } from '@tanstack/react-query';
+import { useQueries } from '@tanstack/react-query';
 import axios from 'axios';
 import {
     useFeatures,
@@ -10,7 +10,11 @@ import {
 } from '@/hooks/useFeatures';
 import { useProjectDetail } from '@/hooks/useProjects';
 
-import { Loader2, PlusCircle, Frown, ArrowLeft, Search, Pencil, Trash } from 'lucide-react';
+import { 
+    Loader2, PlusCircle, Frown, ArrowLeft, Search, 
+    Pencil, Trash, Layers, BarChart3, CheckCircle2, 
+    MoreHorizontal, Eye, Tag
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -26,25 +30,23 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
-// Pastikan path import ini sesuai dengan struktur folder Shadcn Anda
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-// =========================================================================
-// 🚨 DUMMY: FETCHING TEST CASE (Anda harus memindahkan ini ke hook yang sesuai)
-// =========================================================================
+// --- (API & Fetching Logic tetap sama) ---
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 const getAuthHeaders = () => {
     const token = localStorage.getItem('authToken') || '';
-    return {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    };
+    return { headers: { Authorization: `Bearer ${token}` } };
 };
-interface TestCase {
-    id: number;
-}
+interface TestCase { id: number; }
 const fetchTestCasesByFeature = async (featureId: number): Promise<TestCase[]> => {
     if (featureId <= 0) return [];
     const response = await axios.get<TestCase[]>(`${API_BASE_URL}/testcase/feature/${featureId}`, getAuthHeaders());
@@ -55,338 +57,231 @@ interface FeatureWithCount extends Feature {
     testCaseCount: number;
 }
 
-
 const FeaturesPage: React.FC = () => {
     const navigate = useNavigate();
     const { projectId: projectIdStr } = useParams<{ projectId: string }>();
     const projectId = projectIdStr ? parseInt(projectIdStr) : undefined;
     const isValidId = projectId && !isNaN(projectId);
 
-    // States untuk UI dan Dialog CRUD
     const [searchQuery, setSearchQuery] = useState('');
     const [isFeatureDialogOpen, setIsFeatureDialogOpen] = useState(false);
     const [initialFeatureData, setInitialFeatureData] = useState<Feature | null>(null);
-    // 🚨 STATE BARU: Untuk konfirmasi penghapusan
     const [featureToDelete, setFeatureToDelete] = useState<{ id: number; name: string } | null>(null);
 
-    // Data Hooks
-    const {
-        data: features,
-        isLoading: isLoadingFeatures,
-        isError: isErrorFeatures,
-        error: errorFeatures
-    } = useFeatures(isValidId ? projectId : -1);
-
+    const { data: features, isLoading: isLoadingFeatures, isError: isErrorFeatures, error: errorFeatures } = useFeatures(isValidId ? projectId : -1);
     const { data: projectDetail, isLoading: isLoadingProject } = useProjectDetail(isValidId ? projectId : -1);
     const deleteMutation = useDeleteFeature();
 
     const projectName = projectDetail?.name || `Proyek ID: ${projectId}`;
 
-
-    // =========================================================================
-    // LOGIKA PENGHITUNGAN TEST CASE (MENGGUNAKAN useQueries)
-    // =========================================================================
+    // --- Data Mapping & Stats ---
     const featureQueries = features?.map(feature => ({
         queryKey: ['testCasesByFeature', feature.id],
         queryFn: () => fetchTestCasesByFeature(feature.id),
         enabled: !!feature.id,
-        staleTime: 5 * 60 * 1000,
     })) || [];
 
     const testCaseResults = useQueries({ queries: featureQueries });
-
     const isLoadingTCCounts = testCaseResults.some(result => result.isLoading);
     const isLoadingTotal = isLoadingFeatures || isLoadingProject || isLoadingTCCounts;
 
-
-    const featuresWithCount: FeatureWithCount[] = features?.map((feature, index) => {
-        const tcData = testCaseResults[index];
-        const count = tcData?.data?.length || 0;
-
-        return {
+    const featuresWithCount: FeatureWithCount[] = useMemo(() => {
+        return features?.map((feature, index) => ({
             ...feature,
-            testCaseCount: count,
-        };
-    }) || [];
+            testCaseCount: testCaseResults[index]?.data?.length || 0,
+        })) || [];
+    }, [features, testCaseResults]);
 
+    const filteredFeatures = featuresWithCount.filter(f => 
+        f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (f.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-    // --- LOGIKA FILTERING (Menggunakan featuresWithCount yang sudah diperbarui) ---
-    const filteredFeatures = featuresWithCount.filter(feature => {
-        const query = searchQuery.toLowerCase();
+    // Stats Calculation
+    const totalTCs = featuresWithCount.reduce((acc, curr) => acc + curr.testCaseCount, 0);
+    const activeFeatures = featuresWithCount.filter(f => f.status === 'active').length;
 
-        return (
-            (feature.name || '').toLowerCase().includes(query) ||
-            (feature.description || '').toLowerCase().includes(query) ||
-            (feature.status || '').toLowerCase().includes(query) ||
-            (feature.type || '').toLowerCase().includes(query)
-        );
-    }) || [];
+    // --- Handlers ---
+    const handleViewTestCases = (featureId: number) => navigate(`/projects/${projectId}/features/${featureId}/testcases`);
+    const handleOpenEditDialog = (feature: Feature) => { setInitialFeatureData(feature); setIsFeatureDialogOpen(true); };
+    const handleOpenCreateDialog = () => { setInitialFeatureData(null); setIsFeatureDialogOpen(true); };
+    const handlePrepareDelete = (feature: Feature) => setFeatureToDelete({ id: feature.id, name: feature.name });
 
-    // --- HANDLERS ---
-
-    // HANDLER NAVIGASI KE HALAMAN TEST CASE
-    const handleViewTestCases = (featureId: number) => {
-        if (projectId) {
-            navigate(`/projects/${projectId}/features/${featureId}/testcases`);
-        } else {
-            toast.error("Error Navigasi", { description: "Project ID tidak ditemukan." });
-        }
-    };
-
-    // Handler untuk membuka dialog mode Edit
-    const handleOpenEditDialog = (feature: Feature) => {
-        setInitialFeatureData(feature);
-        setIsFeatureDialogOpen(true);
-    };
-
-    // Handler untuk membuka dialog mode Create
-    const handleOpenCreateDialog = () => {
-        setInitialFeatureData(null);
-        setIsFeatureDialogOpen(true);
-    };
-
-    // Handler untuk menutup dialog
-    const handleDialogClose = (open: boolean) => {
-        setIsFeatureDialogOpen(open);
-        if (!open) {
-            setInitialFeatureData(null); // Reset data setelah ditutup
-        }
-    };
-
-    // 🚨 HANDLER BARU/MODIFIKASI: Mempersiapkan penghapusan
-    const handlePrepareDelete = (feature: Feature) => {
-        setFeatureToDelete({ id: feature.id, name: feature.name });
-    };
-
-    // 🚨 HANDLER MODIFIKASI: Eksekusi Penghapusan (Dipanggil dari AlertDialog)
     const handleDeleteFeature = () => {
         if (!featureToDelete) return;
-
-        const { id: featureId, name: featureName } = featureToDelete;
-
-        const params: DeleteFeatureParams = { featureId, projectId: projectId! };
-
-        deleteMutation.mutate(params, {
+        deleteMutation.mutate({ featureId: featureToDelete.id, projectId: projectId! }, {
             onSuccess: () => {
-                toast.success("Fitur Dihapus", { description: `Fitur '${featureName}' berhasil dihapus.` });
-                setFeatureToDelete(null); // Tutup dialog konfirmasi setelah sukses
+                toast.success("Fitur Dihapus", { description: `Fitur '${featureToDelete.name}' berhasil dihapus.` });
+                setFeatureToDelete(null);
             },
             onError: (err: any) => {
-                toast.error("Gagal Hapus Fitur", { description: err.message || "Terjadi kesalahan saat menghapus fitur." });
-                setFeatureToDelete(null); // Tutup dialog
+                toast.error("Gagal", { description: err.message });
+                setFeatureToDelete(null);
             }
         });
     };
 
-
-    // --- RENDER KONDISIONAL ---
-    if (!isValidId) {
-        // ... (Kode render Project ID tidak valid)
-        return (
-            <div className="flex flex-col items-center justify-center p-8 text-red-600">
-                <Frown className="h-10 w-10 mb-2" />
-                <p className="text-lg font-semibold">Project ID tidak valid.</p>
-                <Link to="/projects"><Button className="mt-4"><ArrowLeft className="h-4 w-4 mr-2" /> Kembali ke Daftar Project</Button></Link>
-            </div>
-        );
-    }
-
-    if (isLoadingTotal) {
-        // ... (Kode render Loading)
-        return (
-            <div className="flex justify-center p-8">
-                <Loader2 className="mr-2 h-6 w-6 animate-spin text-primary" />
-                <p className="text-gray-500 ml-2">Memuat detail proyek, fitur, dan menghitung Test Case...</p>
-            </div>
-        );
-    }
-
-    if (isErrorFeatures) {
-        // ... (Kode render Error)
-        return (
-            <div className="flex flex-col items-center justify-center p-8 text-red-600">
-                <Frown className="h-10 w-10 mb-2" />
-                <p className="text-lg font-semibold">Gagal memuat fitur.</p>
-                <p className="text-sm">{errorFeatures?.message || "Terjadi kesalahan saat mengambil data fitur."}</p>
-            </div>
-        );
-    }
+    if (!isValidId) return <div className="p-8 text-center"><Frown className="mx-auto h-12 w-12 text-red-500" /><p>ID Tidak Valid</p></div>;
+    if (isLoadingTotal) return <div className="flex justify-center p-20"><Loader2 className="animate-spin h-8 w-8 text-blue-600" /></div>;
 
     return (
-        <div className="container mx-auto p-4 space-y-6">
-            {/* Header Halaman Fitur */}
-            <Card className="shadow-lg">
-                <CardHeader>
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <CardTitle className="text-3xl font-bold">
-                                Fitur: {projectName}
-                            </CardTitle>
-                            <CardDescription className="text-md mt-1">
-                                Kelola semua Fitur, Test Case, dan dokumentasi terkait Project ini.
-                            </CardDescription>
-                        </div>
-                        <Link to="/projects">
-                            <Button variant="outline">
-                                <ArrowLeft className="h-4 w-4 mr-2" /> Kembali ke Daftar Project
-                            </Button>
-                        </Link>
+        <div className="container mx-auto p-6 space-y-8 bg-slate-50/30 min-h-screen">
+            {/* --- TOP HEADER --- */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <div className="flex items-center gap-2 text-blue-600 mb-1 cursor-pointer hover:underline" onClick={() => navigate('/projects')}>
+                        <ArrowLeft className="h-4 w-4" />
+                        <span className="text-sm font-medium">Kembali ke Proyek</span>
                     </div>
-                </CardHeader>
-            </Card>
-
-            {/* Bagian Aksi & Searching */}
-            <div className="flex justify-between items-center flex-wrap gap-4">
-                <div className="relative w-full max-w-sm">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                        type="text"
-                        placeholder="Cari Fitur (Nama, Deskripsi, Status, Tipe)..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10"
-                    />
+                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">{projectName}</h1>
+                    <p className="text-slate-500 mt-1 flex items-center gap-2">
+                        <Layers className="h-4 w-4" /> Kelola cakupan testing fitur aplikasi
+                    </p>
                 </div>
-                <Button onClick={handleOpenCreateDialog}>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Tambah Fitur Baru
+                <Button onClick={handleOpenCreateDialog} className="bg-blue-600 hover:bg-blue-700 shadow-lg">
+                    <PlusCircle className="mr-2 h-4 w-4" /> Tambah Fitur
                 </Button>
             </div>
 
-            {/* Tabel Konten */}
-            <Card>
+            {/* --- DASHBOARD STATS --- */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <StatCard title="Total Fitur" value={featuresWithCount.length} icon={<Layers className="text-blue-500" />} color="blue" />
+                <StatCard title="Fitur Aktif" value={activeFeatures} icon={<CheckCircle2 className="text-emerald-500" />} color="emerald" />
+                <StatCard title="Total Test Case" value={totalTCs} icon={<BarChart3 className="text-purple-500" />} color="purple" />
+            </div>
+
+            {/* --- MAIN CONTENT --- */}
+            <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm">
+                <CardHeader className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 pb-6 border-b">
+                    <div className="w-full md:w-auto">
+                        <CardTitle>Daftar Fitur</CardTitle>
+                        <CardDescription>Cari dan kelola fungsionalitas aplikasi.</CardDescription>
+                    </div>
+                    <div className="relative w-full md:w-80">
+                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                        <Input 
+                            placeholder="Cari fitur..." 
+                            className="pl-9 bg-slate-50/50" 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                </CardHeader>
                 <CardContent className="p-0">
                     {filteredFeatures.length > 0 ? (
-                        <div className="overflow-x-auto">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="w-[50px]">ID</TableHead>
-                                        <TableHead>Nama Fitur</TableHead>
-                                        <TableHead className="w-[100px]">Tipe</TableHead>
-                                        <TableHead className="w-[100px]">Status</TableHead>
-                                        <TableHead className="w-[100px] text-center">TC Count</TableHead>
-                                        <TableHead className="w-[100px] text-right">Aksi</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {filteredFeatures.map((feature) => (
-                                        <TableRow key={feature.id}>
-                                            <TableCell className="font-medium">{feature.id}</TableCell>
-                                            <TableCell className="font-medium">{feature.name}</TableCell>
-                                            <TableCell>{feature.type}</TableCell>
-
-                                            {/* Kolom Status menggunakan Badge */}
-                                            <TableCell>
-                                                <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full 
-                                                    ${feature.status === 'active' ? 'bg-green-100 text-green-700' :
-                                                        feature.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                            'bg-gray-100 text-gray-500'}`}>
-                                                    {feature.status.toUpperCase()}
+                        <Table>
+                            <TableHeader className="bg-slate-50/50">
+                                <TableRow>
+                                    <TableHead className="font-bold text-slate-700">Fitur & Deskripsi</TableHead>
+                                    <TableHead className="hidden md:table-cell font-bold text-slate-700">Status</TableHead>
+                                    <TableHead className="hidden md:table-cell font-bold text-slate-700">Tipe</TableHead>
+                                    <TableHead className="text-center font-bold text-slate-700">Test Cases</TableHead>
+                                    <TableHead className="text-right font-bold text-slate-700">Aksi</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredFeatures.map((f) => (
+                                    <TableRow key={f.id} className="hover:bg-blue-50/30 transition-colors group">
+                                        <TableCell>
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-slate-800 group-hover:text-blue-600 transition-colors cursor-pointer" onClick={() => handleViewTestCases(f.id)}>
+                                                    {f.name}
                                                 </span>
-                                            </TableCell>
-
-                                            {/* Kolom TC Count yang Clickable */}
-                                            <TableCell
-                                                className="text-center font-bold text-blue-600 cursor-pointer hover:underline"
-                                                onClick={() => handleViewTestCases(feature.id)}
+                                                <span className="text-xs text-slate-500 line-clamp-1 italic">{f.description || 'N/A'}</span>
+                                                {f.tag && (
+                                                    <div className="flex items-center gap-1 mt-1 text-[10px] text-slate-400">
+                                                        <Tag className="h-3 w-3" /> {f.tag}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="hidden md:table-cell">
+                                            <StatusBadge status={f.status} />
+                                        </TableCell>
+                                        <TableCell className="hidden md:table-cell">
+                                            <span className="text-[10px] font-mono font-semibold bg-slate-100 px-2 py-0.5 rounded border">
+                                                {f.type}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                className="h-8 border-blue-200 text-blue-600 hover:bg-blue-50 font-bold"
+                                                onClick={() => handleViewTestCases(f.id)}
                                             >
-                                                {feature.testCaseCount || 0}
-                                            </TableCell>
-
-                                            {/* Kolom Aksi (Icon-based) */}
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end space-x-1">
-                                                    {/* 🚨 VIEW DETAIL (Optional: Jika FeatureFormDialog tidak cocok untuk View)
-                <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(feature, 'view')}>
-                    <Eye className="h-4 w-4" />
-                </Button> 
-                */}
-
-                                                    {/* Edit */}
-                                                    <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(feature)}>
-                                                        <Pencil className="h-4 w-4" />
-                                                    </Button>
-
-                                                    {/* Hapus - Sekarang memanggil handler persiapan */}
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => handlePrepareDelete(feature)} // 🚨 Panggil handler baru
-                                                        disabled={deleteMutation.isPending && deleteMutation.variables?.featureId === feature.id}
-                                                    >
-                                                        {deleteMutation.isPending && deleteMutation.variables?.featureId === feature.id ? (
-                                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                                        ) : (
-                                                            <Trash className="h-4 w-4 text-red-500" />
-                                                        )}
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
+                                                {f.testCaseCount} TC
+                                            </Button>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-40">
+                                                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                                                    <DropdownMenuItem onClick={() => handleViewTestCases(f.id)}>
+                                                        <Eye className="mr-2 h-4 w-4" /> Lihat TC
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleOpenEditDialog(f)}>
+                                                        <Pencil className="mr-2 h-4 w-4" /> Edit
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem onClick={() => handlePrepareDelete(f)} className="text-red-600 focus:bg-red-50">
+                                                        <Trash className="mr-2 h-4 w-4" /> Hapus
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
                     ) : (
-                        <div className="p-10 text-center border-none rounded-lg bg-white">
-                            <p className="text-lg text-gray-500">
-                                {searchQuery ? `Tidak ada fitur yang cocok dengan kata kunci: "${searchQuery}"` : "Proyek ini belum memiliki fitur."}
-                            </p>
-                            {!searchQuery && (
-                                <Button onClick={handleOpenCreateDialog} className="mt-4">
-                                    Tambahkan Fitur Baru
-                                </Button>
-                            )}
-                        </div>
+                        <div className="p-20 text-center"><Search className="mx-auto h-12 w-12 text-slate-200 mb-4" /><p className="text-slate-500 font-medium italic">Data tidak ditemukan</p></div>
                     )}
                 </CardContent>
             </Card>
 
-            {/* FeatureFormDialog diaktifkan (Untuk Create/Edit/View Detail) */}
-            <FeatureFormDialog 
-                open={isFeatureDialogOpen}
-                onOpenChange={handleDialogClose}
-                initialData={initialFeatureData}
-                projectId={projectId} 
-            />
-
-            {/* 🚨 ALERT DIALOG UNTUK KONFIRMASI PENGHAPUSAN 🚨 */}
-            <AlertDialog 
-                open={!!featureToDelete} // Buka jika featureToDelete ada
-                onOpenChange={(open) => {
-                    if (!open) setFeatureToDelete(null); // Tutup jika diklik di luar
-                }}
-            >
+            {/* --- Dialogs --- */}
+            <FeatureFormDialog open={isFeatureDialogOpen} onOpenChange={setIsFeatureDialogOpen} initialData={initialFeatureData} projectId={projectId!} />
+            
+            <AlertDialog open={!!featureToDelete} onOpenChange={(o) => !o && setFeatureToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Konfirmasi Penghapusan</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Apakah Anda yakin ingin menghapus fitur 
-                            "{featureToDelete?.name}"? 
-                            Tindakan ini akan menghapus semua Test Case terkait dan tidak dapat dibatalkan.
-                        </AlertDialogDescription>
+                        <AlertDialogTitle>Hapus Fitur?</AlertDialogTitle>
+                        <AlertDialogDescription>Semua test case di "{featureToDelete?.name}" akan ikut terhapus permanen.</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel 
-                            disabled={deleteMutation.isPending}
-                        >
-                            Batal
-                        </AlertDialogCancel>
-                        <AlertDialogAction 
-                            onClick={handleDeleteFeature} // Panggil fungsi eksekusi penghapusan
-                            className="bg-red-600 hover:bg-red-700"
-                            disabled={deleteMutation.isPending}
-                        >
-                            {deleteMutation.isPending ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                'Hapus Permanen'
-                            )}
-                        </AlertDialogAction>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteFeature} className="bg-red-600 hover:bg-red-700">Hapus Permanen</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
         </div>
+    );
+};
+
+// --- Sub-components for Cleanliness ---
+const StatCard = ({ title, value, icon, color }: any) => (
+    <Card className={`border-l-4 border-l-${color}-500 shadow-md`}>
+        <CardContent className="p-5 flex items-center justify-between">
+            <div><p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{title}</p><h3 className="text-2xl font-bold text-slate-900">{value}</h3></div>
+            <div className={`p-3 bg-${color}-50 rounded-xl`}>{icon}</div>
+        </CardContent>
+    </Card>
+);
+
+const StatusBadge = ({ status }: { status: string }) => {
+    const config: Record<string, string> = {
+        active: "bg-emerald-100 text-emerald-700 border-emerald-200",
+        pending: "bg-amber-100 text-amber-700 border-amber-200",
+        deprecated: "bg-rose-100 text-rose-700 border-rose-200",
+    };
+    return (
+        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${config[status] || "bg-slate-100 text-slate-600"}`}>
+            {status}
+        </span>
     );
 };
 

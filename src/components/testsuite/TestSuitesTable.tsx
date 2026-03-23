@@ -231,7 +231,7 @@ const TestSuitesTable: React.FC<TestSuitesTableProps> = ({ data, isLoading, proj
                     onOpenChange={() => setSuiteToDelete(null)}
                     onConfirm={handleDeleteSuite}
                     title="Hapus Test Suite Run"
-                    description={`Apakah Anda yakin ingin menghapus Test Suite Run **'${suiteToDelete.name}'**? Tindakan ini tidak dapat dibatalkan. ID Run: ${suiteToDelete.id}`}
+                    description={`Apakah Anda yakin ingin menghapus Test Suite Run '${suiteToDelete.name}'? Tindakan ini tidak dapat dibatalkan. ID Run: ${suiteToDelete.id}`}
                     confirmText="Ya, Hapus Run"
                     isDeleting={deleteMutation.isPending}
                 />

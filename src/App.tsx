@@ -45,7 +45,8 @@ const App: React.FC = () => {
     
     // 🚨 LOGIKA BARU: Jika sudah login, rute default (/) mengarah ke Dashboard. 
     // Jika belum login, rute default (/) mengarah ke Landing Page.
-    const HomeRedirect = isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />;
+    // const HomeRedirect = isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />;
+    const HomeRedirect = isAuthenticated ? <Navigate to="/projects" replace /> : <LandingPage />;
 
     return (
         <>

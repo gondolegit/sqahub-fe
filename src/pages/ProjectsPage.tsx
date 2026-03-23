@@ -1,205 +1,198 @@
-// src/pages/ProjectsPage.tsx
-
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Loader2, PlusCircle, Eye, Search } from 'lucide-react'; // Tambahkan Search icon
+import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Plus, Search, LayoutGrid, List, MoreVertical, 
+  ExternalLink, Pencil, Trash2, FolderPlus 
+} from 'lucide-react';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom'; // Menggunakan React Router DOM
 
-// Import Komponen
+// UI Components
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { 
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Custom Components & Hooks
 import ProjectFormDialog from '@/components/project/ProjectFormDialog';
-import { Input } from '@/components/ui/input'; // Import komponen Input
-
-// Import Hooks dan Tipe
 import { useProjects, useDeleteProject } from '@/hooks/useProjects';
-import type { Project } from '@/types/index'; // Asumsi Project diimpor dari types/index
-
-// Import komponen UI lainnya
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Spinner } from '@/components/ui/spinner';
+import type { Project } from '@/types/index';
 
 const ProjectsPage: React.FC = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  
+  // State Management
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
-    // 1. STATE UNTUK UI
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [initialProjectData, setInitialProjectData] = useState<Project | null>(null);
-    const [searchQuery, setSearchQuery] = useState(''); // State untuk searching
+  const { data: projects, isLoading, isError } = useProjects();
+  const deleteMutation = useDeleteProject();
 
-    // 2. HOOKS QUERY DAN MUTATION
-    const { data: projects, isLoading, isError, error } = useProjects();
-    const deleteMutation = useDeleteProject();
-
-    // --- LOGIKA FILTERING ---
-    const filteredProjects = projects?.filter(project => {
-        const query = searchQuery.toLowerCase();
-        return (
-            project.name.toLowerCase().includes(query) ||
-            project.description.toLowerCase().includes(query) ||
-            project.status.toLowerCase().includes(query)
-        );
-    }) || [];
-
-    // --- HANDLERS ---
-    const handleViewFeatures = (projectId: number) => {
-        navigate(`/projects/${projectId}/features`);
-    };
-
-    const handleOpenCreateDialog = () => {
-        setInitialProjectData(null);
-        setIsDialogOpen(true);
-    };
-
-    const handleOpenEditDialog = (project: Project) => {
-        setInitialProjectData(project);
-        setIsDialogOpen(true);
-    };
-
-    const handleDialogClose = (open: boolean) => {
-        setIsDialogOpen(open);
-        if (!open) {
-            setInitialProjectData(null);
-        }
-    };
-
-    const handleDeleteProject = (projectId: number, projectName: string) => {
-        if (window.confirm(`Apakah Anda yakin ingin menghapus project '${projectName}'?`)) {
-            deleteMutation.mutate(projectId, {
-                onSuccess: () => {
-                    toast.success("Project Dihapus", { description: `Project '${projectName}' berhasil dihapus.` });
-                },
-                onError: (err: any) => {
-                    toast.error("Gagal Hapus Project", { description: err.message || "Terjadi kesalahan saat menghapus project." });
-                }
-            });
-        }
-    };
-
-
-    // --- RENDERING KONTEN ---
-    if (isLoading) {
-        return <div className="p-8 text-center"><Spinner /> Loading Projects...</div>;
-    }
-
-    if (isError) {
-        return <div className="p-8 text-center text-red-500">Error: {error?.message || "Gagal memuat daftar proyek."}</div>;
-    }
-
-
-    return (
-        <div className="container mx-auto p-4">
-            <header className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold">Daftar Proyek</h1>
-                <Button onClick={handleOpenCreateDialog}>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Tambah Project Baru
-                </Button>
-            </header>
-            
-            {/* AREA SEARCHING */}
-            <div className="mb-8 relative w-full max-w-lg">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                    type="text"
-                    placeholder="Cari Proyek berdasarkan Nama, Deskripsi, atau Status..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                />
-            </div>
-
-            {filteredProjects.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {filteredProjects.map((project) => (
-                        <Card
-                            key={project.id}
-                            className="flex flex-col justify-between hover:shadow-lg transition-shadow duration-300"
-                        >
-                            <CardHeader className="pb-3 border-b">
-                                <CardTitle className="text-xl font-extrabold truncate">
-                                    {project.name}
-                                </CardTitle>
-                                <CardDescription className="text-xs text-gray-400">
-                                    ID: {project.id}
-                                </CardDescription>
-                            </CardHeader>
-
-                            <CardContent className="space-y-4 p-4 flex-grow">
-                                {/* Deskripsi Proyek */}
-                                <p className="text-sm text-gray-700 line-clamp-3 min-h-[60px]">
-                                    {project.description || '*Tidak ada deskripsi proyek.*'}
-                                </p>
-
-                                {/* Badge Status */}
-                                <div className="flex justify-start">
-                                    <span className={`inline-flex items-center px-3 py-1 text-xs font-bold leading-none rounded-full 
-                                        ${project.status === 'active' ? 'bg-green-100 text-green-700' :
-                                          project.status === 'completed' ? 'bg-blue-100 text-blue-700' :
-                                          project.status === 'suspended' ? 'bg-yellow-100 text-yellow-700' :
-                                          'bg-gray-100 text-gray-500'}`}>
-                                        {project.status.toUpperCase()}
-                                    </span>
-                                </div>
-
-                                {/* Detail Tambahan */}
-                                <div className="text-xs text-gray-500 space-y-1 pt-2 border-t mt-3">
-                                    <p>
-                                        Tipe: <span className="font-medium text-gray-700">{project.type}</span>
-                                    </p>
-                                    <p>
-                                        Dibuat oleh: <span className="font-medium text-gray-700">{project.createdByUsername}</span>
-                                    </p>
-                                    <p>
-                                        Dibuat pada: {new Date(project.createdAt).toLocaleDateString('id-ID')}
-                                    </p>
-                                </div>
-
-                                {/* Tombol Aksi */}
-                                <div className="flex flex-wrap justify-end gap-2 pt-4 border-t">
-
-                                    <Button size="sm" onClick={() => handleViewFeatures(project.id)} className="flex-shrink-0">
-                                        <Eye className="mr-2 h-4 w-4" /> Features
-                                    </Button>
-
-                                    <Button variant="outline" size="sm"
-                                        onClick={() => handleOpenEditDialog(project)} className="flex-shrink-0">
-                                        Edit
-                                    </Button>
-
-                                    <Button variant="destructive" size="sm"
-                                        onClick={() => handleDeleteProject(project.id, project.name)}
-                                        disabled={deleteMutation.isPending && deleteMutation.variables === project.id}
-                                        className="flex-shrink-0">
-                                        {deleteMutation.isPending && deleteMutation.variables === project.id ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                            'Hapus'
-                                        )}
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            ) : (
-                <div className="p-10 text-center border rounded-lg bg-gray-50">
-                    <p className="text-lg text-gray-500">
-                         {searchQuery ? `Tidak ada proyek yang cocok dengan kata kunci: "${searchQuery}"` : "Belum ada proyek yang dibuat."}
-                    </p>
-                    {!searchQuery && (
-                        <Button onClick={handleOpenCreateDialog} className="mt-4">
-                            Buat Project Pertama
-                        </Button>
-                    )}
-                </div>
-            )}
-
-            <ProjectFormDialog
-                open={isDialogOpen}
-                onOpenChange={handleDialogClose}
-                initialData={initialProjectData}
-            />
-        </div>
+  // Optimized Search Logic (ISO-standard: Responsiveness)
+  const filteredProjects = useMemo(() => {
+    if (!projects) return [];
+    const query = searchQuery.toLowerCase();
+    return projects.filter(p => 
+      p.name.toLowerCase().includes(query) || 
+      p.description?.toLowerCase().includes(query)
     );
+  }, [projects, searchQuery]);
+
+  // Handlers
+  const handleAction = (project: Project | null) => {
+    setSelectedProject(project);
+    setIsDialogOpen(true);
+  };
+
+  const confirmDelete = (project: Project) => {
+    // Elegant toast replacement for window.confirm
+    toast("Hapus Proyek?", {
+      description: `Data '${project.name}' akan dihapus permanen.`,
+      action: {
+        label: "Hapus",
+        onClick: () => deleteMutation.mutate(project.id, {
+          onSuccess: () => toast.success("Terhapus"),
+          onError: (err) => toast.error("Gagal", { description: err.message })
+        }),
+      },
+    });
+  };
+
+  if (isError) return <ErrorState />;
+
+  return (
+    <div className="container max-w-7xl mx-auto py-8 px-4 space-y-8 animate-in fade-in duration-500">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Project Hub</h1>
+          <p className="text-slate-500">Kelola dan pantau seluruh sistem otomasi testing Anda.</p>
+        </div>
+        <Button onClick={() => handleAction(null)} className="shadow-md hover:shadow-lg transition-all">
+          <Plus className="mr-2 h-4 w-4" /> Proyek Baru
+        </Button>
+      </div>
+
+      {/* Toolbar */}
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Input 
+            placeholder="Cari proyek..." 
+            className="pl-10 bg-white"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* Project Grid */}
+      {isLoading ? (
+        <LoadingGrid />
+      ) : filteredProjects.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProjects.map((project) => (
+            <ProjectCard 
+              key={project.id} 
+              project={project} 
+              onEdit={() => handleAction(project)}
+              onDelete={() => confirmDelete(project)}
+              onView={() => navigate(`/projects/${project.id}/features`)}
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyState onAdd={() => handleAction(null)} isSearch={!!searchQuery} />
+      )}
+
+      <ProjectFormDialog 
+        open={isDialogOpen} 
+        onOpenChange={setIsDialogOpen} 
+        initialData={selectedProject} 
+      />
+    </div>
+  );
 };
+
+// --- SUB-COMPONENTS (Clean Code: Atomic Design) ---
+
+const ProjectCard = ({ project, onEdit, onDelete, onView }: any) => (
+  <Card className="group hover:border-primary/50 transition-all duration-300 flex flex-col overflow-hidden">
+    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+      <div className="space-y-1">
+        <Badge variant="outline" className="font-mono text-[10px] uppercase tracking-wider">
+          {project.type}
+        </Badge>
+        <h3 className="font-bold text-lg leading-none group-hover:text-primary transition-colors">
+          {project.name}
+        </h3>
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={onEdit}><Pencil className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
+          <DropdownMenuItem onClick={onDelete} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Hapus</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </CardHeader>
+    <CardContent className="flex-grow py-4">
+      <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">
+        {project.description || "Tidak ada deskripsi tersedia."}
+      </p>
+    </CardContent>
+    <CardFooter className="border-t bg-slate-50/50 p-4 flex justify-between items-center">
+      <StatusBadge status={project.status} />
+      <Button size="sm" variant="ghost" onClick={onView} className="text-primary hover:text-primary hover:bg-primary/10">
+        Features <ExternalLink className="ml-2 h-3 w-3" />
+      </Button>
+    </CardFooter>
+  </Card>
+);
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const variants: Record<string, string> = {
+    active: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    completed: "bg-blue-100 text-blue-700 border-blue-200",
+    suspended: "bg-amber-100 text-amber-700 border-amber-200",
+    archived: "bg-slate-100 text-slate-700 border-slate-200",
+  };
+  return (
+    <Badge variant="outline" className={`${variants[status] || variants.archived} capitalize px-2 py-0`}>
+      {status}
+    </Badge>
+  );
+};
+
+const LoadingGrid = () => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {[1, 2, 3].map((i) => <Skeleton key={i} className="h-[200px] w-full rounded-xl" />)}
+  </div>
+);
+
+const EmptyState = ({ onAdd, isSearch }: any) => (
+  <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-2xl bg-slate-50">
+    <FolderPlus className="h-12 w-12 text-slate-300 mb-4" />
+    <h3 className="text-lg font-medium">{isSearch ? "Hasil tidak ditemukan" : "Belum ada proyek"}</h3>
+    <p className="text-slate-500 mb-6 text-center max-w-xs">
+      {isSearch ? "Coba gunakan kata kunci lain." : "Mulai dengan membuat proyek pertama Anda sekarang."}
+    </p>
+    {!isSearch && <Button onClick={onAdd}>Buat Proyek</Button>}
+  </div>
+);
+
+const ErrorState = () => (
+  <div className="p-8 text-center text-red-500 bg-red-50 rounded-lg border border-red-100 mt-10">
+    Gagal memuat data. Periksa koneksi API Anda.
+  </div>
+);
 
 export default ProjectsPage;

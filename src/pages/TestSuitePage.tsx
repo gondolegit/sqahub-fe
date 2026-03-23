@@ -1,44 +1,56 @@
-import React, { useState, useMemo } from 'react';
-import { Loader2, Zap, AlertTriangle, ListFilter } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Loader2, Zap, AlertTriangle, ListFilter, Search } from 'lucide-react';
 
 // Import Hooks & Types
-import { useProjects } from '@/hooks/useProjects'; // Hook untuk mendapatkan daftar proyek
-import { useTestSuitesByProject } from '@/hooks/useTestSuites'; // Hook baru/revisi untuk API: GET /testsuite/project/{projectId}
+import { useProjects } from '@/hooks/useProjects';
+import { useTestSuitesByProject } from '@/hooks/useTestSuites';
 
 // Import UI Components
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 
 // Import Komponen
 import TestSuiteFormDialog from '@/components/testsuite/TestSuiteFormDialog';
 import TestSuitesTable from '@/components/testsuite/TestSuitesTable'; 
 
 const TestSuitesPage: React.FC = () => {
-    // State untuk Proyek yang dipilih (default: tidak ada)
+    // 1. States
     const [selectedProjectId, setSelectedProjectId] = useState<number | undefined>(undefined);
-    // State untuk Dialog Run Baru
     const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
 
-    // Fetch daftar Proyek
-    const { data: projects, isLoading: isLoadingProjects, isError: isErrorProjects } = useProjects();
+    // 2. Data Fetching
+    const { data: projects, isLoading: isLoadingProjects } = useProjects();
     
-    // Fetch daftar Test Suites berdasarkan Proyek yang dipilih
     const { 
         data: testSuites, 
         isLoading: isLoadingSuites, 
         isError: isErrorSuites 
-    } = useTestSuitesByProject(selectedProjectId || -1); // Hanya fetch jika Project ID valid
+    } = useTestSuitesByProject(selectedProjectId || -1);
 
-    // Set Project pertama sebagai default jika belum ada yang dipilih
-    useMemo(() => {
+    // 3. Effects
+    // Menggunakan useEffect untuk side-effect setting default project
+    useEffect(() => {
         if (!selectedProjectId && projects && projects.length > 0) {
             setSelectedProjectId(projects[0].id);
         }
     }, [projects, selectedProjectId]);
+
+    // 4. Logika Filter Search (Client-side)
+    const filteredTestSuites = React.useMemo(() => {
+        if (!testSuites) return [];
+        if (!searchQuery) return testSuites;
+        
+        return testSuites.filter((suite: any) => 
+            suite.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [testSuites, searchQuery]);
     
     const handleProjectChange = (projectIdStr: string) => {
         setSelectedProjectId(parseInt(projectIdStr));
+        setSearchQuery(""); // Reset search saat ganti project
     };
     
     return (
@@ -47,24 +59,24 @@ const TestSuitesPage: React.FC = () => {
                 <Zap className="h-7 w-7 mr-3 text-primary" /> Riwayat Test Suites
             </h1>
             
-            <Card className="shadow-lg">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-2xl font-semibold flex items-center">
-                        <ListFilter className="h-5 w-5 mr-2 text-gray-500" /> Filter & Aksi
+            <Card className="shadow-lg border-none">
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-xl font-semibold flex items-center">
+                        <ListFilter className="h-5 w-5 mr-2 text-muted-foreground" /> Filter & Aksi
                     </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex items-center space-x-4">
-                        {/* Pilih Project List */}
-                        <div className="w-1/3">
-                            <label className="text-sm font-medium">Pilih Proyek:</label>
+                <CardContent>
+                    <div className="flex flex-col md:flex-row items-end gap-4">
+                        {/* Pilih Project */}
+                        <div className="w-full md:w-1/4 space-y-1.5">
+                            <label className="text-xs font-bold uppercase text-muted-foreground">Proyek</label>
                             <Select 
                                 onValueChange={handleProjectChange} 
                                 value={selectedProjectId ? String(selectedProjectId) : undefined}
                                 disabled={isLoadingProjects}
                             >
-                                <SelectTrigger>
-                                    <SelectValue placeholder={isLoadingProjects ? "Memuat Proyek..." : "Pilih Proyek"} />
+                                <SelectTrigger className="bg-background">
+                                    <SelectValue placeholder={isLoadingProjects ? "Memuat..." : "Pilih Proyek"} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {projects?.map((project) => (
@@ -75,37 +87,61 @@ const TestSuitesPage: React.FC = () => {
                                 </SelectContent>
                             </Select>
                         </div>
+
+                        {/* Search Input */}
+                        <div className="w-full md:flex-1 space-y-1.5">
+                            <label className="text-xs font-bold uppercase text-muted-foreground">Cari Nama Run</label>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    placeholder="Ketik nama test suite..." 
+                                    className="pl-10 bg-background"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        </div>
                         
-                        {/* Tombol New Run Test */}
-                        <div className="w-2/3 flex justify-end">
+                        {/* Tombol New Run */}
+                        <div className="w-full md:w-auto">
                             <Button 
                                 onClick={() => setIsFormDialogOpen(true)} 
                                 disabled={!selectedProjectId}
-                                className="bg-primary hover:bg-primary/90"
+                                className="w-full md:w-auto bg-primary hover:bg-primary/90 shadow-md"
                             >
-                                <Zap className="h-5 w-5 mr-2" /> New Run Test
+                                <Zap className="h-4 w-4 mr-2 fill-current" /> New Run Test
                             </Button>
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
-            {/* Bagian Riwayat Test Suites */}
-            <Card className="shadow-lg">
-                <CardHeader>
-                    <CardTitle>
-                        Riwayat Test Runs: {projects?.find(p => p.id === selectedProjectId)?.name || "Pilih Proyek"}
+            {/* Bagian Tabel Riwayat */}
+            <Card className="shadow-md border-none overflow-hidden">
+                <CardHeader className="bg-muted/50 border-b">
+                    <CardTitle className="text-lg">
+                        Test Runs: <span className="text-primary">{projects?.find(p => p.id === selectedProjectId)?.name || "Pilih Proyek"}</span>
                     </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0"> {/* P-0 agar tabel menempel ke pinggir card */}
                     {isErrorSuites && (
-                        <div className="text-red-500 flex items-center"><AlertTriangle className="h-4 w-4 mr-2" /> Gagal memuat data Test Suites.</div>
+                        <div className="p-8 text-destructive flex items-center justify-center">
+                            <AlertTriangle className="h-5 w-5 mr-2" /> 
+                            Gagal memuat data Test Suites.
+                        </div>
                     )}
+
                     {isLoadingSuites ? (
-                        <div className="flex justify-center p-10"><Loader2 className="h-6 w-6 animate-spin mr-2" /> Memuat Riwayat...</div>
+                        <div className="flex flex-col items-center justify-center p-20 space-y-4">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <p className="text-muted-foreground animate-pulse">Memuat riwayat pengujian...</p>
+                        </div>
                     ) : (
-                        // Menggunakan selectedProjectId! karena sudah divalidasi oleh enabled hook atau disabled button
-                        <TestSuitesTable data={testSuites || []} projectId={selectedProjectId!} /> 
+                        <TestSuitesTable 
+                            data={filteredTestSuites} 
+                            projectId={selectedProjectId!} 
+                            isLoading={false} 
+                        /> 
                     )}
                 </CardContent>
             </Card>
@@ -114,7 +150,6 @@ const TestSuitesPage: React.FC = () => {
             <TestSuiteFormDialog 
                 open={isFormDialogOpen} 
                 onOpenChange={setIsFormDialogOpen} 
-                // 🚨 Properti ini sekarang valid asalkan TestSuiteFormDialogProps sudah diperbaiki.
                 initialProjectId={selectedProjectId} 
             />
         </div>

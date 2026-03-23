@@ -32,7 +32,8 @@ const LoginPage: React.FC = () => {
     // --- Efek untuk Redirect ke Dashboard ---
     useEffect(() => {
         if (isAuthenticated) {
-            navigate('/dashboard', { replace: true });
+            // navigate('/dashboard', { replace: true });
+            navigate('/projects', { replace: true });
         }
     }, [isAuthenticated, navigate]); 
 

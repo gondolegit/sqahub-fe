@@ -1,478 +1,440 @@
-import React, { useState, useEffect } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useForm, useFieldArray, type UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { 
-    Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter 
+import {
+    Dialog, DialogContent
 } from '@/components/ui/dialog';
-import { 
-    Form, FormControl, FormField, FormItem, FormLabel, FormMessage 
+import {
+    Form, FormControl, FormField, FormItem, FormLabel, FormMessage
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Loader2, Zap, Clock, Send, Trash2, ListChecks } from 'lucide-react'; 
+import {
+    Loader2, Zap, Clock, Send, Search, CheckSquare,
+    Info, Settings2, Trash2, Tag, Monitor, Layers, BookOpen, ClipboardList, Check, X, FileText
+} from 'lucide-react';
 import { toast } from 'sonner';
-
-// Import hook dari file hooks
-import { useCreateTestSuiteRun } from '@/hooks/useTestSuites'; 
-// Import tipe request
-import type { TestSuiteRunRequest } from '@/types/testSuite'; 
-
-import { useTestCasesByProject } from '@/hooks/useTestCases'; 
-import { type TestCase } from '@/types/testCase'; 
-
+import { useCreateTestSuiteRun } from '@/hooks/useTestSuites';
+import { useProjectDetail } from '@/hooks/useProjects';
+import { useTestCasesByProject } from '@/hooks/useTestCases';
+import { type TestCase } from '@/types/testCase';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; 
+import { Card } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
-// --- DEFINISI TIPE & SKEMA (TETAP SAMA) ---
+// --- CONSTANTS ---
 const RUN_STATUSES = ["PASS", "FAIL", "ERROR", "SKIPPED"] as const;
 const TEST_STAGES = ["SIT", "UAT", "STAGING", "PRODUCTION"] as const;
 const ENVIRONMENT_OPTIONS = ["Local", "Dev", "Staging", "Production"] as const;
+const EXECUTION_TYPES = ["MANUAL", "AUTOMATED"] as const;
 
+// --- SCHEMA ---
 const RunDetailSchema = z.object({
     idTestCase: z.number().int().positive(),
-    status: z.enum(RUN_STATUSES, { 
-        error: "Status eksekusi wajib diisi.",
-    }),
-    actualResult: z.string().min(5, "Hasil aktual minimal 5 karakter."),
+    testCaseName: z.string(),
+    status: z.enum(RUN_STATUSES),
+    actualResult: z.string().min(1, "Wajib diisi"),
     remarks: z.string().optional().nullable(),
 });
 
 const TestSuiteFormSchema = z.object({
-    name: z.string().min(5, "Nama Test Suite minimal 5 karakter."),
-    description: z.string().min(10, "Deskripsi minimal 10 karakter."),
-    tag: z.string().optional().nullable(),
-    testStage: z.enum(TEST_STAGES, { error: "Tahap uji wajib dipilih." }),
-    testEnvironment: z.enum(ENVIRONMENT_OPTIONS, { error: "Lingkungan wajib dipilih." }),
-    hostname: z.string().min(2, "Hostname wajib diisi."),
-    os: z.string().min(2, "OS wajib diisi."),
-    version: z.string().min(2, "Versi aplikasi wajib diisi."),
-    browser: z.string().min(2, "Browser wajib diisi."),
-    runDetails: z.array(RunDetailSchema).min(1, "Wajib memilih minimal satu Test Case untuk dieksekusi."),
+    name: z.string().min(5, "Nama minimal 5 karakter"),
+    description: z.string().min(5, "Deskripsi minimal 5 karakter"),
+    tag: z.string().min(1, "Tag wajib diisi"),
+    testStage: z.enum(TEST_STAGES),
+    testEnvironment: z.enum(ENVIRONMENT_OPTIONS),
+    executionType: z.enum(EXECUTION_TYPES),
+    hostname: z.string().min(1),
+    os: z.string().min(1),
+    version: z.string().min(1),
+    browser: z.string().min(1),
+    runDetails: z.array(RunDetailSchema).min(1, "Pilih minimal 1 Test Case"),
 });
 
 type TestSuiteFormData = z.infer<typeof TestSuiteFormSchema>;
 
-interface TestSuiteFormDialogProps {
+// --- SUB-COMPONENTS ---
+const ConfigFields = ({ form }: { form: UseFormReturn<TestSuiteFormData> }) => (
+    <div className="space-y-4 pt-2">
+        <FormField control={form.control} name="name" render={({ field }) => (
+            <FormItem><FormLabel className="text-[11px] font-bold uppercase text-slate-500">Run Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+        )} />
+        <div className="grid grid-cols-2 gap-2">
+            <FormField control={form.control} name="executionType" render={({ field }) => (
+                <FormItem><FormLabel className="text-[11px] font-bold uppercase text-slate-500">Type</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent>{EXECUTION_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></FormItem>
+            )} />
+            <FormField control={form.control} name="testStage" render={({ field }) => (
+                <FormItem><FormLabel className="text-[11px] font-bold uppercase text-slate-500">Stage</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent>{TEST_STAGES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></FormItem>
+            )} />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+            <FormField control={form.control} name="testEnvironment" render={({ field }) => (
+                <FormItem><FormLabel className="text-[11px] font-bold uppercase text-slate-500">Env</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent>{ENVIRONMENT_OPTIONS.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent></Select></FormItem>
+            )} />
+            <FormField control={form.control} name="version" render={({ field }) => (
+                <FormItem><FormLabel className="text-[11px] font-bold uppercase text-slate-500">Version</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+            )} />
+        </div>
+        <FormField control={form.control} name="tag" render={({ field }) => (
+            <FormItem><FormLabel className="text-[11px] font-bold uppercase text-slate-500">Tags</FormLabel><FormControl><Input placeholder="Smoke, Regression..." {...field} /></FormControl></FormItem>
+        )} />
+        <FormField control={form.control} name="description" render={({ field }) => (
+            <FormItem><FormLabel className="text-[11px] font-bold uppercase text-slate-500">Description</FormLabel><FormControl><Textarea {...field} className="h-20 resize-none" /></FormControl></FormItem>
+        )} />
+    </div>
+);
+
+const DetailItem = ({ icon, label, value, isPre, className }: { icon: any, label: string, value: any, isPre?: boolean, className?: string }) => (
+    <div className={`space-y-1.5 ${className}`}>
+        <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-wider">{icon} {label}</div>
+        <div className={`text-xs text-slate-600 leading-relaxed ${isPre ? 'font-mono bg-slate-50 p-2 rounded whitespace-pre-wrap border border-slate-100' : ''}`}>
+            {value || '-'}
+        </div>
+    </div>
+);
+
+// Tambahkan komponen Badge untuk Tag agar lebih rapi
+const TagBadge = ({ tags }: { tags: string }) => {
+    return (
+        <div className="flex flex-wrap gap-1 mt-2">
+            {tags.split(',').map((t, i) => (
+                <span key={i} className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full border border-slate-200 font-medium">
+                    #{t.trim()}
+                </span>
+            ))}
+        </div>
+    );
+};
+
+// --- MAIN COMPONENT ---
+const TestSuiteFormDialog: React.FC<{
     open: boolean;
     onOpenChange: (open: boolean) => void;
     initialProjectId: number | undefined;
-}
+}> = ({ open, onOpenChange, initialProjectId }) => {
 
-const getStatusColor = (status: z.infer<typeof RunDetailSchema>['status']) => {
-    switch (status) {
-        case 'PASS': return 'border-green-500 bg-green-50 text-green-700';
-        case 'FAIL': return 'border-red-500 bg-red-50 text-red-700';
-        case 'ERROR': return 'border-yellow-500 bg-yellow-50 text-yellow-700';
-        case 'SKIPPED': return 'border-gray-500 bg-gray-50 text-gray-700';
-        default: return 'border-gray-200 bg-white text-gray-800';
-    }
-};
-
-const TestSuiteFormDialog: React.FC<TestSuiteFormDialogProps> = ({ 
-    open, 
-    onOpenChange, 
-    initialProjectId 
-}) => {
+    const [searchTerm, setSearchTerm] = useState("");
+    const [elapsedTime, setElapsedTime] = useState(0);
     const [startTime, setStartTime] = useState<number | null>(null);
-    const [elapsedTimeDisplay, setElapsedTimeDisplay] = useState(0);
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
 
+    const { data: projectData, isLoading: isLoadingProject } = useProjectDetail(initialProjectId || 0);
+    const { data: availableTestCases, isLoading: isLoadingTC } = useTestCasesByProject(initialProjectId);
     const createMutation = useCreateTestSuiteRun();
-    
-    const { 
-        data: availableTestCases, 
-        isLoading: isLoadingTC 
-    } = useTestCasesByProject(initialProjectId); 
 
     const form = useForm<TestSuiteFormData>({
         resolver: zodResolver(TestSuiteFormSchema),
         defaultValues: {
-            name: '',
-            description: '',
-            tag: '',
-            testStage: undefined,
-            testEnvironment: undefined,
-            hostname: '',
-            os: '',
-            version: '',
-            browser: '',
-            runDetails: [],
+            name: '', description: '', tag: '', version: 'v1.0.0',
+            testStage: 'SIT', testEnvironment: 'Staging', executionType: 'MANUAL',
+            runDetails: []
         },
     });
-    
-    const { fields, append, remove } = useFieldArray({
+
+    const { fields, append, remove, replace } = useFieldArray({
         control: form.control,
         name: "runDetails",
     });
 
-    // Logika Timer
-    useEffect(() => {
-        let interval: ReturnType<typeof setInterval> | null = null; 
-        if (open) {
-            const currentStartTime = startTime || Date.now();
-            if (!startTime) setStartTime(currentStartTime); 
-            
-            interval = setInterval(() => {
-                setElapsedTimeDisplay(Date.now() - currentStartTime);
-            }, 1000);
-        } else if (interval) {
-            clearInterval(interval);
-            interval = null;
-        }
-        return () => {
-            if (interval) clearInterval(interval);
-        };
-    }, [open, startTime]);
+    const filteredTC = useMemo(() => {
+        if (!availableTestCases) return [];
+        return availableTestCases.filter((tc: TestCase) =>
+            tc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            tc.id.toString().includes(searchTerm)
+        );
+    }, [availableTestCases, searchTerm]);
 
-    // Set default values sistem saat dialog dibuka
     useEffect(() => {
         if (open) {
-            form.reset({ 
-                name: '', 
-                description: '', 
-                tag: '', 
-                testStage: undefined,
-                testEnvironment: undefined,
-                version: '',
-                runDetails: [],
-            });
-            setStartTime(Date.now()); 
-            setElapsedTimeDisplay(0);
-            
-            // Set nilai sistem
-            form.setValue('hostname', window.location.hostname || 'Local Machine');
-            form.setValue('os', navigator.platform || 'Unknown OS');
-            const userAgent = navigator.userAgent;
-            let browser = 'Unknown Browser';
-            if (userAgent.includes("Chrome") && !userAgent.includes("Edg")) browser = "Chrome";
-            else if (userAgent.includes("Firefox")) browser = "Firefox";
-            else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) browser = "Safari";
-            else if (userAgent.includes("Edg")) browser = "Edge";
-            form.setValue('browser', browser);
+            setStartTime(Date.now());
+            const timer = setInterval(() => setElapsedTime(prev => prev + 1), 1000);
+            form.setValue('hostname', window.location.hostname || 'Localhost');
+            form.setValue('os', navigator.platform || 'Windows/Linux');
+            form.setValue('browser', "Chrome/Web");
+            return () => clearInterval(timer);
+        } else {
+            setElapsedTime(0);
+            form.reset();
         }
     }, [open, form]);
 
-    const handleToggleTestCase = (tc: TestCase) => { 
-        const index = fields.findIndex(detail => detail.idTestCase === tc.id);
-
-        if (index > -1) {
-            remove(index);
-        } else {
-            append({
-                idTestCase: tc.id,
-                status: 'PASS', 
-                actualResult: `Execution result for TC-${tc.id}`, 
-                remarks: null,
-            });
+    const toggleTC = useCallback((tc: TestCase) => {
+        const currentDetails = form.getValues('runDetails');
+        const idx = currentDetails.findIndex(f => f.idTestCase === tc.id);
+        if (idx > -1) { remove(idx); }
+        else {
+            append({ idTestCase: tc.id, testCaseName: tc.name, status: 'PASS', actualResult: 'As expected.', remarks: '' });
         }
+    }, [append, remove, form]);
+
+    const handleSelectAll = () => {
+        if (!filteredTC.length) return;
+        const currentIds = new Set(fields.map(f => f.idTestCase));
+        const newEntries = filteredTC
+            .filter(tc => !currentIds.has(tc.id))
+            .map(tc => ({ idTestCase: tc.id, testCaseName: tc.name, status: 'PASS' as const, actualResult: 'As expected.', remarks: '' }));
+        append(newEntries);
     };
-    
+
+    const handleClearAll = () => { replace([]); };
+
     const onSubmit = (data: TestSuiteFormData) => {
-        // ... (Logika Submit tetap sama) ...
-        if (!initialProjectId) {
-            toast.error("Gagal Mencatat Run", { description: "Project ID tidak tersedia." });
-            return;
-        }
-
         const endTime = Date.now();
-        const startTimestamp = startTime || Date.now();
-        const totalElapsedTimeSeconds = Math.round((endTime - startTimestamp) / 100) / 10; 
-        
-        const counts = data.runDetails.reduce((acc, detail) => {
-            if (detail.status === 'PASS') acc.passed++;
-            else if (detail.status === 'FAIL') acc.failed++;
-            else if (detail.status === 'ERROR') acc.error++;
-            else if (detail.status === 'SKIPPED') acc.skipped++;
-            return acc;
-        }, { passed: 0, failed: 0, error: 0, skipped: 0 });
-
-        const runDetailsPayload = data.runDetails.map(detail => ({
-            idTestCase: detail.idTestCase,
-            status: detail.status,
-            actualResult: detail.actualResult,
-            remarks: detail.remarks || '',
-            startDate: new Date(startTimestamp).toISOString(),
+        const finalPayload = {
+            ...data,
+            projectId: initialProjectId!,
+            startDate: new Date(startTime!).toISOString(),
             endDate: new Date(endTime).toISOString(),
-            elapsedTime: 10.0, 
-        }));
-
-        const payload: TestSuiteRunRequest = {
-            projectId: initialProjectId, 
-            name: data.name,
-            description: data.description,
-            tag: data.tag || null,
-            testStage: data.testStage,
-            testEnvironment: data.testEnvironment,
-            hostname: data.hostname,
-            os: data.os,
-            version: data.version,
-            browser: data.browser,
-            
-            startDate: new Date(startTimestamp).toISOString(),
-            endDate: new Date(endTime).toISOString(),
-            elapsedTime: totalElapsedTimeSeconds, 
-            
-            statusTotalPassed: counts.passed,
-            statusTotalFailed: counts.failed,
-            statusTotalError: counts.error,
-            statusTotalSkipped: counts.skipped,
-            
-            runDetails: runDetailsPayload,
+            elapsedTime: Math.round((endTime - startTime!) / 1000),
+            statusTotalPassed: data.runDetails.filter(r => r.status === 'PASS').length,
+            statusTotalFailed: data.runDetails.filter(r => r.status === 'FAIL').length,
+            statusTotalError: data.runDetails.filter(r => r.status === 'ERROR').length,
+            statusTotalSkipped: data.runDetails.filter(r => r.status === 'SKIPPED').length,
+            runDetails: data.runDetails.map(r => ({
+                ...r,
+                startDate: new Date().toISOString(),
+                endDate: new Date().toISOString(),
+                elapsedTime: 0,
+                remarks: r.remarks === '' ? null : r.remarks
+            }))
         };
-
-        createMutation.mutate(payload, {
-            onSuccess: () => {
-                toast.success("Test Suite Run Berhasil Dicatat!", { 
-                    description: `Run '${data.name}' dengan ${counts.passed} Passed dan ${counts.failed} Failed.` 
-                });
-                onOpenChange(false);
-            },
-            onError: (err: any) => {
-                const errorMessage = err.response?.data?.message || err.message || "Terjadi kesalahan pada server.";
-                toast.error("Gagal Mencatat Test Suite Run", { description: errorMessage });
-            }
+        createMutation.mutate(finalPayload as any, {
+            onSuccess: () => { toast.success("Run saved!"); onOpenChange(false); }
         });
-    };
-    
-    const totalSelectedTC = fields.length;
-
-    const findOriginalTestCase = (id: number) => {
-        return availableTestCases?.find((tc: TestCase) => tc.id === id); 
     };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            {/* Set tinggi maksimum pada DialogContent dan gunakan flex-col untuk kontrol layout */}
-            <DialogContent className="sm:max-w-6xl max-h-[95vh] flex flex-col p-0"> 
-                <DialogHeader className="p-6 pb-2 flex-shrink-0">
-                    <DialogTitle>
-                        <Zap className="inline h-6 w-6 mr-2 text-primary" /> Mulai Test Suite Run Baru
-                    </DialogTitle>
-                    <DialogDescription>
-                        Isi detail eksekusi dan catat hasil dari Test Case yang dipilih. (Project ID: **{initialProjectId || 'Belum Dipilih'}**)
-                    </DialogDescription>
-                </DialogHeader>
-
+            <DialogContent className="max-w-[100vw] w-full h-[100dvh] md:h-[95vh] md:max-w-[98vw] p-0 flex flex-col overflow-hidden">
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex-grow flex flex-col overflow-hidden">
-                        
-                        {/* Wrapper Grid Utama (Ini yang mengatur pembagian 1/3 dan 2/3) */}
-                        <div className="grid lg:grid-cols-3 gap-6 p-6 pt-0 flex-grow overflow-hidden">
-                            
-                            {/* KOLOM KIRI: Metadata Run - DIBUNGKUS DENGAN SCROLLAREA */}
-                            <div className="lg:col-span-1 space-y-4 pr-4 border-r overflow-y-hidden">
-                                <ScrollArea className="h-full max-h-[75vh]"> {/* TINGGI DISESUAIKAN */}
-                                    <div className="space-y-4 pr-4"> 
-                                        <h3 className="text-lg font-semibold border-b pb-2">1. Metadata Run</h3>
-                                        
-                                        <Badge variant="secondary" className="text-sm w-full justify-center py-2">
-                                            <Clock className="h-4 w-4 mr-2" /> Waktu Berjalan: **{Math.floor(elapsedTimeDisplay / 1000)} detik**
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden bg-slate-50/50">
+
+                        {/* HEADER */}
+                        <header className="flex items-center justify-between p-4 border-b bg-white shrink-0 z-30 shadow-sm">
+                            <div className="flex items-center gap-3">
+                                <div className="lg:hidden">
+                                    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                                        <SheetTrigger asChild>
+                                            <Button type="button" variant="outline" size="icon">
+                                                <Settings2 className="w-5 h-5" />
+                                            </Button>
+                                        </SheetTrigger>
+                                        <SheetContent side="left" className="w-[300px] p-0">
+                                            <SheetHeader className="p-4 border-b">
+                                                <SheetTitle>Run Configuration</SheetTitle>
+                                            </SheetHeader>
+                                            <ScrollArea className="h-[calc(100vh-80px)] p-6">
+                                                <ConfigFields form={form} />
+                                            </ScrollArea>
+                                        </SheetContent>
+                                    </Sheet>
+                                </div>
+                                <div>
+                                    <h2 className="font-bold text-base md:text-xl flex items-center gap-2">
+                                        <Zap className="w-5 h-5 text-amber-500 fill-amber-500" /> Test Runner
+                                    </h2>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                        <Badge variant="outline" className="text-[10px] font-bold border-primary/30 text-primary uppercase">
+                                            {isLoadingProject ? <Loader2 className="w-3 h-3 animate-spin" /> : projectData?.name}
                                         </Badge>
-
-                                        <div className="space-y-4">
-                                            <FormField name="name" render={({ field }) => (
-                                                <FormItem><FormLabel>Nama Suite Run</FormLabel><FormControl><Input placeholder="Contoh: Smoke Test 2025-12-28" {...field} /></FormControl><FormMessage /></FormItem>
-                                            )} />
-                                            <FormField name="version" render={({ field }) => (
-                                                <FormItem><FormLabel>Versi Aplikasi</FormLabel><FormControl><Input placeholder="v1.0.1" {...field} /></FormControl><FormMessage /></FormItem>
-                                            )} />
-                                            <FormField name="description" render={({ field }) => (
-                                                <FormItem><FormLabel>Deskripsi Run</FormLabel><FormControl><Textarea placeholder="Tujuan dan catatan penting..." {...field} rows={2} /></FormControl><FormMessage /></FormItem>
-                                            )} />
-                                            <FormField name="tag" render={({ field }) => (
-                                                <FormItem><FormLabel>Tag (Opsional)</FormLabel><FormControl><Input placeholder="Smoke, Regression, Hotfix" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
-                                            )} />
-                                        </div>
-                                        
-                                        <h4 className="text-md font-semibold pt-2">Detail Lingkungan</h4>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {/* Select Tahap Uji */}
-                                            <FormField name="testStage" render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Tahap Uji</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                        <FormControl>
-                                                            <SelectTrigger><SelectValue placeholder="Pilih Tahap" /></SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            {TEST_STAGES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
-                                            {/* Select Lingkungan Uji */}
-                                            <FormField name="testEnvironment" render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Lingkungan Uji</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                        <FormControl>
-                                                            <SelectTrigger><SelectValue placeholder="Pilih Lingkungan" /></SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            {ENVIRONMENT_OPTIONS.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
-                                            {/* OS (Otomatis) */}
-                                            <FormField name="os" render={({ field }) => (
-                                                <FormItem><FormLabel>OS (Auto)</FormLabel><FormControl><Input {...field} disabled /></FormControl><FormMessage /></FormItem>
-                                            )} />
-                                            {/* Browser (Otomatis) */}
-                                            <FormField name="browser" render={({ field }) => (
-                                                <FormItem><FormLabel>Browser (Auto)</FormLabel><FormControl><Input {...field} disabled /></FormControl><FormMessage /></FormItem>
-                                            )} />
-                                        </div>
+                                        <span className="text-[10px] text-slate-400 font-medium">ID: #{initialProjectId}</span>
                                     </div>
-                                </ScrollArea>
+                                </div>
                             </div>
-                            
-                            {/* KOLOM KANAN: Seleksi & Hasil Eksekusi */}
-                            <div className="lg:col-span-2 space-y-4 flex flex-col overflow-y-hidden">
+                            <Badge className="font-mono text-sm md:text-xl bg-slate-900 text-emerald-400 px-4 py-1.5 border-2 border-slate-800 shadow-inner">
+                                <Clock className="w-4 h-4 mr-2 animate-pulse text-emerald-500" /> {new Date(elapsedTime * 1000).toISOString().substr(14, 5)}
+                            </Badge>
+                        </header>
 
-                                {/* Sub-Bagian 2: Pemilihan Test Case (Tinggi Tetap) */}
-                                <Card className="shadow-lg flex-shrink-0">
-                                    <CardHeader className="p-3 bg-blue-50/50">
-                                        <CardTitle className="text-lg font-semibold flex items-center">
-                                            <ListChecks className="h-5 w-5 mr-2" /> 2. Pilih Test Case untuk Dieksekusi ({totalSelectedTC} Terpilih)
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="pt-4 px-4">
-                                        {isLoadingTC ? (
-                                            <div className="text-center p-8"><Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" /><p>Memuat Test Case Project...</p></div>
-                                        ) : (
-                                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-40 overflow-y-auto pr-2">
-                                                {availableTestCases && availableTestCases.length > 0 ? availableTestCases.map((tc: TestCase) => { 
-                                                    const isSelected = fields.some(detail => detail.idTestCase === tc.id);
-                                                    return (
-                                                        <Button 
-                                                            key={tc.id} 
-                                                            type="button" 
-                                                            variant={isSelected ? "default" : "outline"} 
-                                                            onClick={() => handleToggleTestCase(tc)}
-                                                            className="justify-start h-auto py-1 text-xs truncate"
-                                                            title={`${tc.name} (${tc.type})`}
-                                                        >
-                                                            {isSelected ? '✅' : '⬜'} TC-{tc.id}: <span className="truncate ml-1 font-normal">{tc.name}</span>
-                                                        </Button>
-                                                    );
-                                                }) : (
-                                                    <p className="col-span-4 text-center text-gray-500 py-4">
-                                                        {initialProjectId ? "Tidak ada Test Case yang tersedia di Project ini." : "Project ID tidak tersedia."}
-                                                    </p>
-                                                )}
+                        <div className="flex flex-1 overflow-hidden">
+                            {/* ASIDE Desktop */}
+                            <aside className="hidden lg:block w-[320px] border-r bg-white p-6 overflow-y-auto shrink-0 shadow-sm">
+                                <h3 className="text-[10px] font-bold uppercase text-slate-400 tracking-[0.2em] mb-4">Run Configuration</h3>
+                                <ConfigFields form={form} />
+                            </aside>
+
+                            <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                                {/* SEARCH & PICKER */}
+                                <div className="p-4 bg-white border-b shadow-sm z-10">
+                                    <div className="max-w-5xl mx-auto space-y-3">
+                                        <div className="flex flex-col md:flex-row gap-2">
+                                            <div className="relative flex-1">
+                                                <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                                                <Input placeholder="Search Test Case (Name or ID)..." className="pl-11 h-12 bg-slate-50" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Button type="button" variant="outline" className="h-12 px-4 border-dashed flex-1 md:flex-none" onClick={handleSelectAll} disabled={filteredTC.length === 0}>
+                                                    <Check className="w-4 h-4 mr-2" /> Select All ({filteredTC.length})
+                                                </Button>
+                                                <Button type="button" variant="ghost" className="h-12 px-4 text-slate-500 flex-1 md:flex-none" onClick={handleClearAll} disabled={fields.length === 0}>
+                                                    <X className="w-4 h-4 mr-2" /> Clear
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <ScrollArea className="h-[120px] md:h-[160px] rounded-xl border border-slate-100 bg-slate-50/30 p-2">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                                {isLoadingTC ? <Loader2 className="animate-spin mx-auto w-6 h-6 text-slate-300" /> :
+                                                    filteredTC.map((tc: TestCase) => {
+                                                        const isSelected = fields.some(f => f.idTestCase === tc.id);
+                                                        return (
+                                                            <div key={tc.id} onClick={() => toggleTC(tc)}
+                                                                className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${isSelected ? 'bg-primary border-primary text-white shadow-lg' : 'bg-white border-slate-200 hover:bg-slate-50'}`}>
+                                                                <CheckSquare className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-slate-300'}`} />
+                                                                <div className="min-w-0 flex-1">
+                                                                    <p className={`text-[10px] font-bold ${isSelected ? 'text-white/70' : 'text-slate-400'}`}>TC-{tc.id}</p>
+                                                                    <p className="text-xs font-bold truncate mt-0.5">{tc.name}</p>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })
+                                                }
+                                            </div>
+                                        </ScrollArea>
+                                    </div>
+                                </div>
+
+                                {/* EXECUTION LIST */}
+                                <ScrollArea className="flex-1">
+                                    <div className="p-4 md:p-8 space-y-6 max-w-5xl mx-auto pb-24">
+                                        {fields.length === 0 && (
+                                            <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+                                                <ClipboardList className="w-16 h-16 mb-4 opacity-20" />
+                                                <p className="font-medium">No test cases selected yet.</p>
                                             </div>
                                         )}
-                                        <FormMessage className="mt-2 text-center">{form.formState.errors.runDetails?.message}</FormMessage>
-                                    </CardContent>
-                                </Card>
 
-                                {/* Sub-Bagian 3: Input Hasil Eksekusi (Tinggi Fleksibel & DIBUNGKUS SCROLLAREA) */}
-                                {totalSelectedTC > 0 && (
-                                    <Card className="shadow-lg flex-grow flex flex-col min-h-0">
-                                        <CardHeader className="p-3 bg-gray-100 flex-shrink-0">
-                                            <CardTitle className="text-lg font-semibold">
-                                                3. Detail Eksekusi Hasil ({totalSelectedTC} Kasus)
-                                            </CardTitle>
-                                        </CardHeader>
-                                        
-                                        {/* SCROLL AREA UNTUK DETAIL EKSEKUSI */}
-                                        <ScrollArea className="flex-grow min-h-0">
-                                            <CardContent className="pt-4 space-y-4 pr-2">
-                                                {fields.map((item, index) => {
-                                                    const originalTC = findOriginalTestCase(item.idTestCase);
-                                                    const currentStatus = form.watch(`runDetails.${index}.status`);
-                                                    
-                                                    return (
-                                                        <Card key={item.id} className={`shadow-sm transition-all duration-300 border-l-4 ${getStatusColor(currentStatus)}`}>
-                                                            <CardHeader className="p-3 flex flex-row justify-between items-center bg-white/70">
-                                                                <CardTitle className="text-sm font-bold truncate">
-                                                                    TC-{item.idTestCase}: {originalTC?.name || 'Test Case Dihapus'}
-                                                                    <Badge variant="secondary" className="ml-2 text-xs font-normal">{originalTC?.type || 'N/A'}</Badge>
-                                                                </CardTitle>
-                                                                <Button 
-                                                                    type="button" variant="ghost" size="icon" 
-                                                                    onClick={() => remove(index)}
-                                                                    title="Hapus Test Case dari Run"
-                                                                    className="text-red-500 hover:text-red-700 h-6 w-6"
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                </Button>
-                                                            </CardHeader>
-                                                            
-                                                            {/* DETAIL TEST CASE */}
-                                                            {originalTC && (
-                                                                <div className="border-t p-4 bg-gray-50/70 space-y-2 text-sm text-gray-700">
-                                                                    <p><strong>Prasyarat:</strong> {originalTC.preCondition || <span className="text-gray-400">Tidak ada.</span>}</p>
-                                                                    <p className="font-medium">Langkah Eksekusi:</p>
-                                                                    <ScrollArea className="h-16 border rounded-md p-2 bg-white text-xs whitespace-pre-wrap">
-                                                                        {originalTC.testSteps || <span className="text-gray-400">Tidak ada langkah yang tercatat.</span>}
-                                                                    </ScrollArea>
-                                                                    <p><strong>Hasil Diharapkan:</strong> {originalTC.expectedResult || <span className="text-gray-400">Tidak ada.</span>}</p>
+                                        {fields.map((field, index) => {
+                                            const tcFullData = availableTestCases?.find((t: TestCase) => t.id === field.idTestCase);
+                                            const status = form.watch(`runDetails.${index}.status`);
+
+                                            return (
+                                                <Card key={field.id} className="border-none shadow-md overflow-hidden bg-white ring-1 ring-slate-200">
+                                                    <div className={`h-1.5 w-full ${status === 'PASS' ? 'bg-emerald-500' : status === 'FAIL' ? 'bg-rose-500' : status === 'ERROR' ? 'bg-amber-500' : 'bg-slate-400'}`} />
+                                                    <div className="p-4 md:p-6 space-y-5">
+                                                        <div className="flex justify-between items-start gap-4">
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2 mb-2">
+                                                                    <Badge variant="outline" className="bg-slate-50 text-slate-500 font-bold">TC-{field.idTestCase}</Badge>
+                                                                    <Badge className="bg-blue-50 text-blue-600 border-none uppercase text-[9px]">{tcFullData?.type || 'FUNCTIONAL'}</Badge>
                                                                 </div>
-                                                            )}
-                                                            
-                                                            <CardContent className="pt-4 grid grid-cols-4 gap-4">
-                                                                {/* FormFields Status, Result, Remarks */}
-                                                                
-                                                                <FormField name={`runDetails.${index}.status`} control={form.control} render={({ field }) => (
-                                                                    <FormItem>
-                                                                        <FormLabel>Status</FormLabel>
-                                                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                                            <FormControl>
-                                                                                <SelectTrigger className="h-9"><SelectValue placeholder="Pilih Status" /></SelectTrigger>
-                                                                            </FormControl>
-                                                                            <SelectContent>
-                                                                                {RUN_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                        <FormMessage />
-                                                                    </FormItem>
-                                                                )} />
+                                                                <h4 className="font-bold text-base md:text-lg text-slate-800 tracking-tight truncate">{field.testCaseName}</h4>
 
-                                                                <FormField name={`runDetails.${index}.actualResult`} render={({ field }) => (
-                                                                    <FormItem className="col-span-3">
-                                                                        <FormLabel>Hasil Aktual</FormLabel>
-                                                                        <FormControl><Input {...field} placeholder="Cth: Login berhasil, navigasi OK" className="h-9" /></FormControl>
-                                                                        <FormMessage />
-                                                                    </FormItem>
-                                                                )} />
-                                                                
-                                                                <FormField name={`runDetails.${index}.remarks`} render={({ field }) => (
-                                                                    <FormItem className="col-span-4">
-                                                                        <FormLabel>Catatan (Opsional)</FormLabel>
-                                                                        <FormControl><Textarea {...field} placeholder="Catatan atau bukti error/bug link" rows={1} value={field.value || ''} /></FormControl>
-                                                                        <FormMessage />
-                                                                    </FormItem>
-                                                                )} />
-                                                            </CardContent>
-                                                        </Card>
-                                                    );
-                                                })}
-                                            </CardContent>
-                                        </ScrollArea>
+                                                                {/* PERBAIKAN: Menampilkan Tag dari Response */}
+                                                                {tcFullData?.tag && <TagBadge tags={tcFullData.tag} />}
 
-                                    </Card>
-                                )}
-                            </div>
+                                                                <p className="text-xs text-slate-400 mt-2 line-clamp-1 italic">{tcFullData?.description}</p>
+                                                            </div>
+
+                                                            <div className="flex gap-2 shrink-0">
+                                                                <Popover>
+                                                                    <PopoverTrigger asChild>
+                                                                        <Button type="button" variant="outline" size="sm" className="h-9 gap-2">
+                                                                            <Info className="w-4 h-4 text-blue-500" /> Detail
+                                                                        </Button>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent
+                                                                        className="w-[280px] sm:w-[350px] md:w-[450px] p-0 shadow-2xl border-slate-200 overflow-hidden flex flex-col"
+                                                                        side="bottom"
+                                                                        align="end"
+                                                                        sideOffset={10}
+                                                                    >
+                                                                        {/* Header Tetap di Atas */}
+                                                                        <div className="bg-slate-900 text-white p-3 flex items-center justify-between shrink-0">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <BookOpen className="w-4 h-4 text-blue-400" />
+                                                                                <h5 className="font-bold text-[12px]">Test Case Details : {tcFullData?.name}</h5>
+                                                                            </div>
+                                                                            <Badge className="bg-slate-800 border-slate-700 text-[9px] h-5">{tcFullData?.type}</Badge>
+                                                                        </div>
+
+                                                                        {/* ScrollArea dengan Tinggi yang Dikunci agar Scroll Muncul */}
+                                                                        <ScrollArea className="h-[350px] md:h-[450px] w-full bg-white">
+                                                                            <div className="p-4 space-y-5">
+                                                                                <DetailItem icon={<FileText className="w-3 h-3" />} label="Description" value={tcFullData?.description} />
+
+                                                                                <div className="space-y-1">
+                                                                                    <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase">
+                                                                                        <Tag className="w-3 h-3" /> Tags
+                                                                                    </div>
+                                                                                    <div className="flex flex-wrap gap-1">
+                                                                                        {tcFullData?.tag?.split(',').map((t: string, i: number) => (
+                                                                                            <Badge key={i} variant="secondary" className="text-[9px] px-1.5 py-0">
+                                                                                                {t.trim()}
+                                                                                            </Badge>
+                                                                                        )) || '-'}
+                                                                                    </div>
+                                                                                </div>
+
+                                                                                <DetailItem icon={<Layers className="w-3 h-3" />} label="Pre-Condition" value={tcFullData?.preCondition} />
+                                                                                <DetailItem icon={<ClipboardList className="w-3 h-3" />} label="Test Steps" value={tcFullData?.testSteps} isPre />
+
+                                                                                <div className="bg-amber-50/50 p-3 rounded-lg border border-amber-100">
+                                                                                    <DetailItem icon={<Zap className="w-3.5 h-3.5 text-amber-500" />} label="Expected Result" value={tcFullData?.expectedResult} className="text-amber-900" />
+                                                                                </div>
+
+                                                                                <DetailItem icon={<Monitor className="w-3 h-3" />} label="Test Data" value={tcFullData?.testData} isPre />
+
+                                                                                {tcFullData?.postCondition && (
+                                                                                    <DetailItem icon={<CheckSquare className="w-3 h-3" />} label="Post Condition" value={tcFullData.postCondition} />
+                                                                                )}
+                                                                            </div>
+                                                                        </ScrollArea>
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                                <Button type="button" variant="ghost" size="icon" className="text-slate-300 hover:text-rose-500" onClick={() => remove(index)}>
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                                            <div className="md:col-span-3">
+                                                                <FormLabel className="text-[10px] font-black uppercase text-slate-400">Status</FormLabel>
+                                                                <FormField control={form.control} name={`runDetails.${index}.status`} render={({ field }) => (
+                                                                    <Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger className="mt-1 font-bold h-11"><SelectValue /></SelectTrigger></FormControl><SelectContent>{RUN_STATUSES.map(s => <SelectItem key={s} value={s} className="font-bold">{s}</SelectItem>)}</SelectContent></Select>
+                                                                )} />
+                                                            </div>
+                                                            <div className="md:col-span-9">
+                                                                <FormLabel className="text-[10px] font-black uppercase text-slate-400">Actual Result / Evidence</FormLabel>
+                                                                <FormField control={form.control} name={`runDetails.${index}.actualResult`} render={({ field }) => (
+                                                                    <FormControl><Input {...field} className="mt-1 h-11 bg-slate-50 focus:bg-white" placeholder="What happened?" /></FormControl>
+                                                                )} />
+                                                            </div>
+                                                        </div>
+
+                                                        <FormField control={form.control} name={`runDetails.${index}.remarks`} render={({ field }) => (
+                                                            <FormItem>
+                                                                <FormLabel className="text-[10px] font-black uppercase text-slate-400">Notes</FormLabel>
+                                                                <FormControl><Textarea {...field} value={field.value ?? ''} className="mt-1 min-h-[80px] bg-slate-50/30" placeholder="Bugs found..." /></FormControl>
+                                                            </FormItem>
+                                                        )} />
+                                                    </div>
+                                                </Card>
+                                            );
+                                        })}
+                                    </div>
+                                </ScrollArea>
+
+                                {/* FOOTER */}
+                                <footer className="p-5 border-t bg-white flex flex-col md:flex-row gap-4 justify-between items-center shadow-2xl z-20">
+                                    <div className="text-center md:text-left">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ready to submit</p>
+                                        <h4 className="font-black text-xl text-slate-800">{fields.length} <span className="text-slate-400 font-medium">TC Selected</span></h4>
+                                    </div>
+                                    <div className="flex w-full md:w-auto gap-3">
+                                        <Button variant="ghost" type="button" className="h-12 px-8 font-bold flex-1 md:flex-none" onClick={() => onOpenChange(false)}>Discard</Button>
+                                        <Button type="submit" className="h-12 px-10 font-black shadow-lg shadow-primary/25 min-w-[200px] flex-1 md:flex-none" disabled={createMutation.isPending || fields.length === 0}>
+                                            {createMutation.isPending ? <Loader2 className="animate-spin mr-2" /> : <Send className="w-5 h-5 mr-2" />} SUBMIT RUN
+                                        </Button>
+                                    </div>
+                                </footer>
+                            </main>
                         </div>
-                        
-                        {/* Footer tetap ada di luar area scroll konten */}
-                        <DialogFooter className="flex-shrink-0 bg-white p-4 border-t">
-                            <Button 
-                                type="submit" 
-                                disabled={createMutation.isPending || totalSelectedTC === 0}
-                            >
-                                {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                <Send className="mr-2 h-4 w-4" />
-                                Catat Run ({totalSelectedTC} TC)
-                            </Button>
-                        </DialogFooter>
                     </form>
                 </Form>
             </DialogContent>

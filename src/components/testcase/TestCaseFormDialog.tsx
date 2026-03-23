@@ -13,47 +13,43 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { 
-    useCreateTestCase, 
-    useUpdateTestCase, 
-    type TestCase, 
-    type TestCaseRequest, 
-    type UpdateTestCaseParams 
-} from '@/hooks/useTestCases'; 
+    Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+} from '@/components/ui/select';
 
-// --- DEFINISI ARRAY ENUM UNTUK ZOD ---
+// 🚨 PERBAIKAN: Import tipe dari sumber pusatnya (@/types/testCase)
+// Pastikan file @/hooks/useTestCases kamu juga mengimpor dari sini
+import type { TestCase, TestCaseRequest, UpdateTestCaseParams } from '@/types/testCase'; 
+import { useCreateTestCase, useUpdateTestCase } from '@/hooks/useTestCases'; 
+
 const TC_TYPES = ["FUNCTIONAL", "REGRESSION", "PERFORMANCE", "SECURITY", "USABILITY"] as const; 
 
-// --- DEFINISI SKEMA VALIDASI (ZOD) ---
 const TestCaseSchema = z.object({
-    name: z.string().min(5, { message: "Nama Test Case minimal 5 karakter." }),
-    description: z.string().min(10, { message: "Deskripsi Test Case minimal 10 karakter." }),
-    type: z.enum(TC_TYPES, { 
-        error: "Tipe Test Case wajib dipilih.",
-    }),
+    name: z.string().trim().min(5, "Nama Test Case minimal 5 karakter."),
+    description: z.string().trim().min(10, "Deskripsi minimal 10 karakter."),
+    type: z.enum(TC_TYPES, { error: "Tipe wajib dipilih." }),
     tag: z.string().optional().nullable(),
-    preCondition: z.string().min(5, { message: "Pre-Condition wajib diisi." }),
-    testSteps: z.string().min(10, { message: "Langkah-langkah pengujian wajib diisi." }),
+    preCondition: z.string().trim().min(5, "Pre-Condition wajib diisi."),
+    testSteps: z.string().trim().min(10, "Langkah-langkah wajib diisi."),
     testData: z.string().optional().nullable(),
-    postCondition: z.string().min(5, { message: "Post-Condition wajib diisi." }),
-    expectedResult: z.string().min(5, { message: "Expected Result wajib diisi." }),
+    postCondition: z.string().trim().min(5, "Post-Condition wajib diisi."),
+    expectedResult: z.string().trim().min(5, "Expected Result wajib diisi."),
 });
 
 type TestCaseFormData = z.infer<typeof TestCaseSchema>;
 
-// --- DEFINISI PROPS KOMPONEN (MODIFIKASI) ---
-// 🚨 Tambahkan properti 'mode' di initialData
-interface TestCaseWithMode extends TestCase {
+// 🚨 PERBAIKAN: Perluas interface TestCase yang sudah di-import
+export interface TestCaseWithMode extends TestCase {
     mode?: 'view' | 'edit'; 
 }
+
 interface TestCaseFormDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    initialData: TestCaseWithMode | null; // Menerima data dengan properti mode
+    initialData: TestCaseWithMode | null;
     idFeature: number;
     idProject: number; 
 }
 
-// --- KOMPONEN UTAMA ---
 const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({ 
     open, 
     onOpenChange, 
@@ -61,20 +57,14 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
     idFeature,
     idProject
 }) => {
-    // 🚨 PENENTUAN MODE BARU
-    const isEditMode = !!initialData && initialData.mode === 'edit';
-    const isViewMode = !!initialData && initialData.mode === 'view';
+    const isEditMode = initialData?.mode === 'edit';
+    const isViewMode = initialData?.mode === 'view';
 
-    // Hooks Mutation
     const createMutation = useCreateTestCase();
     const updateMutation = useUpdateTestCase();
-    
     const isPending = createMutation.isPending || updateMutation.isPending;
+    const isDisabled = isPending || isViewMode; 
 
-    // 🚨 KONDISI GLOBAL DISABLED: Menggunakan Boolean() untuk memastikan hasilnya boolean murni
-    const isDisabled = Boolean(isPending || isViewMode); 
-
-    // Inisialisasi React Hook Form
     const form = useForm<TestCaseFormData>({
         resolver: zodResolver(TestCaseSchema),
         defaultValues: {
@@ -90,46 +80,53 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
         },
     });
     
-    // Reset form saat initialData berubah atau saat ditutup
     useEffect(() => {
-        if (open) {
+        if (open && initialData) {
             form.reset({
-                name: initialData?.name || '',
-                description: initialData?.description || '',
-                type: initialData?.type as (typeof TC_TYPES[number] | undefined),
-                tag: initialData?.tag || '',
-                preCondition: initialData?.preCondition || '',
-                testSteps: initialData?.testSteps || '',
-                testData: initialData?.testData || '',
-                postCondition: initialData?.postCondition || '',
-                expectedResult: initialData?.expectedResult || '',
+                name: initialData.name || '',
+                description: initialData.description || '',
+                type: initialData.type as TestCaseFormData['type'],
+                tag: initialData.tag || '',
+                preCondition: initialData.preCondition || '',
+                testSteps: initialData.testSteps || '',
+                testData: initialData.testData || '',
+                postCondition: initialData.postCondition || '',
+                expectedResult: initialData.expectedResult || '',
             });
             form.clearErrors();
+        } else if (open && !initialData) {
+            form.reset({
+                name: '',
+                description: '',
+                type: undefined,
+                tag: '',
+                preCondition: '',
+                testSteps: '',
+                testData: '',
+                postCondition: '',
+                expectedResult: '',
+            });
         }
     }, [open, initialData, form]);
 
-
-    // --- HANDLER SUBMIT ---
     const onSubmit = (data: TestCaseFormData) => {
-        // Jika mode adalah View, jangan lakukan submit
         if (isViewMode) return; 
 
         const payload: TestCaseRequest = {
             ...data,
-            idFeature: idFeature, 
-            idProject: idProject,
+            idFeature, 
+            idProject,
             tag: data.tag || null,
             testData: data.testData || '',
         };
 
-        if (isEditMode) {
+        if (isEditMode && initialData) {
             const updateParams: UpdateTestCaseParams = {
                 ...payload,
-                testCaseId: initialData!.id, 
+                testCaseId: initialData.id, 
             };
-            
-            updateMutation.mutate(updateParams, {
-                onSuccess: () => onOpenChange(false),
+            updateMutation.mutate(updateParams, { 
+                onSuccess: () => onOpenChange(false) 
             });
         } else {
             createMutation.mutate(payload, {
@@ -141,47 +138,21 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
         }
     };
 
-    // Tambahkan komponen Select untuk Tipe TC
-    const renderSelectType = () => (
-        <select 
-            {...form.register("type")} 
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            disabled={isDisabled} // Menggunakan isDisabled yang sudah terjamin boolean
-        >
-            <option value="" disabled selected>Pilih Tipe</option>
-            {TC_TYPES.map(type => (
-                <option key={type} value={type}>{type}</option>
-            ))}
-        </select>
-    );
-
-    // Penentuan Judul Dialog
-    const dialogTitle = isViewMode 
-        ? `Detail Test Case: ${initialData?.name}` 
-        : isEditMode 
-        ? `Edit Test Case: ${initialData?.name}` 
-        : "Buat Test Case Baru";
-
-    const dialogDescription = isViewMode
-        ? `Informasi lengkap mengenai Test Case ${initialData?.name}. Mode Baca-Saja.`
-        : "Mengelola detail pengujian untuk fitur ini.";
-
-
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[700px]">
+            <DialogContent className="sm:max-w-[750px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>{dialogTitle}</DialogTitle>
+                    <DialogTitle>
+                        {isViewMode ? `Detail: ${initialData?.name}` : isEditMode ? "Edit Test Case" : "Buat Test Case Baru"}
+                    </DialogTitle>
                     <DialogDescription>
-                        {dialogDescription}
+                        {isViewMode ? "Mode pratinjau data pengujian." : "Lengkapi informasi pengujian di bawah ini."}
                     </DialogDescription>
                 </DialogHeader>
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                            {/* Nama Test Case */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
                                 name="name"
@@ -189,29 +160,36 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                                     <FormItem>
                                         <FormLabel>Nama Test Case</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Contoh: Login dengan kredensial valid" {...field} disabled={isDisabled} />
+                                            <Input placeholder="Contoh: Validasi Login Berhasil" {...field} disabled={isDisabled} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            {/* Tipe Test Case */}
                             <FormField
                                 control={form.control}
                                 name="type"
-                                render={({ }) => (
+                                render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>Tipe</FormLabel>
-                                        <FormControl>
-                                            {renderSelectType()}
-                                        </FormControl>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={isDisabled}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Pilih Tipe" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {TC_TYPES.map(type => (
+                                                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
                         </div>
 
-                        {/* Deskripsi */}
                         <FormField
                             control={form.control}
                             name="description"
@@ -219,15 +197,14 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                                 <FormItem>
                                     <FormLabel>Deskripsi</FormLabel>
                                     <FormControl>
-                                        <Textarea placeholder="Penjelasan singkat tujuan pengujian..." {...field} disabled={isDisabled} rows={2} />
+                                        <Textarea placeholder="Jelaskan tujuan pengujian..." {...field} disabled={isDisabled} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        
-                        {/* Pre-Condition & Expected Result */}
-                        <div className="grid grid-cols-2 gap-4">
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
                                 name="preCondition"
@@ -235,7 +212,7 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                                     <FormItem>
                                         <FormLabel>Pre-Condition</FormLabel>
                                         <FormControl>
-                                            <Textarea placeholder="Syarat sebelum pengujian..." {...field} disabled={isDisabled} rows={3} />
+                                            <Textarea {...field} disabled={isDisabled} className="h-24 resize-none" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -248,7 +225,7 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                                     <FormItem>
                                         <FormLabel>Expected Result</FormLabel>
                                         <FormControl>
-                                            <Textarea placeholder="Hasil yang diharapkan dari pengujian..." {...field} disabled={isDisabled} rows={3} />
+                                            <Textarea {...field} disabled={isDisabled} className="h-24 resize-none" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -256,31 +233,29 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                             />
                         </div>
 
-                        {/* Test Steps */}
                         <FormField
                             control={form.control}
                             name="testSteps"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Test Steps (Langkah-langkah)</FormLabel>
+                                    <FormLabel>Test Steps</FormLabel>
                                     <FormControl>
-                                        <Textarea placeholder="1. Buka halaman X, 2. Isi data Y, 3. Klik tombol Z..." {...field} disabled={isDisabled} rows={5} />
+                                        <Textarea placeholder="1. Buka halaman login..." {...field} disabled={isDisabled} className="h-32" />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
 
-                        {/* Test Data & Tag (2 Kolom) */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
                                 name="testData"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Test Data (Opsional)</FormLabel>
+                                        <FormLabel>Test Data</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Contoh: username: user01, password: pass" {...field} value={field.value || ''} disabled={isDisabled} />
+                                            <Input {...field} value={field.value || ''} disabled={isDisabled} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -291,9 +266,9 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                                 name="tag"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Tag (Opsional, pisahkan dengan koma)</FormLabel>
+                                        <FormLabel>Tag</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Contoh: smoke, regression, positif" {...field} value={field.value || ''} disabled={isDisabled} />
+                                            <Input placeholder="P1, Smoke, Login" {...field} value={field.value || ''} disabled={isDisabled} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -301,7 +276,6 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                             />
                         </div>
 
-                        {/* Post-Condition */}
                         <FormField
                             control={form.control}
                             name="postCondition"
@@ -309,28 +283,30 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                                 <FormItem>
                                     <FormLabel>Post-Condition</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Keadaan sistem setelah pengujian selesai..." {...field} disabled={isDisabled} />
+                                        <Input {...field} disabled={isDisabled} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
 
-                        {/* KONDISIONAL BUTTON SUBMIT/CLOSE */}
-                        {!isViewMode ? (
-                             <Button type="submit" className="w-full" disabled={isPending}>
-                                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                 {isEditMode ? 'Simpan Perubahan Test Case' : 'Buat Test Case'}
-                             </Button>
-                        ) : (
-                            <Button 
-                                type="button" 
-                                className="w-full bg-blue-500 hover:bg-blue-600" 
-                                onClick={() => onOpenChange(false)}
-                            >
-                                Tutup Detail
-                            </Button>
-                        )}
+                        <div className="flex justify-end gap-3 pt-6">
+                            {isViewMode ? (
+                                <Button type="button" className="w-full" variant="secondary" onClick={() => onOpenChange(false)}>
+                                    Tutup Pratinjau
+                                </Button>
+                            ) : (
+                                <>
+                                    <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={isPending}>
+                                        Batal
+                                    </Button>
+                                    <Button type="submit" disabled={isPending} className="min-w-[140px]">
+                                        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        {isEditMode ? 'Update Test Case' : 'Buat Test Case'}
+                                    </Button>
+                                </>
+                            )}
+                        </div>
                     </form>
                 </Form>
             </DialogContent>

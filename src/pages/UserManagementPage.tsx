@@ -28,7 +28,7 @@ const UserManagementPage: React.FC = () => {
                     {isAdmin ? (
                         <div className="p-4 bg-green-50 border border-green-200 rounded-md">
                             <p className="text-sm font-medium text-green-700 flex items-center">
-                                <ShieldCheck className="mr-2 h-4 w-4" /> Akses Diizinkan. Selamat datang, Admin **{user?.username || 'Guest'}**!
+                                <ShieldCheck className="mr-2 h-4 w-4" /> Akses Diizinkan. Selamat datang, Admin {user?.username || 'Guest'}!
                             </p>
                             <Separator className="my-3" />
                             <p className="text-muted-foreground mt-2">

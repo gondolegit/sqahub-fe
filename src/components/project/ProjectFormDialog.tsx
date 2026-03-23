@@ -72,219 +72,169 @@ interface ProjectFormDialogProps {
     initialData: Project | null; 
 }
 
+// ... (imports remain similar, focus on logic improvements)
+const PROJECT_STATUS_OPTIONS = [
+  { value: "active", label: "Aktif", color: "bg-emerald-500" },
+  { value: "completed", label: "Selesai", color: "bg-blue-500" },
+  { value: "suspended", label: "Ditangguhkan", color: "bg-amber-500" },
+  { value: "maintenance", label: "Pemeliharaan", color: "bg-indigo-500" },
+] as const;
+
 const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ open, onOpenChange, initialData }) => {
-    const isEditMode = !!initialData;
+  const isEditMode = !!initialData;
+  const { mutate: createMutate, isPending: isCreating } = useCreateProject();
+  const { mutate: updateMutate, isPending: isUpdating } = useUpdateProject();
+  
+  const form = useForm<ProjectFormValues>({
+    resolver: zodResolver(projectFormSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      type: "WEB",
+      status: "active",
+    },
+  });
+
+  // Sync effect with cleanup
+  useEffect(() => {
+    if (open) {
+      if (initialData) {
+        form.reset({
+          id: initialData.id,
+          name: initialData.name,
+          description: initialData.description || "",
+          type: initialData.type as any,
+          status: initialData.status as any,
+        });
+      } else {
+        form.reset({ name: "", description: "", type: "WEB", status: "active" });
+      }
+    }
+  }, [initialData, open, form]);
+
+  const onSubmit = (values: ProjectFormValues) => {
+    const action = isEditMode ? updateMutate : createMutate;
     
-    // Asumsi useCreateProject dan useUpdateProject sudah diperbaiki untuk menerima Request Types dari '@/types/index'
-    const { mutate: createMutate, isPending: isCreating } = useCreateProject();
-    const { mutate: updateMutate, isPending: isUpdating } = useUpdateProject();
-    
-    const form = useForm<ProjectFormValues>({
-        resolver: zodResolver(projectFormSchema),
-        defaultValues: {
-            id: initialData?.id,
-            name: initialData?.name || "",
-            description: initialData?.description || "",
-            // Menggunakan type assertion yang aman karena kita tahu initialData.type/status
-            // seharusnya sesuai dengan tipe ProjectType/ProjectStatus yang valid
-            type: (initialData?.type as ProjectType) || PROJECT_TYPES[0], 
-            status: (initialData?.status as ProjectStatus) || 'active', // Pastikan default status ada di array PROJECT_STATUSES
-        },
+    // ISO Standard: Immediate Feedback
+    action(values as any, {
+      onSuccess: () => {
+        onOpenChange(false);
+        toast.success(isEditMode ? "Pembaruan Berhasil" : "Proyek Dibuat");
+      },
+      onError: (err: any) => {
+        const msg = err.response?.data?.message || "Gagal memproses permintaan.";
+        toast.error("Kesalahan Sistem", { description: msg });
+      }
     });
+  };
 
-    // --- 3. SYNC DATA UNTUK EDIT MODE ---
-    useEffect(() => {
-        if (initialData) {
-            form.reset({
-                id: initialData.id,
-                name: initialData.name,
-                description: initialData.description || "",
-                type: initialData.type as ProjectType,
-                // Type assertion ini krusial agar nilai status yang berasal dari API (mungkin 'archived')
-                // tetap bisa masuk ke form.reset tanpa type error, karena Zod Schema sudah mengakomodasinya.
-                status: initialData.status as ProjectStatus, 
-            });
-        } else {
-             form.reset({
-                id: undefined,
-                name: "",
-                description: "",
-                type: PROJECT_TYPES[0], 
-                status: PROJECT_STATUSES.includes('active') ? 'active' : PROJECT_STATUSES[0], // Gunakan status default yang pasti valid
-            });
-        }
-    }, [initialData, form]);
+  const isPending = isCreating || isUpdating;
 
-    // --- 4. HANDLE SUBMIT FORM ---
-    const onSubmit = (values: ProjectFormValues) => {
-        
-        // Payload inti harus sesuai dengan CreateProjectRequest
-        const payload: CreateProjectRequest = {
-            name: values.name,
-            description: values.description || "", 
-            type: values.type, 
-            status: values.status, 
-        };
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden outline-none border-none shadow-2xl">
+        <div className="bg-slate-900 p-6 text-white">
+          <DialogTitle className="text-2xl font-bold italic tracking-tighter">
+            {isEditMode ? 'MODIFIKASI PROYEK' : 'INISIASI PROYEK'}
+          </DialogTitle>
+          <DialogDescription className="text-slate-400">
+            Pastikan data spesifikasi proyek sesuai dengan standar dokumentasi.
+          </DialogDescription>
+        </div>
 
-        const config = {
-            onSuccess: () => {
-                onOpenChange(false); 
-                form.reset(); 
-                toast.success(isEditMode ? "Perubahan Disimpan" : "Project Dibuat", {
-                    description: `Project '${values.name}' berhasil di${isEditMode ? 'perbarui' : 'buat'}.`,
-                    duration: 3000, 
-                });
-            },
-            onError: (error: any) => {
-                console.error("Submission failed:", error);
-                // Menampilkan error dari response API jika ada
-                const errorMessage = axios.isAxiosError(error) && error.response?.data?.message 
-                                    ? error.response.data.message 
-                                    : "Terjadi kesalahan saat menyimpan project.";
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-5">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-semibold text-slate-700">Identitas Proyek</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Contoh: Core Banking API" {...field} className="focus-visible:ring-slate-900" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                toast.error("Gagal Menyimpan Project", {
-                    description: errorMessage,
-                    duration: 5000,
-                });
-            }
-        };
-        
-        // Pilihan Mutasi
-        if (isEditMode && values.id) {
-            // Konstruksi UpdatePayload: Harus sesuai dengan UpdateProjectRequest (memiliki ID)
-            const updatePayload: UpdateProjectRequest = { 
-                id: values.id, 
-                ...payload // Menggunakan properti dari CreateProjectRequest/Payload inti
-            } as UpdateProjectRequest; 
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold text-slate-700">Kategori</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {PROJECT_TYPES.map(t => (
+                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
 
-            // Memanggil updateMutate
-            updateMutate(updatePayload, config);
-        } else {
-            // Memanggil createMutate
-            createMutate(payload, config);
-        }
-    };
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold text-slate-700">Status Operasional</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {PROJECT_STATUS_OPTIONS.map(s => (
+                          <SelectItem key={s.value} value={s.value}>
+                            <div className="flex items-center gap-2">
+                              <span className={`h-2 w-2 rounded-full ${s.color}`} />
+                              {s.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+            </div>
 
-    const isPending = isCreating || isUpdating;
-    
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle>{isEditMode ? 'Edit Project' : 'Tambah Project Baru'}</DialogTitle>
-                    <DialogDescription>
-                        Lengkapi detail project. Klik simpan setelah selesai.
-                    </DialogDescription>
-                </DialogHeader>
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-semibold text-slate-700">Abstraksi Proyek</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Jelaskan tujuan dan cakupan proyek ini..." 
+                      className="resize-none min-h-[100px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-2">
-                        {/* ID (Hidden) */}
-                        {isEditMode && <Input type="hidden" {...form.register('id', { valueAsNumber: true })} />}
-                        
-                        {/* Nama Proyek */}
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Nama Proyek</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Nama project (e.g., SQAHUB)" {...field} disabled={isPending} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        
-                        {/* Tipe Proyek */}
-                        <FormField
-                            control={form.control}
-                            name="type"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Tipe Proyek</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={isPending}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Pilih tipe project" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {PROJECT_TYPES.map(type => (
-                                                <SelectItem key={type} value={type}>{type.toUpperCase()}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        {/* Status Proyek */}
-                       <FormField
-                            control={form.control}
-                            name="status"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Status Proyek</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={isPending}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Pilih status project" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {/* FILTERING: Hanya tampilkan status yang boleh dipilih/diubah oleh user */}
-                                            {PROJECT_STATUSES
-                                                .filter(status => status === 'active' || status === 'completed' || status === 'suspended')
-                                                .map(status => (
-                                                    <SelectItem key={status} value={status}>{status.toUpperCase()}</SelectItem>
-                                                ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        {/* Deskripsi */}
-                        <FormField
-                            control={form.control}
-                            name="description"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Deskripsi</FormLabel>
-                                    <FormControl>
-                                        <Textarea 
-                                            placeholder="Deskripsi singkat project" 
-                                            {...field} 
-                                            value={field.value || ''} // Handle nilai undefined/null
-                                            disabled={isPending} 
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <DialogFooter className="pt-4">
-                            <Button 
-                                type="submit" 
-                                disabled={isPending}
-                            >
-                                {isPending ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                    isEditMode ? 'Simpan Perubahan' : 'Buat Project'
-                                )}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </Form>
-            </DialogContent>
-        </Dialog>
-    );
+            <DialogFooter className="mt-8 gap-2">
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Batal</Button>
+              <Button type="submit" disabled={isPending} className="bg-slate-900 hover:bg-slate-800 px-8">
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Konfirmasi {isEditMode ? 'Pembaruan' : 'Penyimpanan'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
 };
 
 export default ProjectFormDialog;

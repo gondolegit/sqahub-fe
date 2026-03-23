@@ -103,10 +103,34 @@ const TestSuiteDetailPage: React.FC = () => {
     const failureRate = totalRuns > 0 ? ((testSuite.statusTotalFailed + testSuite.statusTotalError) / totalRuns) * 100 : 0;
     
     const pieData = [
-        { name: 'Passed', value: testSuite.statusTotalPassed, color: '#10B981' },
-        { name: 'Failed', value: testSuite.statusTotalFailed, color: '#EF4444' },
-        { name: 'Error', value: testSuite.statusTotalError, color: '#F59E0B' },
-        { name: 'Skipped', value: testSuite.statusTotalSkipped, color: '#6B7280' },
+        { 
+            name: 'Passed', 
+            value: testSuite.statusTotalPassed, 
+            color: '#10B981',
+            percent: totalRuns > 0 ? (testSuite.statusTotalPassed / totalRuns) * 100 : 0,
+            totalRuns
+        },
+        { 
+            name: 'Failed', 
+            value: testSuite.statusTotalFailed, 
+            color: '#EF4444',
+            percent: totalRuns > 0 ? (testSuite.statusTotalFailed / totalRuns) * 100 : 0,
+            totalRuns
+        },
+        { 
+            name: 'Error', 
+            value: testSuite.statusTotalError, 
+            color: '#F59E0B',
+            percent: totalRuns > 0 ? (testSuite.statusTotalError / totalRuns) * 100 : 0,
+            totalRuns
+        },
+        { 
+            name: 'Skipped', 
+            value: testSuite.statusTotalSkipped, 
+            color: '#6B7280',
+            percent: totalRuns > 0 ? (testSuite.statusTotalSkipped / totalRuns) * 100 : 0,
+            totalRuns
+        },
     ].filter(item => item.value > 0);
     
     // --- MAIN RENDER ---
@@ -118,7 +142,7 @@ const TestSuiteDetailPage: React.FC = () => {
                         <Link to={`/projects/${projectId}`}><ArrowLeft className="h-4 w-4 mr-2" /> Kembali ke Project</Link>
                     </Button>
                     <h1 className="text-3xl font-extrabold text-primary">{testSuite.name}</h1>
-                    <p className="text-gray-500 mt-1">Laporan Eksekusi Run ID: **TS-{testSuiteId}**</p>
+                    <p className="text-gray-500 mt-1">Laporan Eksekusi Run ID: TS-{testSuiteId}</p>
                 </div>
                 
                 {/* 🚨 Fungsionalitas Export PDF */}

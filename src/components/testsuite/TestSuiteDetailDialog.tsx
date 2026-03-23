@@ -149,7 +149,7 @@ const TestSuiteDetailDialog: React.FC<TestSuiteDetailDialogProps> = ({
                                         <h3 className="text-xl font-bold">Status Eksekusi: <Badge className={`text-lg font-bold ${statusLabel === 'FAILED' ? 'bg-red-500' : statusLabel === 'PASSED' ? 'bg-green-500' : 'bg-yellow-500'}`}>{statusLabel}</Badge></h3>
                                         <div className="text-sm text-gray-600 flex items-center">
                                             <Clock className="h-4 w-4 mr-1" />
-                                            Total Waktu: **{formatElapsedTime(suite.elapsedTime)}**
+                                            Total Waktu: {formatElapsedTime(suite.elapsedTime)}
                                         </div>
                                     </div>
                                     <CardDescription className="pt-2">{suite.description}</CardDescription>
