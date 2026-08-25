@@ -19,5 +19,10 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    rules: {
+      // Izinkan pola `const { excluded, ...rest } = obj` (mis. mengecualikan field dari payload API)
+      // tanpa dianggap unused-var, konsisten dengan perilaku default TypeScript sendiri.
+      '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
+    },
   },
 ])

@@ -1,34 +1,20 @@
 // src/hooks/useProjects.ts (DIREVISI)
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+import API from '@/utils/api';
 import { toast } from 'sonner';
 
 // !!! PENTING: IMPOR SEMUA TIPE DARI SUMBER TUNGGAL (src/types/index)
-import type { 
-    ProjectStatus, 
-    ProjectType, 
+import type {
     Project, // Project type lengkap (termasuk createdBy, etc.)
     CreateProjectRequest, // Request body untuk Create
     UpdateProjectRequest, // Request body untuk Update
-} from '@/types/index'; 
+} from '@/types/index';
 // Catatan: Asumsi tipe-tipe di atas sudah diexport di '@/types/index'
 
 // --- DEFINISI TIPE LOKAL DIHAPUS (Hanya menggunakan impor) ---
 
-// --- CONFIGURATION DASAR (Sama seperti sebelumnya) ---
-const API_BASE_URL = 'http://localhost:8080/api/v1'; 
+// --- CONFIGURATION DASAR ---
 const PROJECT_QUERY_KEY = 'projects';
-const getAuthHeaders = () => {
-    // ... (logic token) ...
-    const token = localStorage.getItem('authToken'); 
-    // ...
-    return {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    };
-};
 
 // --- HOOKS MUTATION (CREATE) ---
 
@@ -37,7 +23,7 @@ export const useCreateProject = () => {
 
     // Sekarang menggunakan CreateProjectRequest dari '@/types/index'
     const createProject = async (projectData: CreateProjectRequest): Promise<Project> => { 
-        const response = await axios.post(`${API_BASE_URL}/project`, projectData, getAuthHeaders());
+        const response = await API.post(`/project`, projectData);
         return response.data;
     };
 
@@ -62,7 +48,7 @@ export const useUpdateProject = () => {
     // Sekarang menggunakan UpdateProjectRequest dari '@/types/index'
     const updateProject = async (project: UpdateProjectRequest): Promise<Project> => { 
         const { id, ...dataToUpdate } = project;
-        const response = await axios.put(`${API_BASE_URL}/project/${id}`, dataToUpdate, getAuthHeaders());
+        const response = await API.put(`/project/${id}`, dataToUpdate);
         return response.data;
     };
 
@@ -85,7 +71,7 @@ export const useUpdateProject = () => {
 export const useProjects = () => {
     // ... (logic fetchProjects)
     const fetchProjects = async (): Promise<Project[]> => {
-        const response = await axios.get(`${API_BASE_URL}/project`, getAuthHeaders());
+        const response = await API.get(`/project`);
         return response.data;
     };
 
@@ -98,7 +84,7 @@ export const useProjects = () => {
 export const useProjectDetail = (projectId: number) => {
     // ... (logic fetchProjectDetail)
     const fetchProjectDetail = async (): Promise<Project> => {
-        const response = await axios.get(`${API_BASE_URL}/project/${projectId}`, getAuthHeaders());
+        const response = await API.get(`/project/${projectId}`);
         return response.data;
     };
 
@@ -113,7 +99,7 @@ export const useDeleteProject = () => {
     // ... (logic deleteProject)
     const queryClient = useQueryClient();
     const deleteProject = async (projectId: number): Promise<void> => {
-        await axios.delete(`${API_BASE_URL}/project/${projectId}`, getAuthHeaders());
+        await API.delete(`/project/${projectId}`);
     };
     return useMutation<void, Error, number>({
         mutationFn: deleteProject,

@@ -14,11 +14,12 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
     return (
         <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 bg-card border-b lg:px-6">
             <div className="flex items-center">
-                <Button 
-                    variant="ghost" 
-                    size="icon" 
+                <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={toggleSidebar}
                     className="lg:hidden mr-2"
+                    aria-label="Buka menu navigasi"
                 >
                     <Menu className="h-6 w-6" />
                 </Button>

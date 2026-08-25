@@ -263,7 +263,7 @@ const ReportDocument: React.FC<ReportDocumentProps> = ({ testSuite, pieChartImag
                     <View style={styles.metadataItem}><Text style={styles.metadataLabel}>Pass Rate</Text><Text style={[styles.metadataValue, { color: COLORS.ACCENT }]}>{passRate.toFixed(2)}%</Text></View>
                 </View>
 
-                {/* --- 4. VISUAL ANALYSIS (PIE CHART) ---
+                {/* --- 4. VISUAL ANALYSIS (PIE CHART) --- */}
                 <View style={styles.sectionHeader}>
                     <View style={{ width: 4, height: 12, backgroundColor: COLORS.ACCENT, marginRight: 6 }} />
                     <Text style={styles.sectionTitle}>Statistical Distribution & Summary</Text>
@@ -271,7 +271,7 @@ const ReportDocument: React.FC<ReportDocumentProps> = ({ testSuite, pieChartImag
 
                 <View style={styles.visualSection} wrap={false}>
                     <View style={styles.chartWrapper}>
-                        {pieChartImage ? ( // Ganti pieChartBase64 menjadi pieChartImage
+                        {pieChartImage ? (
                             <Image src={pieChartImage} style={{ width: 140, height: 140 }} />
                         ) : (
                             <Text style={{ fontSize: 7, color: COLORS.TEXT_MUTED }}>[ Chart Analysis Not Rendered ]</Text>
@@ -280,12 +280,12 @@ const ReportDocument: React.FC<ReportDocumentProps> = ({ testSuite, pieChartImag
                     <View style={styles.descriptionWrapper}>
                         <Text style={styles.descText}>
                             {testSuite.description ||
-                                `The test objective for ${testSuite.name} was executed according to SOP. Out of ${total} items, 
-                            ${testSuite.statusTotalPassed} passed successfully. Resulting in a functional stability 
+                                `The test objective for ${testSuite.name} was executed according to SOP. Out of ${total} items,
+                            ${testSuite.statusTotalPassed} passed successfully. Resulting in a functional stability
                             index of ${passRate.toFixed(2)}% for system version ${testSuite.version || 'N/A'}.`}
                         </Text>
                     </View>
-                </View> */}
+                </View>
 
                 {/* --- 5. DETAILED SPECIFICATION TABLE --- */}
                 <View style={styles.sectionHeader}>

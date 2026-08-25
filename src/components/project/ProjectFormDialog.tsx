@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import axios from 'axios';
+import { isAxiosError } from 'axios';
 
 // IMPOR NILAI (Fungsi/Hook)
 import { 
@@ -13,22 +13,19 @@ import {
 } from '@/hooks/useProjects'; 
 
 // IMPOR TIPE DARI SUMBER DEFINITIF: '@/types/index.ts'
-import type { 
+import type {
     Project,
-    ProjectType, 
-    ProjectStatus,
-    CreateProjectRequest, 
-    UpdateProjectRequest, 
-} from '@/types/index'; 
+    CreateProjectRequest,
+    UpdateProjectRequest,
+} from '@/types/index';
 
 
-import { 
-    Dialog, 
-    DialogContent, 
-    DialogDescription, 
-    DialogFooter, 
-    DialogHeader, 
-    DialogTitle 
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogTitle
 } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -103,8 +100,8 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ open, onOpenChang
           id: initialData.id,
           name: initialData.name,
           description: initialData.description || "",
-          type: initialData.type as any,
-          status: initialData.status as any,
+          type: initialData.type,
+          status: initialData.status,
         });
       } else {
         form.reset({ name: "", description: "", type: "WEB", status: "active" });
@@ -113,19 +110,31 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ open, onOpenChang
   }, [initialData, open, form]);
 
   const onSubmit = (values: ProjectFormValues) => {
-    const action = isEditMode ? updateMutate : createMutate;
-    
-    // ISO Standard: Immediate Feedback
-    action(values as any, {
+    const payload: CreateProjectRequest = {
+      name: values.name,
+      description: values.description ?? "",
+      type: values.type,
+      status: values.status,
+    };
+
+    const callbacks = {
       onSuccess: () => {
         onOpenChange(false);
         toast.success(isEditMode ? "Pembaruan Berhasil" : "Proyek Dibuat");
       },
-      onError: (err: any) => {
-        const msg = err.response?.data?.message || "Gagal memproses permintaan.";
-        toast.error("Kesalahan Sistem", { description: msg });
+      onError: (err: Error) => {
+        const msg = isAxiosError<{ message?: string }>(err) ? err.response?.data?.message : undefined;
+        toast.error("Kesalahan Sistem", { description: msg || "Gagal memproses permintaan." });
       }
-    });
+    };
+
+    // ISO Standard: Immediate Feedback
+    if (isEditMode && initialData) {
+      const updatePayload: UpdateProjectRequest = { ...payload, id: initialData.id };
+      updateMutate(updatePayload, callbacks);
+    } else {
+      createMutate(payload, callbacks);
+    }
   };
 
   const isPending = isCreating || isUpdating;

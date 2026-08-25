@@ -1,21 +1,19 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PDFDownloadLink } from '@react-pdf/renderer';
 import { toPng } from 'html-to-image';
 
 import {
-    AlertTriangle, Loader2, FileText, CheckCircle, XCircle, 
-    Download, ChevronLeft, Clock, Monitor, Globe, User, Tag, 
+    AlertTriangle, Loader2, CheckCircle, XCircle,
+    Download, ChevronLeft, Clock, Monitor, Globe, User, Tag,
     Info, FastForward, Bug, Layers, Terminal, Server, Shield, Activity, Calendar
 } from 'lucide-react';
 
 import { useTestSuiteById } from '@/hooks/useTestSuites';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-import ReportDocument from '@/components/reports/ReportDocument';
+import PdfExportButton from '@/components/reports/PdfExportButton';
 import StatusPieChart from '@/components/reports/StatusPieChart';
 import RunDetailList from '@/components/reports/RunDetailList';
 
@@ -25,6 +23,15 @@ const formatDuration = (secondsInput: number): string => {
     const seconds = Math.floor(secondsInput % 60);
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} (MM:SS)`;
 };
+
+// Kelas Tailwind statis lengkap per warna status — string interpolation seperti `bg-${color}-500`
+// tidak terdeteksi oleh Tailwind JIT compiler sehingga akan hilang dari CSS hasil build produksi.
+const STATUS_CARD_COLOR_CLASSES = {
+    emerald: { bar: 'bg-emerald-500', label: 'text-emerald-600', icon: 'text-emerald-500', count: 'text-emerald-700' },
+    red: { bar: 'bg-red-500', label: 'text-red-600', icon: 'text-red-500', count: 'text-red-700' },
+    amber: { bar: 'bg-amber-500', label: 'text-amber-600', icon: 'text-amber-500', count: 'text-amber-700' },
+    indigo: { bar: 'bg-indigo-500', label: 'text-indigo-600', icon: 'text-indigo-500', count: 'text-indigo-700' },
+} as const;
 
 const TestRunDetailPage: React.FC = () => {
     const { suiteId } = useParams<{ suiteId: string }>();
@@ -72,7 +79,7 @@ const TestRunDetailPage: React.FC = () => {
         { label: 'FAILED', count: testRun.statusTotalFailed, color: 'red', icon: XCircle, desc: 'Requirement Not Met' },
         { label: 'ERROR', count: testRun.statusTotalError, color: 'amber', icon: Bug, desc: 'System Fault' },
         { label: 'SKIPPED', count: testRun.statusTotalSkipped, color: 'indigo', icon: FastForward, desc: 'Out of Scope' },
-    ];
+    ] as const;
 
     const metadataItems = [
         { label: 'Test Item / Project', value: testRun.projectName, icon: Layers },
@@ -114,8 +121,9 @@ const TestRunDetailPage: React.FC = () => {
                         </p>
                     </div>
 
-                    <PDFDownloadLink 
-                        document={<ReportDocument testSuite={testRun} pieChartImage={pieChartBase64} />} 
+                    <PdfExportButton
+                        testSuite={testRun}
+                        pieChartImage={pieChartBase64}
                         fileName={`ISO_IEC_29119_REPORT_${testRun.name}.pdf`}
                     >
                         {({ loading }) => (
@@ -124,7 +132,7 @@ const TestRunDetailPage: React.FC = () => {
                                 GENERATE DOCUMENT
                             </Button>
                         )}
-                    </PDFDownloadLink>
+                    </PdfExportButton>
                 </div>
             </div>
 
@@ -150,21 +158,24 @@ const TestRunDetailPage: React.FC = () => {
 
                 {/* Counter Grid */}
                 <div className="lg:col-span-7 xl:col-span-8 grid grid-cols-2 xl:grid-cols-4 gap-4">
-                    {statusCards.map((stat) => (
-                        <Card key={stat.label} className={`border-none shadow-lg bg-white overflow-hidden relative group hover:-translate-y-1 transition-all duration-300`}>
-                            <div className={`h-2 w-full bg-${stat.color}-500`} />
-                            <CardContent className="p-6">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className={`text-[10px] font-black tracking-widest text-${stat.color}-600 uppercase`}>{stat.label}</span>
-                                    <stat.icon className={`h-5 w-5 text-${stat.color}-500 opacity-30 group-hover:opacity-100 transition-opacity`} />
-                                </div>
-                                <div className={`text-6xl font-black tracking-tighter text-${stat.color}-700`}>
-                                    {stat.count}
-                                </div>
-                                <p className="text-[10px] mt-2 font-bold text-slate-400 uppercase tracking-tight">{stat.desc}</p>
-                            </CardContent>
-                        </Card>
-                    ))}
+                    {statusCards.map((stat) => {
+                        const colorClasses = STATUS_CARD_COLOR_CLASSES[stat.color];
+                        return (
+                            <Card key={stat.label} className="border-none shadow-lg bg-white overflow-hidden relative group hover:-translate-y-1 transition-all duration-300">
+                                <div className={`h-2 w-full ${colorClasses.bar}`} />
+                                <CardContent className="p-6">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className={`text-[10px] font-black tracking-widest ${colorClasses.label} uppercase`}>{stat.label}</span>
+                                        <stat.icon className={`h-5 w-5 ${colorClasses.icon} opacity-30 group-hover:opacity-100 transition-opacity`} />
+                                    </div>
+                                    <div className={`text-6xl font-black tracking-tighter ${colorClasses.count}`}>
+                                        {stat.count}
+                                    </div>
+                                    <p className="text-[10px] mt-2 font-bold text-slate-400 uppercase tracking-tight">{stat.desc}</p>
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
 
                     {/* Metadata Wall (ISO 29119-3 standard labels) */}
                     <Card className="col-span-2 xl:col-span-4 border-none shadow-2xl ring-2 ring-primary/10 bg-white">

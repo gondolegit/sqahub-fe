@@ -60,7 +60,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, onEdit, onD
                     <Edit className="h-4 w-4 mr-2" /> Edit
                 </Button>
                 <div className="flex space-x-2">
-                    <Button variant="destructive" size="sm" onClick={(e) => { e.stopPropagation(); onDelete(); }} disabled={isDeleting}>
+                    <Button variant="destructive" size="sm" onClick={(e) => { e.stopPropagation(); onDelete(); }} disabled={isDeleting} aria-label={`Hapus proyek ${project.name}`}>
                         <Trash2 className="h-4 w-4" />
                     </Button>
                     <Button variant="default" size="sm" onClick={onClick} disabled={isDeleting}>

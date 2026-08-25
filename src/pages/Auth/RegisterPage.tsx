@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { isAxiosError } from 'axios';
 import { Loader2, UserPlus, AlertTriangle, CheckCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-
-const API_REGISTER_URL = 'http://localhost:8080/api/v1/auth/register'; 
+import API from '@/utils/api';
 
 const RegisterPage: React.FC = () => {
     const navigate = useNavigate();
@@ -38,24 +38,10 @@ const RegisterPage: React.FC = () => {
         setSuccess(null);
 
         try {
-            const response = await fetch(API_REGISTER_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                const errorMessage = data.message || data.error || 'Registrasi Gagal. Coba lagi.';
-                setError(errorMessage);
-                return;
-            }
+            const { data } = await API.post('/auth/register', formData);
 
             setSuccess(data.message || "Registrasi Berhasil! Anda akan diarahkan ke halaman Login.");
-            
+
             // Redirect ke login dan bawa username melalui state
             setTimeout(() => {
                 navigate('/login', { state: { registeredUsername: formData.username } });
@@ -63,7 +49,11 @@ const RegisterPage: React.FC = () => {
 
         } catch (err) {
             console.error('Error saat registrasi:', err);
-            setError('Gagal terhubung ke server. Pastikan API berjalan.');
+            if (isAxiosError(err)) {
+                setError(err.response?.data?.message || err.response?.data?.error || 'Registrasi Gagal. Coba lagi.');
+            } else {
+                setError('Gagal terhubung ke server. Pastikan API berjalan.');
+            }
         } finally {
             setIsLoading(false);
         }

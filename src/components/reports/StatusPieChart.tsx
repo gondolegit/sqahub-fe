@@ -15,21 +15,28 @@ interface PieData {
     color: string;
     totalRuns?: number;
     percent: number; // Tetap definisikan ini di data kita
-    [key: string]: any; 
+    // recharts' <Pie data> mensyaratkan index signature (ChartDataInput); gunakan `unknown`, bukan `any`,
+    // agar pemanggil tetap wajib menyempitkan tipe sebelum memakainya.
+    [key: string]: unknown;
 }
 
 interface StatusPieChartProps {
     data: PieData[];
 }
 
+interface CustomTooltipProps {
+    active?: boolean;
+    payload?: Array<{ name: string; value: number; payload: PieData }>;
+}
+
 // CustomTooltip tidak perlu diubah, karena ia menggunakan 'payload' yang tipenya berbeda
 // dan kita sudah menangani null/undefined di sana.
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
         const item = payload[0];
         const value = item.value;
-        const total = item.payload.totalRuns || 0; 
+        const total = item.payload.totalRuns || 0;
 
         let percent = 0;
         if (total > 0) {

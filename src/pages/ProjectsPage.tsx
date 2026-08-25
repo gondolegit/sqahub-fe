@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Plus, Search, LayoutGrid, List, MoreVertical, 
-  ExternalLink, Pencil, Trash2, FolderPlus 
+import {
+  Plus, Search, MoreVertical,
+  ExternalLink, Pencil, Trash2, FolderPlus
 } from 'lucide-react';
 import { toast } from 'sonner';
 

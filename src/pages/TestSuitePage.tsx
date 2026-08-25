@@ -43,7 +43,7 @@ const TestSuitesPage: React.FC = () => {
         if (!testSuites) return [];
         if (!searchQuery) return testSuites;
         
-        return testSuites.filter((suite: any) => 
+        return testSuites.filter(suite =>
             suite.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [testSuites, searchQuery]);

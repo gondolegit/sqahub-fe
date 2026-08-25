@@ -14,11 +14,13 @@
     
     // 2. WAJIB: Memperbaiki error "may not disable emit"
     // TypeScript harus diizinkan untuk menghasilkan output (biasanya hanya deklarasi)
-    "noEmit": false, 
-    
+    "noEmit": false,
+    // outDir WAJIB diisi agar output .js tidak ikut tertulis di root proyek (mis. di sebelah vite.config.ts)
+    "outDir": "./dist/tsc-node",
+
     // Opsional: Memastikan file deklarasi dihasilkan
-    "declaration": true, 
-    "declarationDir": "./dist/types", 
+    "declaration": true,
+    "declarationDir": "./dist/types",
     
     // Tipe global untuk environment Node
     "types": ["node"] 

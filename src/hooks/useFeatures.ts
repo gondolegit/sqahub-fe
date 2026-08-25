@@ -1,23 +1,11 @@
 // src/hooks/useFeatures.ts
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
 import { toast } from 'sonner';
+import API from '@/utils/api';
 
 // --- CONFIGURATION DASAR ---
-const API_BASE_URL = 'http://localhost:8080/api/v1'; 
 const FEATURE_QUERY_KEY = 'features';
-
-const getAuthHeaders = () => {
-    const token = localStorage.getItem('authToken'); 
-    return {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-        }
-    };
-};
-// ----------------------------
 
 // --- DEFINISI TIPE ---
 
@@ -90,7 +78,7 @@ export interface DeleteFeatureParams {
 // Mengambil semua fitur berdasarkan Project ID
 export const useFeatures = (projectId: number) => {
     const fetchFeatures = async (): Promise<Feature[]> => {
-        const response = await axios.get(`${API_BASE_URL}/feature/project/${projectId}`, getAuthHeaders());
+        const response = await API.get(`/feature/project/${projectId}`);
         return response.data;
     };
 
@@ -104,7 +92,7 @@ export const useFeatures = (projectId: number) => {
 // Mengambil detail satu fitur
 export const useFeatureDetail = (featureId: number) => {
     const fetchFeatureDetail = async (): Promise<Feature> => {
-        const response = await axios.get(`${API_BASE_URL}/feature/${featureId}`, getAuthHeaders());
+        const response = await API.get(`/feature/${featureId}`);
         return response.data;
     };
 
@@ -124,15 +112,15 @@ export const useCreateFeature = () => {
     
     // Mutation mengembalikan FeatureResponseFromApi, tapi inputnya FeatureRequest
     const createFeature = async (featureData: FeatureRequest): Promise<FeatureResponseFromApi> => {
-        const response = await axios.post(`${API_BASE_URL}/feature`, featureData, getAuthHeaders());
+        const response = await API.post(`/feature`, featureData);
         return response.data;
     };
 
     return useMutation<FeatureResponseFromApi, Error, FeatureRequest>({
         mutationFn: createFeature,
-        // responseFromApi adalah data yang dikembalikan API (tanpa 'type')
-        // requestPayload adalah data yang kita kirim (memiliki 'type' dan 'idProject')
-        onSuccess: (responseFromApi, requestPayload) => {
+        // requestPayload adalah data yang kita kirim (memiliki 'type' dan 'idProject');
+        // respons API (tanpa 'type') tidak dipakai di sini sehingga argumen pertama tidak diberi nama.
+        onSuccess: (_responseFromApi, requestPayload) => {
             // Menggunakan requestPayload.name untuk toast yang informatif
             toast.success("Fitur Baru Dibuat", { description: `Fitur '${requestPayload.name}' berhasil ditambahkan.` });
             
@@ -153,7 +141,7 @@ export const useUpdateFeature = () => {
     // Mutation mengembalikan FeatureResponseFromApi, tapi inputnya UpdateFeatureParams
     const updateFeature = async (params: UpdateFeatureParams): Promise<FeatureResponseFromApi> => {
         const { featureId, ...payload } = params;
-        const response = await axios.put(`${API_BASE_URL}/feature/${featureId}`, payload, getAuthHeaders());
+        const response = await API.put(`/feature/${featureId}`, payload);
         return response.data;
     };
 
@@ -183,7 +171,7 @@ export const useDeleteFeature = () => {
     const queryClient = useQueryClient();
     const deleteFeature = async (params: DeleteFeatureParams): Promise<void> => {
         const { featureId } = params;
-        await axios.delete(`${API_BASE_URL}/feature/${featureId}`, getAuthHeaders());
+        await API.delete(`/feature/${featureId}`);
     };
 
     return useMutation<void, Error, DeleteFeatureParams>({

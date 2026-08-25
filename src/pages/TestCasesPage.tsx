@@ -101,8 +101,8 @@ const TestCasesPage: React.FC = () => {
                 setCaseToDelete(null);
                 toast.success("Berhasil", { description: "Test case telah dihapus." });
             },
-            onError: (err: any) => {
-                toast.error("Gagal", { description: err.message || "Gagal menghapus data." });
+            onError: (err) => {
+                toast.error("Gagal", { description: err.response?.data?.message || err.message || "Gagal menghapus data." });
                 setCaseToDelete(null);
             }
         });

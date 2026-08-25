@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FolderKanban, X, ListChecks } from 'lucide-react'; 
+import { FolderKanban, X, ListChecks } from 'lucide-react';
 import { cn } from "@/lib/utils"; // Gunakan utilitas classname shadcn
+import { Button } from '@/components/ui/button';
 
 interface SidebarProps {
     isOpen: boolean;
@@ -25,12 +26,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle }) => {
         >
             <div className="flex items-center justify-between p-4 h-16 border-b">
                 <h2 className="text-xl font-bold text-primary">SQAHUB.org</h2>
-                <button 
-                    className="lg:hidden p-2 text-muted-foreground hover:bg-muted rounded-md" 
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="lg:hidden text-muted-foreground hover:bg-muted"
                     onClick={toggle}
+                    aria-label="Tutup menu navigasi"
                 >
                     <X className="h-6 w-6" />
-                </button>
+                </Button>
             </div>
             
             <nav className="p-4 space-y-1">

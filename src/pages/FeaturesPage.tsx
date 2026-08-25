@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQueries } from '@tanstack/react-query';
-import axios from 'axios';
+import { isAxiosError } from 'axios';
+import API from '@/utils/api';
 import {
     useFeatures,
     useDeleteFeature,
     type Feature,
-    type DeleteFeatureParams
 } from '@/hooks/useFeatures';
 import { useProjectDetail } from '@/hooks/useProjects';
 
@@ -41,15 +41,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 // --- (API & Fetching Logic tetap sama) ---
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
-const getAuthHeaders = () => {
-    const token = localStorage.getItem('authToken') || '';
-    return { headers: { Authorization: `Bearer ${token}` } };
-};
 interface TestCase { id: number; }
 const fetchTestCasesByFeature = async (featureId: number): Promise<TestCase[]> => {
     if (featureId <= 0) return [];
-    const response = await axios.get<TestCase[]>(`${API_BASE_URL}/testcase/feature/${featureId}`, getAuthHeaders());
+    const response = await API.get<TestCase[]>(`/testcase/feature/${featureId}`);
     return response.data;
 };
 
@@ -68,7 +63,7 @@ const FeaturesPage: React.FC = () => {
     const [initialFeatureData, setInitialFeatureData] = useState<Feature | null>(null);
     const [featureToDelete, setFeatureToDelete] = useState<{ id: number; name: string } | null>(null);
 
-    const { data: features, isLoading: isLoadingFeatures, isError: isErrorFeatures, error: errorFeatures } = useFeatures(isValidId ? projectId : -1);
+    const { data: features, isLoading: isLoadingFeatures } = useFeatures(isValidId ? projectId : -1);
     const { data: projectDetail, isLoading: isLoadingProject } = useProjectDetail(isValidId ? projectId : -1);
     const deleteMutation = useDeleteFeature();
 
@@ -114,8 +109,9 @@ const FeaturesPage: React.FC = () => {
                 toast.success("Fitur Dihapus", { description: `Fitur '${featureToDelete.name}' berhasil dihapus.` });
                 setFeatureToDelete(null);
             },
-            onError: (err: any) => {
-                toast.error("Gagal", { description: err.message });
+            onError: (err) => {
+                const message = isAxiosError<{ message?: string }>(err) ? err.response?.data?.message || err.message : err.message;
+                toast.error("Gagal", { description: message });
                 setFeatureToDelete(null);
             }
         });
@@ -263,14 +259,32 @@ const FeaturesPage: React.FC = () => {
 };
 
 // --- Sub-components for Cleanliness ---
-const StatCard = ({ title, value, icon, color }: any) => (
-    <Card className={`border-l-4 border-l-${color}-500 shadow-md`}>
-        <CardContent className="p-5 flex items-center justify-between">
-            <div><p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{title}</p><h3 className="text-2xl font-bold text-slate-900">{value}</h3></div>
-            <div className={`p-3 bg-${color}-50 rounded-xl`}>{icon}</div>
-        </CardContent>
-    </Card>
-);
+// Kelas Tailwind harus berupa string statis lengkap agar terdeteksi oleh JIT compiler saat build produksi
+// (string interpolation seperti `border-l-${color}-500` tidak akan pernah masuk ke CSS hasil build).
+const STAT_CARD_COLORS = {
+    blue: { border: 'border-l-blue-500', iconBg: 'bg-blue-50' },
+    emerald: { border: 'border-l-emerald-500', iconBg: 'bg-emerald-50' },
+    purple: { border: 'border-l-purple-500', iconBg: 'bg-purple-50' },
+} as const;
+
+interface StatCardProps {
+    title: string;
+    value: number;
+    icon: React.ReactNode;
+    color: keyof typeof STAT_CARD_COLORS;
+}
+
+const StatCard = ({ title, value, icon, color }: StatCardProps) => {
+    const { border, iconBg } = STAT_CARD_COLORS[color];
+    return (
+        <Card className={`border-l-4 ${border} shadow-md`}>
+            <CardContent className="p-5 flex items-center justify-between">
+                <div><p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{title}</p><h3 className="text-2xl font-bold text-slate-900">{value}</h3></div>
+                <div className={`p-3 ${iconBg} rounded-xl`}>{icon}</div>
+            </CardContent>
+        </Card>
+    );
+};
 
 const StatusBadge = ({ status }: { status: string }) => {
     const config: Record<string, string> = {

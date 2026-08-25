@@ -11,11 +11,14 @@
     // --- PERBAIKAN WAJIB ---
     "composite": true, // <--- 1. Tambahkan ini untuk memenuhi syarat referensi proyek
     "noEmit": false,   // <--- 2. Ubah ini dari true menjadi false (memperbaiki error disable emit)
+    // outDir WAJIB diisi agar output composite (.js/.d.ts) tidak ikut tertulis di sebelah source .tsx di src/
+    "outDir": "./dist/tsc-app",
     // --- AKHIR PERBAIKAN WAJIB ---
     
     /* Bundler mode */
     "moduleResolution": "bundler",
-    
+    "esModuleInterop": true,
+
     "allowImportingTsExtensions": false,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
@@ -29,7 +32,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
-    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./src/*"

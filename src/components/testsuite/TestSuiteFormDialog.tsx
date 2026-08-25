@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useForm, useFieldArray, type UseFormReturn } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch, type UseFormReturn, type FieldArrayWithId } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
@@ -20,6 +20,7 @@ import { useCreateTestSuiteRun } from '@/hooks/useTestSuites';
 import { useProjectDetail } from '@/hooks/useProjects';
 import { useTestCasesByProject } from '@/hooks/useTestCases';
 import { type TestCase } from '@/types/testCase';
+import type { TestSuiteRunRequest } from '@/types/testSuite';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -89,7 +90,7 @@ const ConfigFields = ({ form }: { form: UseFormReturn<TestSuiteFormData> }) => (
     </div>
 );
 
-const DetailItem = ({ icon, label, value, isPre, className }: { icon: any, label: string, value: any, isPre?: boolean, className?: string }) => (
+const DetailItem = ({ icon, label, value, isPre, className }: { icon: React.ReactNode, label: string, value: string | null | undefined, isPre?: boolean, className?: string }) => (
     <div className={`space-y-1.5 ${className}`}>
         <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-wider">{icon} {label}</div>
         <div className={`text-xs text-slate-600 leading-relaxed ${isPre ? 'font-mono bg-slate-50 p-2 rounded whitespace-pre-wrap border border-slate-100' : ''}`}>
@@ -108,6 +109,129 @@ const TagBadge = ({ tags }: { tags: string }) => {
                 </span>
             ))}
         </div>
+    );
+};
+
+// Baris eksekusi diekstrak jadi komponen tersendiri agar `useWatch` (subscribe ke satu field saja,
+// tidak seperti `form.watch()` yang me-render ulang seluruh daftar) bisa dipakai sesuai Rules of Hooks per-item.
+const RunDetailCard = ({
+    form,
+    index,
+    field,
+    tcFullData,
+    onRemove,
+}: {
+    form: UseFormReturn<TestSuiteFormData>;
+    index: number;
+    field: FieldArrayWithId<TestSuiteFormData, "runDetails", "id">;
+    tcFullData: TestCase | undefined;
+    onRemove: () => void;
+}) => {
+    const status = useWatch({ control: form.control, name: `runDetails.${index}.status` });
+
+    return (
+        <Card className="border-none shadow-md overflow-hidden bg-white ring-1 ring-slate-200">
+            <div className={`h-1.5 w-full ${status === 'PASS' ? 'bg-emerald-500' : status === 'FAIL' ? 'bg-rose-500' : status === 'ERROR' ? 'bg-amber-500' : 'bg-slate-400'}`} />
+            <div className="p-4 md:p-6 space-y-5">
+                <div className="flex justify-between items-start gap-4">
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline" className="bg-slate-50 text-slate-500 font-bold">TC-{field.idTestCase}</Badge>
+                            <Badge className="bg-blue-50 text-blue-600 border-none uppercase text-[9px]">{tcFullData?.type || 'FUNCTIONAL'}</Badge>
+                        </div>
+                        <h4 className="font-bold text-base md:text-lg text-slate-800 tracking-tight truncate">{field.testCaseName}</h4>
+
+                        {/* PERBAIKAN: Menampilkan Tag dari Response */}
+                        {tcFullData?.tag && <TagBadge tags={tcFullData.tag} />}
+
+                        <p className="text-xs text-slate-400 mt-2 line-clamp-1 italic">{tcFullData?.description}</p>
+                    </div>
+
+                    <div className="flex gap-2 shrink-0">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button type="button" variant="outline" size="sm" className="h-9 gap-2">
+                                    <Info className="w-4 h-4 text-blue-500" /> Detail
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                                className="w-[280px] sm:w-[350px] md:w-[450px] p-0 shadow-2xl border-slate-200 overflow-hidden flex flex-col"
+                                side="bottom"
+                                align="end"
+                                sideOffset={10}
+                            >
+                                {/* Header Tetap di Atas */}
+                                <div className="bg-slate-900 text-white p-3 flex items-center justify-between shrink-0">
+                                    <div className="flex items-center gap-2">
+                                        <BookOpen className="w-4 h-4 text-blue-400" />
+                                        <h5 className="font-bold text-[12px]">Test Case Details : {tcFullData?.name}</h5>
+                                    </div>
+                                    <Badge className="bg-slate-800 border-slate-700 text-[9px] h-5">{tcFullData?.type}</Badge>
+                                </div>
+
+                                {/* ScrollArea dengan Tinggi yang Dikunci agar Scroll Muncul */}
+                                <ScrollArea className="h-[350px] md:h-[450px] w-full bg-white">
+                                    <div className="p-4 space-y-5">
+                                        <DetailItem icon={<FileText className="w-3 h-3" />} label="Description" value={tcFullData?.description} />
+
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase">
+                                                <Tag className="w-3 h-3" /> Tags
+                                            </div>
+                                            <div className="flex flex-wrap gap-1">
+                                                {tcFullData?.tag?.split(',').map((t: string, i: number) => (
+                                                    <Badge key={i} variant="secondary" className="text-[9px] px-1.5 py-0">
+                                                        {t.trim()}
+                                                    </Badge>
+                                                )) || '-'}
+                                            </div>
+                                        </div>
+
+                                        <DetailItem icon={<Layers className="w-3 h-3" />} label="Pre-Condition" value={tcFullData?.preCondition} />
+                                        <DetailItem icon={<ClipboardList className="w-3 h-3" />} label="Test Steps" value={tcFullData?.testSteps} isPre />
+
+                                        <div className="bg-amber-50/50 p-3 rounded-lg border border-amber-100">
+                                            <DetailItem icon={<Zap className="w-3.5 h-3.5 text-amber-500" />} label="Expected Result" value={tcFullData?.expectedResult} className="text-amber-900" />
+                                        </div>
+
+                                        <DetailItem icon={<Monitor className="w-3 h-3" />} label="Test Data" value={tcFullData?.testData} isPre />
+
+                                        {tcFullData?.postCondition && (
+                                            <DetailItem icon={<CheckSquare className="w-3 h-3" />} label="Post Condition" value={tcFullData.postCondition} />
+                                        )}
+                                    </div>
+                                </ScrollArea>
+                            </PopoverContent>
+                        </Popover>
+                        <Button type="button" variant="ghost" size="icon" className="text-slate-300 hover:text-rose-500" onClick={onRemove}>
+                            <Trash2 className="w-4 h-4" />
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <div className="md:col-span-3">
+                        <FormLabel className="text-[10px] font-black uppercase text-slate-400">Status</FormLabel>
+                        <FormField control={form.control} name={`runDetails.${index}.status`} render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger className="mt-1 font-bold h-11"><SelectValue /></SelectTrigger></FormControl><SelectContent>{RUN_STATUSES.map(s => <SelectItem key={s} value={s} className="font-bold">{s}</SelectItem>)}</SelectContent></Select>
+                        )} />
+                    </div>
+                    <div className="md:col-span-9">
+                        <FormLabel className="text-[10px] font-black uppercase text-slate-400">Actual Result / Evidence</FormLabel>
+                        <FormField control={form.control} name={`runDetails.${index}.actualResult`} render={({ field }) => (
+                            <FormControl><Input {...field} className="mt-1 h-11 bg-slate-50 focus:bg-white" placeholder="What happened?" /></FormControl>
+                        )} />
+                    </div>
+                </div>
+
+                <FormField control={form.control} name={`runDetails.${index}.remarks`} render={({ field }) => (
+                    <FormItem>
+                        <FormLabel className="text-[10px] font-black uppercase text-slate-400">Notes</FormLabel>
+                        <FormControl><Textarea {...field} value={field.value ?? ''} className="mt-1 min-h-[80px] bg-slate-50/30" placeholder="Bugs found..." /></FormControl>
+                    </FormItem>
+                )} />
+            </div>
+        </Card>
     );
 };
 
@@ -149,6 +273,11 @@ const TestSuiteFormDialog: React.FC<{
         );
     }, [availableTestCases, searchTerm]);
 
+    // Map lookup (bukan .find() di dalam .map()) agar pencarian detail test case per baris O(1), bukan O(n·m).
+    const testCaseById = useMemo(() => {
+        return new Map((availableTestCases ?? []).map(tc => [tc.id, tc]));
+    }, [availableTestCases]);
+
     useEffect(() => {
         if (open) {
             setStartTime(Date.now());
@@ -185,7 +314,7 @@ const TestSuiteFormDialog: React.FC<{
 
     const onSubmit = (data: TestSuiteFormData) => {
         const endTime = Date.now();
-        const finalPayload = {
+        const finalPayload: TestSuiteRunRequest = {
             ...data,
             projectId: initialProjectId!,
             startDate: new Date(startTime!).toISOString(),
@@ -203,7 +332,7 @@ const TestSuiteFormDialog: React.FC<{
                 remarks: r.remarks === '' ? null : r.remarks
             }))
         };
-        createMutation.mutate(finalPayload as any, {
+        createMutation.mutate(finalPayload, {
             onSuccess: () => { toast.success("Run saved!"); onOpenChange(false); }
         });
     };
@@ -308,115 +437,16 @@ const TestSuiteFormDialog: React.FC<{
                                             </div>
                                         )}
 
-                                        {fields.map((field, index) => {
-                                            const tcFullData = availableTestCases?.find((t: TestCase) => t.id === field.idTestCase);
-                                            const status = form.watch(`runDetails.${index}.status`);
-
-                                            return (
-                                                <Card key={field.id} className="border-none shadow-md overflow-hidden bg-white ring-1 ring-slate-200">
-                                                    <div className={`h-1.5 w-full ${status === 'PASS' ? 'bg-emerald-500' : status === 'FAIL' ? 'bg-rose-500' : status === 'ERROR' ? 'bg-amber-500' : 'bg-slate-400'}`} />
-                                                    <div className="p-4 md:p-6 space-y-5">
-                                                        <div className="flex justify-between items-start gap-4">
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center gap-2 mb-2">
-                                                                    <Badge variant="outline" className="bg-slate-50 text-slate-500 font-bold">TC-{field.idTestCase}</Badge>
-                                                                    <Badge className="bg-blue-50 text-blue-600 border-none uppercase text-[9px]">{tcFullData?.type || 'FUNCTIONAL'}</Badge>
-                                                                </div>
-                                                                <h4 className="font-bold text-base md:text-lg text-slate-800 tracking-tight truncate">{field.testCaseName}</h4>
-
-                                                                {/* PERBAIKAN: Menampilkan Tag dari Response */}
-                                                                {tcFullData?.tag && <TagBadge tags={tcFullData.tag} />}
-
-                                                                <p className="text-xs text-slate-400 mt-2 line-clamp-1 italic">{tcFullData?.description}</p>
-                                                            </div>
-
-                                                            <div className="flex gap-2 shrink-0">
-                                                                <Popover>
-                                                                    <PopoverTrigger asChild>
-                                                                        <Button type="button" variant="outline" size="sm" className="h-9 gap-2">
-                                                                            <Info className="w-4 h-4 text-blue-500" /> Detail
-                                                                        </Button>
-                                                                    </PopoverTrigger>
-                                                                    <PopoverContent
-                                                                        className="w-[280px] sm:w-[350px] md:w-[450px] p-0 shadow-2xl border-slate-200 overflow-hidden flex flex-col"
-                                                                        side="bottom"
-                                                                        align="end"
-                                                                        sideOffset={10}
-                                                                    >
-                                                                        {/* Header Tetap di Atas */}
-                                                                        <div className="bg-slate-900 text-white p-3 flex items-center justify-between shrink-0">
-                                                                            <div className="flex items-center gap-2">
-                                                                                <BookOpen className="w-4 h-4 text-blue-400" />
-                                                                                <h5 className="font-bold text-[12px]">Test Case Details : {tcFullData?.name}</h5>
-                                                                            </div>
-                                                                            <Badge className="bg-slate-800 border-slate-700 text-[9px] h-5">{tcFullData?.type}</Badge>
-                                                                        </div>
-
-                                                                        {/* ScrollArea dengan Tinggi yang Dikunci agar Scroll Muncul */}
-                                                                        <ScrollArea className="h-[350px] md:h-[450px] w-full bg-white">
-                                                                            <div className="p-4 space-y-5">
-                                                                                <DetailItem icon={<FileText className="w-3 h-3" />} label="Description" value={tcFullData?.description} />
-
-                                                                                <div className="space-y-1">
-                                                                                    <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase">
-                                                                                        <Tag className="w-3 h-3" /> Tags
-                                                                                    </div>
-                                                                                    <div className="flex flex-wrap gap-1">
-                                                                                        {tcFullData?.tag?.split(',').map((t: string, i: number) => (
-                                                                                            <Badge key={i} variant="secondary" className="text-[9px] px-1.5 py-0">
-                                                                                                {t.trim()}
-                                                                                            </Badge>
-                                                                                        )) || '-'}
-                                                                                    </div>
-                                                                                </div>
-
-                                                                                <DetailItem icon={<Layers className="w-3 h-3" />} label="Pre-Condition" value={tcFullData?.preCondition} />
-                                                                                <DetailItem icon={<ClipboardList className="w-3 h-3" />} label="Test Steps" value={tcFullData?.testSteps} isPre />
-
-                                                                                <div className="bg-amber-50/50 p-3 rounded-lg border border-amber-100">
-                                                                                    <DetailItem icon={<Zap className="w-3.5 h-3.5 text-amber-500" />} label="Expected Result" value={tcFullData?.expectedResult} className="text-amber-900" />
-                                                                                </div>
-
-                                                                                <DetailItem icon={<Monitor className="w-3 h-3" />} label="Test Data" value={tcFullData?.testData} isPre />
-
-                                                                                {tcFullData?.postCondition && (
-                                                                                    <DetailItem icon={<CheckSquare className="w-3 h-3" />} label="Post Condition" value={tcFullData.postCondition} />
-                                                                                )}
-                                                                            </div>
-                                                                        </ScrollArea>
-                                                                    </PopoverContent>
-                                                                </Popover>
-                                                                <Button type="button" variant="ghost" size="icon" className="text-slate-300 hover:text-rose-500" onClick={() => remove(index)}>
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                                                            <div className="md:col-span-3">
-                                                                <FormLabel className="text-[10px] font-black uppercase text-slate-400">Status</FormLabel>
-                                                                <FormField control={form.control} name={`runDetails.${index}.status`} render={({ field }) => (
-                                                                    <Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger className="mt-1 font-bold h-11"><SelectValue /></SelectTrigger></FormControl><SelectContent>{RUN_STATUSES.map(s => <SelectItem key={s} value={s} className="font-bold">{s}</SelectItem>)}</SelectContent></Select>
-                                                                )} />
-                                                            </div>
-                                                            <div className="md:col-span-9">
-                                                                <FormLabel className="text-[10px] font-black uppercase text-slate-400">Actual Result / Evidence</FormLabel>
-                                                                <FormField control={form.control} name={`runDetails.${index}.actualResult`} render={({ field }) => (
-                                                                    <FormControl><Input {...field} className="mt-1 h-11 bg-slate-50 focus:bg-white" placeholder="What happened?" /></FormControl>
-                                                                )} />
-                                                            </div>
-                                                        </div>
-
-                                                        <FormField control={form.control} name={`runDetails.${index}.remarks`} render={({ field }) => (
-                                                            <FormItem>
-                                                                <FormLabel className="text-[10px] font-black uppercase text-slate-400">Notes</FormLabel>
-                                                                <FormControl><Textarea {...field} value={field.value ?? ''} className="mt-1 min-h-[80px] bg-slate-50/30" placeholder="Bugs found..." /></FormControl>
-                                                            </FormItem>
-                                                        )} />
-                                                    </div>
-                                                </Card>
-                                            );
-                                        })}
+                                        {fields.map((field, index) => (
+                                            <RunDetailCard
+                                                key={field.id}
+                                                form={form}
+                                                index={index}
+                                                field={field}
+                                                tcFullData={testCaseById.get(field.idTestCase)}
+                                                onRemove={() => remove(index)}
+                                            />
+                                        ))}
                                     </div>
                                 </ScrollArea>
 

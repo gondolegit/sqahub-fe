@@ -13,10 +13,9 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
 import { type TestSuite } from '@/types/testSuite';
-import StatusPieChart from '@/components/reports/StatusPieChart'; 
-import RunDetailList from '@/components/reports/RunDetailList'; 
-import ReportDocument from '@/components/reports/ReportDocument'; // <-- Import komponen PDF
-import { PDFDownloadLink } from '@react-pdf/renderer'; // <-- Import utility download
+import StatusPieChart from '@/components/reports/StatusPieChart';
+import RunDetailList from '@/components/reports/RunDetailList';
+import PdfExportButton from '@/components/reports/PdfExportButton'; // <-- @react-pdf/renderer di-lazy-load di dalam sini
 import * as htmlToImage from 'html-to-image'; // <-- Import utility konversi gambar
 
 const durationDisplay = (suite: TestSuite) => {
@@ -147,18 +146,19 @@ const TestSuiteDetailPage: React.FC = () => {
                 
                 {/* 🚨 Fungsionalitas Export PDF */}
                 {testSuite && (
-                    <PDFDownloadLink
-                        document={<ReportDocument testSuite={testSuite} pieChartImage={pieChartImage} />}
+                    <PdfExportButton
+                        testSuite={testSuite}
+                        pieChartImage={pieChartImage}
                         fileName={`Laporan_TestRun_${testSuite.id}_${testSuite.name.replace(/\s/g, '_')}.pdf`}
                     >
                         {({ loading }) => (
-                            <Button 
+                            <Button
                                 className="bg-red-600 hover:bg-red-700 font-bold"
                                 disabled={loading || !pieChartImage} // Disable saat loading atau chart belum terkonversi
                             >
                                 {loading || !pieChartImage ? (
                                     <>
-                                        <Loader2 className="h-5 w-5 mr-2 animate-spin" /> 
+                                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                                         Siapkan PDF...
                                     </>
                                 ) : (
@@ -168,7 +168,7 @@ const TestSuiteDetailPage: React.FC = () => {
                                 )}
                             </Button>
                         )}
-                    </PDFDownloadLink>
+                    </PdfExportButton>
                 )}
             </header>
 

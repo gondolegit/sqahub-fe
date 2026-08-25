@@ -1,8 +1,8 @@
 import React from 'react';
-import { 
-    Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription 
+import {
+    Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
 } from '@/components/ui/dialog';
-import { Loader2, Zap, Clock, Info, CheckCircle, XCircle, AlertTriangle, Frown } from 'lucide-react';
+import { Loader2, Zap, Clock, Info, Frown } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -10,11 +10,12 @@ import { Badge } from '@/components/ui/badge';
 
 // --- PERBAIKAN IMPORT TIPE DATA & HOOK ---
 // 🚨 PERBAIKAN 1: Ganti useTestSuiteDetail menjadi useTestSuiteById
-import { useTestSuiteById } from '@/hooks/useTestSuites'; 
+import { useTestSuiteById } from '@/hooks/useTestSuites';
 // 🚨 PERBAIKAN 2: Ganti TestRunDetail menjadi RunDetail
-import type { RunDetail, TestSuite } from '@/types/testSuite'; 
+import type { RunDetail, TestSuite } from '@/types/testSuite';
 // Import tipe data dari file types/testSuite.ts
 import { formatDate, formatElapsedTime } from '@/lib/utils'; // Asumsi utilitas sudah ada
+import { getStatusConfig, statusRank } from '@/lib/status';
 
 // --- PROPS KOMPONEN ---
 interface TestSuiteDetailDialogProps {
@@ -22,38 +23,6 @@ interface TestSuiteDetailDialogProps {
     onOpenChange: (open: boolean) => void;
     testSuiteId: number | null;
 }
-
-// --- UTILS PENDUKUNG ---
-
-const getStatusIcon = (status: string) => {
-    switch (status.toUpperCase()) {
-        case 'PASS':
-            return <CheckCircle className="h-4 w-4 mr-1 text-green-500" />;
-        case 'FAIL':
-            return <XCircle className="h-4 w-4 mr-1 text-red-500" />;
-        case 'ERROR':
-            return <AlertTriangle className="h-4 w-4 mr-1 text-yellow-600" />;
-        case 'SKIPPED':
-            return <Info className="h-4 w-4 mr-1 text-blue-500" />;
-        default:
-            return <Info className="h-4 w-4 mr-1 text-gray-500" />;
-    }
-};
-
-const getStatusColor = (status: string) => {
-    switch (status.toUpperCase()) {
-        case 'PASS':
-            return 'bg-green-100 border-green-300 text-green-800';
-        case 'FAIL':
-            return 'bg-red-100 border-red-300 text-red-800';
-        case 'ERROR':
-            return 'bg-yellow-100 border-yellow-300 text-yellow-800';
-        case 'SKIPPED':
-            return 'bg-blue-100 border-blue-300 text-blue-800';
-        default:
-            return 'bg-gray-100 border-gray-300 text-gray-800';
-    }
-};
 
 // --- KOMPONEN UTAMA ---
 const TestSuiteDetailDialog: React.FC<TestSuiteDetailDialogProps> = ({ 
@@ -68,11 +37,14 @@ const TestSuiteDetailDialog: React.FC<TestSuiteDetailDialogProps> = ({
 
     // --- RENDER DETAIL PER TEST CASE ---
     // 🚨 Menggunakan RunDetail
-    const renderRunDetail = (detail: RunDetail) => (
-        <Card key={detail.id} className={`shadow-sm mb-4 ${getStatusColor(detail.status)} border`}>
+    const renderRunDetail = (detail: RunDetail) => {
+        const statusConfig = getStatusConfig(detail.status);
+        const StatusIcon = statusConfig.icon;
+        return (
+        <Card key={detail.id} className={`shadow-sm mb-4 ${statusConfig.cardClassName} border`}>
             <CardHeader className="flex flex-row justify-between items-center p-3">
                 <CardTitle className="text-md font-bold flex items-center">
-                    {getStatusIcon(detail.status)}
+                    <StatusIcon className={`h-4 w-4 mr-1 ${statusConfig.iconClassName}`} />
                     TC-{detail.idTestCase}: {detail.testCaseName}
                 </CardTitle>
                 <Badge variant="secondary" className="text-xs">
@@ -97,7 +69,8 @@ const TestSuiteDetailDialog: React.FC<TestSuiteDetailDialogProps> = ({
                 </div>
             </CardContent>
         </Card>
-    );
+        );
+    };
 
     // --- RENDER STATISTIK RINGKAS ---
     const renderSummary = (suite: TestSuite) => {
@@ -186,9 +159,10 @@ const TestSuiteDetailDialog: React.FC<TestSuiteDetailDialogProps> = ({
                             <h3 className="text-xl font-bold border-b pb-2">Detail Hasil ({suite.runDetails.length} Test Case)</h3>
                             <div className="space-y-3">
                                 {suite.runDetails.length > 0 ? (
-                                    // 🚨 PERBAIKAN 3: Menambahkan anotasi tipe eksplisit (a: RunDetail)
-                                    suite.runDetails
-                                        .sort((a: RunDetail) => (a.status === 'FAIL' || a.status === 'ERROR' ? -1 : 1)) // Prioritaskan yang gagal/error di atas
+                                    // Salin array sebelum sort agar tidak memutasi cache React Query;
+                                    // urutkan berdasar prioritas status (FAIL/ERROR lebih dulu) via statusRank.
+                                    [...suite.runDetails]
+                                        .sort((a, b) => statusRank(a.status) - statusRank(b.status))
                                         .map(renderRunDetail)
                                 ) : (
                                     <div className="text-center p-4 text-gray-500 bg-gray-50 rounded-md">
