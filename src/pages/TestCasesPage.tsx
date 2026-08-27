@@ -1,27 +1,33 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-    AlertDialog, 
-    AlertDialogAction, 
-    AlertDialogCancel, 
-    AlertDialogContent, 
-    AlertDialogDescription, 
-    AlertDialogFooter, 
-    AlertDialogHeader, 
-    AlertDialogTitle 
-} from '@/components/ui/alert-dialog'; 
-import { Loader2, PlusCircle, Frown, ArrowLeft, Search, Pencil, Trash, ClipboardList } from 'lucide-react'; 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from '@/components/ui/alert-dialog';
+import { Loader2, PlusCircle, Frown, ArrowLeft, Search, Pencil, Trash, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'; 
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Pagination } from '@/components/ui/pagination';
 import { toast } from 'sonner';
 
 // --- TYPES & HOOKS ---
 import type { TestCase, DeleteTestCaseParams } from '@/types/testCase';
-import { useFeatureDetail } from '@/hooks/useFeatures'; 
-import { useTestCasesByFeature, useDeleteTestCase } from '@/hooks/useTestCases'; 
+import { useFeatureDetail } from '@/hooks/useFeatures';
+import { useTestCasesByFeature, useDeleteTestCase } from '@/hooks/useTestCases';
+import { useAuth } from '@/contexts/AuthContext';
 import TestCaseFormDialog from '@/components/testcase/TestCaseFormDialog';
+
+const PAGE_SIZE = 10;
+// Sesuai matriks izin backend: create/edit/delete TestCase butuh role global ADMIN atau TESTER.
+const TESTCASE_MANAGE_ROLES = ['ADMIN', 'TESTER'] as const;
 
 // Interface diperluas untuk menangani UI mode
 interface TestCaseWithMode extends TestCase {
@@ -30,7 +36,9 @@ interface TestCaseWithMode extends TestCase {
 
 const TestCasesPage: React.FC = () => {
     const navigate = useNavigate();
-    const { projectId: projectIdStr, featureId: featureIdStr } = 
+    const { hasRole } = useAuth();
+    const canManageTestCases = hasRole([...TESTCASE_MANAGE_ROLES]);
+    const { projectId: projectIdStr, featureId: featureIdStr } =
         useParams<{ projectId: string; featureId: string }>();
 
     const projectId = projectIdStr ? parseInt(projectIdStr) : -1;
@@ -38,28 +46,30 @@ const TestCasesPage: React.FC = () => {
     const isValidId = featureId > 0 && !isNaN(featureId);
 
     // --- STATES ---
+    const [page, setPage] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
     const [isTcDialogOpen, setIsTcDialogOpen] = useState(false);
     const [initialTcData, setInitialTcData] = useState<TestCaseWithMode | null>(null);
-    const [caseToDelete, setCaseToDelete] = useState<{ id: number; name: string } | null>(null); 
+    const [caseToDelete, setCaseToDelete] = useState<{ id: number; name: string } | null>(null);
 
     // --- DATA FETCHING ---
-    const { data: featureDetail, isLoading: isLoadingFeature } = 
+    const { data: featureDetail, isLoading: isLoadingFeature } =
         useFeatureDetail(isValidId ? featureId : -1);
-    
-    const { 
-        data: testCases, 
-        isLoading: isLoadingTestCases, 
-        isError: isErrorTestCases 
-    } = useTestCasesByFeature(isValidId ? featureId : -1); 
-    
+
+    const {
+        data: testCasesPage,
+        isLoading: isLoadingTestCases,
+        isError: isErrorTestCases
+    } = useTestCasesByFeature(isValidId ? featureId : -1, { page, size: PAGE_SIZE });
+
+    const testCases = testCasesPage?.content;
     const deleteMutation = useDeleteTestCase();
 
-    // --- LOGIKA FILTERING ---
+    // --- LOGIKA FILTERING (di halaman yang sedang dimuat) ---
     const filteredTestCases = useMemo(() => {
         if (!testCases) return [];
         const query = searchQuery.toLowerCase();
-        return testCases.filter(tc => 
+        return testCases.filter(tc =>
             tc.name?.toLowerCase().includes(query) ||
             tc.description?.toLowerCase().includes(query) ||
             tc.type?.toLowerCase().includes(query) ||
@@ -87,15 +97,15 @@ const TestCasesPage: React.FC = () => {
         setIsTcDialogOpen(open);
         if (!open) setInitialTcData(null);
     };
-    
+
     const handleDeleteTestCase = () => {
         if (!caseToDelete) return;
 
-        const params: DeleteTestCaseParams = { 
-            testCaseId: caseToDelete.id, 
-            idFeature: featureId 
+        const params: DeleteTestCaseParams = {
+            testCaseId: caseToDelete.id,
+            idFeature: featureId
         };
-        
+
         deleteMutation.mutate(params, {
             onSuccess: () => {
                 setCaseToDelete(null);
@@ -107,7 +117,7 @@ const TestCasesPage: React.FC = () => {
             }
         });
     };
-    
+
     // --- RENDER LOGIC ---
     if (!isValidId) {
         return (
@@ -118,7 +128,7 @@ const TestCasesPage: React.FC = () => {
             </div>
         );
     }
-    
+
     if (isLoadingFeature || isLoadingTestCases) {
          return (
              <div className="flex flex-col items-center justify-center p-20 space-y-4">
@@ -145,10 +155,10 @@ const TestCasesPage: React.FC = () => {
                 <CardHeader className="flex flex-row items-center justify-between space-y-0">
                     <div>
                         <CardTitle className="text-2xl font-bold tracking-tight">
-                            Test Cases: {featureDetail?.name || featureId} 
+                            Test Cases: {featureDetail?.name || featureId}
                         </CardTitle>
                         <CardDescription>
-                            Proyek ID: {projectId} • Total: {testCases?.length || 0} items
+                            Proyek ID: {projectId} • Total: {testCasesPage?.totalElements ?? 0} items
                         </CardDescription>
                     </div>
                     <Button variant="outline" size="sm" onClick={() => navigate(`/projects/${projectId}/features`)}>
@@ -162,15 +172,17 @@ const TestCasesPage: React.FC = () => {
                 <div className="relative w-full max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Cari test case..."
+                        placeholder="Cari test case di halaman ini..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-10"
                     />
                 </div>
-                <Button onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
-                    <PlusCircle className="mr-2 h-4 w-4" /> Tambah Baru
-                </Button>
+                {canManageTestCases && (
+                    <Button onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
+                        <PlusCircle className="mr-2 h-4 w-4" /> Tambah Baru
+                    </Button>
+                )}
             </div>
 
             {/* Main Table */}
@@ -185,7 +197,7 @@ const TestCasesPage: React.FC = () => {
                                     <TableHead>Tipe</TableHead>
                                     <TableHead>Tag</TableHead>
                                     <TableHead>Author</TableHead>
-                                    <TableHead className="text-right">Aksi</TableHead> 
+                                    <TableHead className="text-right">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -202,24 +214,29 @@ const TestCasesPage: React.FC = () => {
                                         <TableCell className="text-sm">{tc.createdByUsername}</TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-1">
-                                                <Button variant="ghost" size="icon" onClick={() => handleViewDetail(tc)} title="Detail">
+                                                <Button variant="ghost" size="icon" onClick={() => handleViewDetail(tc)} title="Detail" aria-label={`Lihat detail ${tc.name}`}>
                                                     <ClipboardList className="h-4 w-4 text-blue-500" />
                                                 </Button>
-                                                <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(tc)} title="Edit">
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="icon" 
-                                                    onClick={() => setCaseToDelete({ id: tc.id, name: tc.name })}
-                                                    disabled={deleteMutation.isPending && deleteMutation.variables?.testCaseId === tc.id}
-                                                >
-                                                    {deleteMutation.isPending && deleteMutation.variables?.testCaseId === tc.id ? (
-                                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                                    ) : (
-                                                        <Trash className="h-4 w-4 text-destructive" />
-                                                    )}
-                                                </Button>
+                                                {canManageTestCases && (
+                                                    <>
+                                                        <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(tc)} title="Edit" aria-label={`Edit ${tc.name}`}>
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => setCaseToDelete({ id: tc.id, name: tc.name })}
+                                                            disabled={deleteMutation.isPending && deleteMutation.variables?.testCaseId === tc.id}
+                                                            aria-label={`Hapus ${tc.name}`}
+                                                        >
+                                                            {deleteMutation.isPending && deleteMutation.variables?.testCaseId === tc.id ? (
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                            ) : (
+                                                                <Trash className="h-4 w-4 text-destructive" />
+                                                            )}
+                                                        </Button>
+                                                    </>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -231,19 +248,30 @@ const TestCasesPage: React.FC = () => {
                             <p className="text-muted-foreground mb-4">
                                 {searchQuery ? `Hasil pencarian "${searchQuery}" tidak ditemukan.` : "Belum ada Test Case untuk fitur ini."}
                             </p>
-                            {!searchQuery && <Button onClick={handleOpenCreateDialog}>Buat Test Case Pertama</Button>}
+                            {!searchQuery && canManageTestCases && <Button onClick={handleOpenCreateDialog}>Buat Test Case Pertama</Button>}
+                        </div>
+                    )}
+                    {testCasesPage && testCasesPage.totalPages > 1 && (
+                        <div className="px-4 pb-4">
+                            <Pagination
+                                page={testCasesPage.number}
+                                totalPages={testCasesPage.totalPages}
+                                totalElements={testCasesPage.totalElements}
+                                pageSize={testCasesPage.size}
+                                onPageChange={setPage}
+                            />
                         </div>
                     )}
                 </CardContent>
             </Card>
-            
+
             {/* Form Dialog */}
-            <TestCaseFormDialog 
+            <TestCaseFormDialog
                 open={isTcDialogOpen}
                 onOpenChange={handleDialogClose}
                 initialData={initialTcData}
-                idFeature={featureId} 
-                idProject={projectId} 
+                idFeature={featureId}
+                idProject={projectId}
             />
 
             {/* Delete Confirmation */}
@@ -257,8 +285,8 @@ const TestCasesPage: React.FC = () => {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={deleteMutation.isPending}>Batal</AlertDialogCancel>
-                        <AlertDialogAction 
-                            onClick={handleDeleteTestCase} 
+                        <AlertDialogAction
+                            onClick={handleDeleteTestCase}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             disabled={deleteMutation.isPending}
                         >

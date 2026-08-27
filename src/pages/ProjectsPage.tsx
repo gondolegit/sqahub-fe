@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus, Search, MoreVertical,
-  ExternalLink, Pencil, Trash2, FolderPlus
+  ExternalLink, Pencil, Trash2, FolderPlus, Users
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -11,34 +11,48 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Pagination } from '@/components/ui/pagination';
 
 // Custom Components & Hooks
 import ProjectFormDialog from '@/components/project/ProjectFormDialog';
+import ProjectMembersDialog from '@/components/project/ProjectMembersDialog';
 import { useProjects, useDeleteProject } from '@/hooks/useProjects';
-import type { Project } from '@/types/index';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Project, ProjectStatus } from '@/types/index';
+
+const PAGE_SIZE = 12;
+// Sesuai matriks izin backend: create/edit/delete Project butuh role global ADMIN atau TESTER.
+const PROJECT_MANAGE_ROLES = ['ADMIN', 'TESTER'] as const;
 
 const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
-  
+  const { hasRole } = useAuth();
+  const canManageProjects = hasRole([...PROJECT_MANAGE_ROLES]);
+
   // State Management
+  const [page, setPage] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [membersProject, setMembersProject] = useState<Project | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: projects, isLoading, isError } = useProjects();
+  const { data, isLoading, isError, isPlaceholderData } = useProjects({ page, size: PAGE_SIZE });
   const deleteMutation = useDeleteProject();
 
-  // Optimized Search Logic (ISO-standard: Responsiveness)
+  const projects = useMemo(() => data?.content ?? [], [data]);
+
+  // Pencarian berjalan di halaman yang sedang dimuat — backend GET /project belum menyediakan
+  // parameter pencarian per nama, jadi ini murni penyaringan sisi klien untuk data yang sudah ada.
   const filteredProjects = useMemo(() => {
-    if (!projects) return [];
     const query = searchQuery.toLowerCase();
-    return projects.filter(p => 
-      p.name.toLowerCase().includes(query) || 
+    if (!query) return projects;
+    return projects.filter(p =>
+      p.name.toLowerCase().includes(query) ||
       p.description?.toLowerCase().includes(query)
     );
   }, [projects, searchQuery]);
@@ -73,17 +87,19 @@ const ProjectsPage: React.FC = () => {
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Project Hub</h1>
           <p className="text-slate-500">Kelola dan pantau seluruh sistem otomasi testing Anda.</p>
         </div>
-        <Button onClick={() => handleAction(null)} className="shadow-md hover:shadow-lg transition-all">
-          <Plus className="mr-2 h-4 w-4" /> Proyek Baru
-        </Button>
+        {canManageProjects && (
+          <Button onClick={() => handleAction(null)} className="shadow-md hover:shadow-lg transition-all">
+            <Plus className="mr-2 h-4 w-4" /> Proyek Baru
+          </Button>
+        )}
       </div>
 
       {/* Toolbar */}
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input 
-            placeholder="Cari proyek..." 
+          <Input
+            placeholder="Cari proyek di halaman ini..."
             className="pl-10 bg-white"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -95,25 +111,45 @@ const ProjectsPage: React.FC = () => {
       {isLoading ? (
         <LoadingGrid />
       ) : filteredProjects.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map((project) => (
-            <ProjectCard 
-              key={project.id} 
-              project={project} 
-              onEdit={() => handleAction(project)}
-              onDelete={() => confirmDelete(project)}
-              onView={() => navigate(`/projects/${project.id}/features`)}
+        <div className={isPlaceholderData ? 'opacity-60 transition-opacity' : 'transition-opacity'}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProjects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                canManage={canManageProjects}
+                onEdit={() => handleAction(project)}
+                onDelete={() => confirmDelete(project)}
+                onView={() => navigate(`/projects/${project.id}/features`)}
+                onManageMembers={() => setMembersProject(project)}
+              />
+            ))}
+          </div>
+
+          {data && data.totalPages > 1 && (
+            <Pagination
+              page={data.number}
+              totalPages={data.totalPages}
+              totalElements={data.totalElements}
+              pageSize={data.size}
+              onPageChange={setPage}
             />
-          ))}
+          )}
         </div>
       ) : (
-        <EmptyState onAdd={() => handleAction(null)} isSearch={!!searchQuery} />
+        <EmptyState onAdd={canManageProjects ? () => handleAction(null) : undefined} isSearch={!!searchQuery} />
       )}
 
-      <ProjectFormDialog 
-        open={isDialogOpen} 
-        onOpenChange={setIsDialogOpen} 
-        initialData={selectedProject} 
+      <ProjectFormDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        initialData={selectedProject}
+      />
+
+      <ProjectMembersDialog
+        project={membersProject}
+        open={!!membersProject}
+        onOpenChange={(open) => !open && setMembersProject(null)}
       />
     </div>
   );
@@ -121,7 +157,16 @@ const ProjectsPage: React.FC = () => {
 
 // --- SUB-COMPONENTS (Clean Code: Atomic Design) ---
 
-const ProjectCard = ({ project, onEdit, onDelete, onView }: any) => (
+interface ProjectCardProps {
+  project: Project;
+  canManage: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+  onView: () => void;
+  onManageMembers: () => void;
+}
+
+const ProjectCard = ({ project, canManage, onEdit, onDelete, onView, onManageMembers }: ProjectCardProps) => (
   <Card className="group hover:border-primary/50 transition-all duration-300 flex flex-col overflow-hidden">
     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
       <div className="space-y-1">
@@ -134,13 +179,18 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }: any) => (
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Menu aksi untuk ${project.name}`}>
             <MoreVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onEdit}><Pencil className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
-          <DropdownMenuItem onClick={onDelete} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Hapus</DropdownMenuItem>
+          <DropdownMenuItem onClick={onManageMembers}><Users className="mr-2 h-4 w-4" /> Kelola Tim</DropdownMenuItem>
+          {canManage && (
+            <>
+              <DropdownMenuItem onClick={onEdit}><Pencil className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
+              <DropdownMenuItem onClick={onDelete} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Hapus</DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </CardHeader>
@@ -158,12 +208,13 @@ const ProjectCard = ({ project, onEdit, onDelete, onView }: any) => (
   </Card>
 );
 
-const StatusBadge = ({ status }: { status: string }) => {
-  const variants: Record<string, string> = {
+const StatusBadge = ({ status }: { status: ProjectStatus }) => {
+  const variants: Record<ProjectStatus, string> = {
     active: "bg-emerald-100 text-emerald-700 border-emerald-200",
     completed: "bg-blue-100 text-blue-700 border-blue-200",
     suspended: "bg-amber-100 text-amber-700 border-amber-200",
     archived: "bg-slate-100 text-slate-700 border-slate-200",
+    maintenance: "bg-indigo-100 text-indigo-700 border-indigo-200",
   };
   return (
     <Badge variant="outline" className={`${variants[status] || variants.archived} capitalize px-2 py-0`}>
@@ -178,14 +229,14 @@ const LoadingGrid = () => (
   </div>
 );
 
-const EmptyState = ({ onAdd, isSearch }: any) => (
+const EmptyState = ({ onAdd, isSearch }: { onAdd?: () => void; isSearch: boolean }) => (
   <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-2xl bg-slate-50">
     <FolderPlus className="h-12 w-12 text-slate-300 mb-4" />
     <h3 className="text-lg font-medium">{isSearch ? "Hasil tidak ditemukan" : "Belum ada proyek"}</h3>
     <p className="text-slate-500 mb-6 text-center max-w-xs">
       {isSearch ? "Coba gunakan kata kunci lain." : "Mulai dengan membuat proyek pertama Anda sekarang."}
     </p>
-    {!isSearch && <Button onClick={onAdd}>Buat Proyek</Button>}
+    {!isSearch && onAdd && <Button onClick={onAdd}>Buat Proyek</Button>}
   </div>
 );
 

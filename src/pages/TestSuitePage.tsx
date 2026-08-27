@@ -4,31 +4,44 @@ import { Loader2, Zap, AlertTriangle, ListFilter, Search } from 'lucide-react';
 // Import Hooks & Types
 import { useProjects } from '@/hooks/useProjects';
 import { useTestSuitesByProject } from '@/hooks/useTestSuites';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Import UI Components
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Pagination } from '@/components/ui/pagination';
 
 // Import Komponen
 import TestSuiteFormDialog from '@/components/testsuite/TestSuiteFormDialog';
-import TestSuitesTable from '@/components/testsuite/TestSuitesTable'; 
+import TestSuitesTable from '@/components/testsuite/TestSuitesTable';
+
+const PAGE_SIZE = 10;
+// Sesuai matriks izin backend: create/update TestSuite run butuh role global ADMIN, TESTER, atau DEVELOPER.
+const RUN_CREATE_ROLES = ['ADMIN', 'TESTER', 'DEVELOPER'] as const;
 
 const TestSuitesPage: React.FC = () => {
+    const { hasRole } = useAuth();
+    const canCreateRun = hasRole([...RUN_CREATE_ROLES]);
+
     // 1. States
     const [selectedProjectId, setSelectedProjectId] = useState<number | undefined>(undefined);
+    const [page, setPage] = useState(0);
     const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
     // 2. Data Fetching
-    const { data: projects, isLoading: isLoadingProjects } = useProjects();
-    
-    const { 
-        data: testSuites, 
-        isLoading: isLoadingSuites, 
-        isError: isErrorSuites 
-    } = useTestSuitesByProject(selectedProjectId || -1);
+    const { data: projectsPage, isLoading: isLoadingProjects } = useProjects({ size: 100 });
+    const projects = projectsPage?.content;
+
+    const {
+        data: testSuitesPage,
+        isLoading: isLoadingSuites,
+        isError: isErrorSuites
+    } = useTestSuitesByProject(selectedProjectId || -1, { page, size: PAGE_SIZE });
+
+    const testSuites = testSuitesPage?.content;
 
     // 3. Effects
     // Menggunakan useEffect untuk side-effect setting default project
@@ -38,27 +51,28 @@ const TestSuitesPage: React.FC = () => {
         }
     }, [projects, selectedProjectId]);
 
-    // 4. Logika Filter Search (Client-side)
+    // 4. Logika Filter Search (di halaman yang sedang dimuat)
     const filteredTestSuites = React.useMemo(() => {
         if (!testSuites) return [];
         if (!searchQuery) return testSuites;
-        
+
         return testSuites.filter(suite =>
             suite.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [testSuites, searchQuery]);
-    
+
     const handleProjectChange = (projectIdStr: string) => {
         setSelectedProjectId(parseInt(projectIdStr));
         setSearchQuery(""); // Reset search saat ganti project
+        setPage(0); // Reset ke halaman pertama saat ganti project
     };
-    
+
     return (
         <div className="p-4 md:p-8 space-y-6">
             <h1 className="text-3xl font-bold flex items-center">
                 <Zap className="h-7 w-7 mr-3 text-primary" /> Riwayat Test Suites
             </h1>
-            
+
             <Card className="shadow-lg border-none">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-xl font-semibold flex items-center">
@@ -70,8 +84,8 @@ const TestSuitesPage: React.FC = () => {
                         {/* Pilih Project */}
                         <div className="w-full md:w-1/4 space-y-1.5">
                             <label className="text-xs font-bold uppercase text-muted-foreground">Proyek</label>
-                            <Select 
-                                onValueChange={handleProjectChange} 
+                            <Select
+                                onValueChange={handleProjectChange}
                                 value={selectedProjectId ? String(selectedProjectId) : undefined}
                                 disabled={isLoadingProjects}
                             >
@@ -93,25 +107,27 @@ const TestSuitesPage: React.FC = () => {
                             <label className="text-xs font-bold uppercase text-muted-foreground">Cari Nama Run</label>
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input 
-                                    placeholder="Ketik nama test suite..." 
+                                <Input
+                                    placeholder="Ketik nama test suite..."
                                     className="pl-10 bg-background"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                             </div>
                         </div>
-                        
+
                         {/* Tombol New Run */}
-                        <div className="w-full md:w-auto">
-                            <Button 
-                                onClick={() => setIsFormDialogOpen(true)} 
-                                disabled={!selectedProjectId}
-                                className="w-full md:w-auto bg-primary hover:bg-primary/90 shadow-md"
-                            >
-                                <Zap className="h-4 w-4 mr-2 fill-current" /> New Run Test
-                            </Button>
-                        </div>
+                        {canCreateRun && (
+                            <div className="w-full md:w-auto">
+                                <Button
+                                    onClick={() => setIsFormDialogOpen(true)}
+                                    disabled={!selectedProjectId}
+                                    className="w-full md:w-auto bg-primary hover:bg-primary/90 shadow-md"
+                                >
+                                    <Zap className="h-4 w-4 mr-2 fill-current" /> New Run Test
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
@@ -126,7 +142,7 @@ const TestSuitesPage: React.FC = () => {
                 <CardContent className="p-0"> {/* P-0 agar tabel menempel ke pinggir card */}
                     {isErrorSuites && (
                         <div className="p-8 text-destructive flex items-center justify-center">
-                            <AlertTriangle className="h-5 w-5 mr-2" /> 
+                            <AlertTriangle className="h-5 w-5 mr-2" />
                             Gagal memuat data Test Suites.
                         </div>
                     )}
@@ -137,20 +153,33 @@ const TestSuitesPage: React.FC = () => {
                             <p className="text-muted-foreground animate-pulse">Memuat riwayat pengujian...</p>
                         </div>
                     ) : (
-                        <TestSuitesTable 
-                            data={filteredTestSuites} 
-                            projectId={selectedProjectId!} 
-                            isLoading={false} 
-                        /> 
+                        <>
+                            <TestSuitesTable
+                                data={filteredTestSuites}
+                                projectId={selectedProjectId!}
+                                isLoading={false}
+                            />
+                            {testSuitesPage && testSuitesPage.totalPages > 1 && (
+                                <div className="px-4 pb-4">
+                                    <Pagination
+                                        page={testSuitesPage.number}
+                                        totalPages={testSuitesPage.totalPages}
+                                        totalElements={testSuitesPage.totalElements}
+                                        pageSize={testSuitesPage.size}
+                                        onPageChange={setPage}
+                                    />
+                                </div>
+                            )}
+                        </>
                     )}
                 </CardContent>
             </Card>
-            
+
             {/* Dialog Run Baru */}
-            <TestSuiteFormDialog 
-                open={isFormDialogOpen} 
-                onOpenChange={setIsFormDialogOpen} 
-                initialProjectId={selectedProjectId} 
+            <TestSuiteFormDialog
+                open={isFormDialogOpen}
+                onOpenChange={setIsFormDialogOpen}
+                initialProjectId={selectedProjectId}
             />
         </div>
     );

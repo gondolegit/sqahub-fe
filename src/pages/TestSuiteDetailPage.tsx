@@ -2,9 +2,10 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useTestSuiteById } from '@/hooks/useTestSuites'; 
-import { 
-    ArrowLeft, Loader2, PieChart as PieIcon, FileText, CheckCircle, XCircle, AlertTriangle 
+import { useTestSuiteById, useExportTestSuiteExcel } from '@/hooks/useTestSuites';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+    ArrowLeft, Loader2, PieChart as PieIcon, FileText, CheckCircle, XCircle, AlertTriangle, FileSpreadsheet
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -13,25 +14,17 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
 import { type TestSuite } from '@/types/testSuite';
+import { formatDurationID } from '@/lib/utils';
 import StatusPieChart from '@/components/reports/StatusPieChart';
 import RunDetailList from '@/components/reports/RunDetailList';
 import PdfExportButton from '@/components/reports/PdfExportButton'; // <-- @react-pdf/renderer di-lazy-load di dalam sini
+import DeployDecisionCard from '@/components/reports/DeployDecisionCard';
+import AddRunDetailDialog from '@/components/reports/AddRunDetailDialog';
 import * as htmlToImage from 'html-to-image'; // <-- Import utility konversi gambar
 
-const durationDisplay = (suite: TestSuite) => {
-    const seconds = Math.floor(suite.elapsedTime); 
-    if (seconds < 60) return `${seconds} dtk`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) {
-        const remainingSeconds = seconds % 60;
-        return remainingSeconds > 0 ? `${minutes} min ${remainingSeconds} dtk` : `${minutes} min`;
-    }
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60; 
-    return remainingMinutes > 0 
-        ? `${hours} jam ${remainingMinutes} min` 
-        : `${hours} jam`;
-};
+const RUN_DETAIL_ADD_ROLES = ['ADMIN', 'TESTER', 'DEVELOPER'] as const;
+
+const durationDisplay = (suite: TestSuite) => formatDurationID(suite.elapsedTime);
 
 
 const TestSuiteDetailPage: React.FC = () => {
@@ -39,10 +32,13 @@ const TestSuiteDetailPage: React.FC = () => {
     const parsedTestSuiteId = testSuiteId ? parseInt(testSuiteId) : undefined;
     
     // State dan Ref untuk Fungsionalitas PDF
-    const [pieChartImage, setPieChartImage] = useState<string>(''); 
-    const chartRef = useRef<HTMLDivElement>(null); 
+    const [pieChartImage, setPieChartImage] = useState<string>('');
+    const chartRef = useRef<HTMLDivElement>(null);
 
     const { data: testSuite, isLoading, error } = useTestSuiteById(parsedTestSuiteId);
+    const { hasRole } = useAuth();
+    const canAddRunDetail = hasRole([...RUN_DETAIL_ADD_ROLES]);
+    const exportExcelMutation = useExportTestSuiteExcel();
     
     // --- Efek untuk merender Pie Chart menjadi Gambar (Base64) ---
     useEffect(() => {
@@ -144,31 +140,41 @@ const TestSuiteDetailPage: React.FC = () => {
                     <p className="text-gray-500 mt-1">Laporan Eksekusi Run ID: TS-{testSuiteId}</p>
                 </div>
                 
-                {/* 🚨 Fungsionalitas Export PDF */}
+                {/* 🚨 Fungsionalitas Export PDF & Excel */}
                 {testSuite && (
-                    <PdfExportButton
-                        testSuite={testSuite}
-                        pieChartImage={pieChartImage}
-                        fileName={`Laporan_TestRun_${testSuite.id}_${testSuite.name.replace(/\s/g, '_')}.pdf`}
-                    >
-                        {({ loading }) => (
-                            <Button
-                                className="bg-red-600 hover:bg-red-700 font-bold"
-                                disabled={loading || !pieChartImage} // Disable saat loading atau chart belum terkonversi
-                            >
-                                {loading || !pieChartImage ? (
-                                    <>
-                                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                                        Siapkan PDF...
-                                    </>
-                                ) : (
-                                    <>
-                                        <FileText className="h-5 w-5 mr-2" /> Export Laporan (PDF)
-                                    </>
-                                )}
-                            </Button>
-                        )}
-                    </PdfExportButton>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <Button
+                            variant="outline"
+                            onClick={() => exportExcelMutation.mutate({ testSuiteId: testSuite.id, suiteName: testSuite.name })}
+                            disabled={exportExcelMutation.isPending}
+                        >
+                            {exportExcelMutation.isPending ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <FileSpreadsheet className="h-5 w-5 mr-2" />}
+                            Export Excel
+                        </Button>
+                        <PdfExportButton
+                            testSuite={testSuite}
+                            pieChartImage={pieChartImage}
+                            fileName={`Laporan_TestRun_${testSuite.id}_${testSuite.name.replace(/\s/g, '_')}.pdf`}
+                        >
+                            {({ loading }) => (
+                                <Button
+                                    className="bg-red-600 hover:bg-red-700 font-bold"
+                                    disabled={loading || !pieChartImage} // Disable saat loading atau chart belum terkonversi
+                                >
+                                    {loading || !pieChartImage ? (
+                                        <>
+                                            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                                            Siapkan PDF...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FileText className="h-5 w-5 mr-2" /> Export Laporan (PDF)
+                                        </>
+                                    )}
+                                </Button>
+                            )}
+                        </PdfExportButton>
+                    </div>
                 )}
             </header>
 
@@ -222,14 +228,26 @@ const TestSuiteDetailPage: React.FC = () => {
                 </Card>
             </div>
 
+            {/* --- KEPUTUSAN DEPLOY --- */}
+            <DeployDecisionCard testSuiteId={testSuite.id} />
+
             {/* --- BAGIAN 2: DETAIL TEST CASE YANG DIUJI --- */}
             <Card className="shadow-lg">
-                <CardHeader>
-                    <CardTitle className="text-xl font-bold">Detail Eksekusi Test Case ({totalRuns} Items)</CardTitle>
-                    <CardDescription>Daftar lengkap hasil dan catatan untuk setiap Test Case yang dieksekusi.</CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+                    <div>
+                        <CardTitle className="text-xl font-bold">Detail Eksekusi Test Case ({totalRuns} Items)</CardTitle>
+                        <CardDescription>Daftar lengkap hasil dan catatan untuk setiap Test Case yang dieksekusi.</CardDescription>
+                    </div>
+                    {canAddRunDetail && (
+                        <AddRunDetailDialog
+                            testSuiteId={testSuite.id}
+                            projectId={testSuite.projectId}
+                            existingTestCaseIds={testSuite.runDetails.map(d => d.idTestCase)}
+                        />
+                    )}
                 </CardHeader>
                 <CardContent className="pt-4">
-                    <RunDetailList runDetails={testSuite.runDetails} />
+                    <RunDetailList runDetails={testSuite.runDetails} testSuiteId={testSuite.id} />
                 </CardContent>
             </Card>
 

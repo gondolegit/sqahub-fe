@@ -1,40 +1,31 @@
 // src/types/index.ts
-// --- PERBAIKAN: Gunakan import type untuk AxiosInstance ---
-import type { AxiosInstance } from 'axios'; 
+import type { AxiosInstance } from 'axios';
 
-// Menggunakan role Anda:
-// export type UserRole = 'TESTER' | 'ADMIN' | 'DEVELOPER' | 'GUEST'; 
+// Role global user (Role enum di backend). Dipakai untuk @PreAuthorize("hasRole(...)").
+export type UserRole = 'ADMIN' | 'TESTER' | 'DEVELOPER' | 'AUTOMATION';
 
-// Menggunakan role Anda:
-export type UserRole = 'TESTER' | 'ADMIN' | 'DEVELOPER' | 'GUEST'; 
+// Role keanggotaan proyek (sistem izin terpisah dari UserRole di atas, per-user per-project).
+export type ProjectMemberRole = 'MANAGER' | 'TESTER' | 'DEVELOPER' | 'VIEWER';
 
-// Tipe Struktur User
 export interface User {
   id: string;
   username: string;
   email?: string;
-  roles: UserRole[]; 
+  roles: UserRole[];
 }
 
-// Tipe untuk Auth Context
 export interface AuthContextType {
-    // --- PROPERTY BARU DAN WAJIB UNTUK PROTECTED ROUTE ---
-    isAuthenticated: boolean; 
-    // ---------------------------------------------------
+    isAuthenticated: boolean;
     user: User | null;
     token: string | null;
     loading: boolean;
     login: (username: string, password: string) => Promise<boolean>;
     logout: () => void;
     hasRole: (roles: UserRole[]) => boolean;
-    // Gunakan AxiosInstance untuk tipe API
-    api: AxiosInstance; 
+    api: AxiosInstance;
 }
 
-// src/types/index.ts
-// ... (Tipe User, AuthContextType, UserRole yang sudah ada) ...
-
-// --- TIPE BARU: PROJECT ---
+// --- PROJECT ---
 export type ProjectType = 'WEB' | 'MOBILE' | 'API' | 'OTHER';
 export type ProjectStatus = 'active' | 'archived' | 'maintenance' | 'suspended' | 'completed';
 
@@ -44,39 +35,94 @@ export interface Project {
   description: string;
   type: ProjectType;
   status: ProjectStatus;
-  createdAt: string; // Tanggal pembuatan
-  updatedAt: string; // Tanggal update
-  createdByUsername: string; // Username pembuat
+  createdAt: string;
+  updatedAt: string;
+  createdByUsername: string;
 }
 
-// Tipe untuk respon list Project
-export interface ProjectListResponse {
-  content: Project[];
-  totalPages: number;
-  totalElements: number;
-  size: number;
-  number: number;
-}
-
-// src/types/index.ts
-// ... (Tipe Project, ProjectType, ProjectStatus) ...
-
-// --- TIPE BARU: FORM REQUEST BODY ---
 export interface CreateProjectRequest {
   name: string;
   description: string;
-  type: ProjectType; // 'WEB' | 'MOBILE' | 'API' | 'OTHER'
-  status: ProjectStatus; // 'active' | 'archived' | 'maintenance' (Asumsi default 'active')
+  type: ProjectType;
+  status: ProjectStatus;
 }
 
 export interface UpdateProjectRequest extends CreateProjectRequest {
-    id: number; // ID Project yang akan diupdate
+    id: number;
 }
 
 export interface LoginApiResponse {
     userId: string;
     username: string;
-    role: UserRole; // String tunggal
+    role: UserRole;
     token: string;
     message: string;
+}
+
+// --- PAGINASI (Spring Page<T>) ---
+export interface Page<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number; // halaman saat ini (0-based)
+  size: number;
+  first: boolean;
+  last: boolean;
+}
+
+// --- ERROR RESPONSE STANDAR BACKEND ---
+export interface ApiErrorResponse {
+  timestamp: string;
+  status: number;
+  error: string;
+  message: string;
+  path: string;
+}
+
+// --- PROJECT MEMBERS ---
+export interface ProjectMember {
+  id: number;
+  idProject: number;
+  idUser: number;
+  username: string;
+  email: string;
+  role: ProjectMemberRole;
+  joinedAt: string;
+}
+
+export interface ProjectMemberRequest {
+  idUser: number;
+  role: ProjectMemberRole;
+}
+
+// --- API KEYS ---
+export type ApiKeyStatus = 'ACTIVE' | 'REVOKED' | 'EXPIRED' | string;
+
+export interface ApiKey {
+  id: number;
+  idUser: number;
+  name: string;
+  status: ApiKeyStatus;
+  expiresAt: string | null;
+  lastUsedAt: string | null;
+  createdByUsername: string;
+  createdAt: string;
+  rawKey: string | null; // hanya terisi sesaat setelah dibuat
+}
+
+export interface ApiKeyRequest {
+  name: string;
+  expiresAt?: string | null;
+}
+
+// --- ACTIVITY LOG ---
+export interface ActivityLog {
+  id: number;
+  idUser: number | null;
+  action: string;
+  entityType: string;
+  entityId: number;
+  details: string;
+  ipAddress: string;
+  createdAt: string;
 }

@@ -7,9 +7,14 @@ import {
 } from 'lucide-react';
 
 // Import Types
-import { type TestSuite } from '@/types/testSuite'; 
-import { ConfirmationDialog } from '@/components/custom/ConfirmationDialog'; 
-import { useDeleteTestSuite } from '@/hooks/useTestSuites'; 
+import { type TestSuite } from '@/types/testSuite';
+import { formatDurationID } from '@/lib/utils';
+import { ConfirmationDialog } from '@/components/custom/ConfirmationDialog';
+import { useDeleteTestSuite } from '@/hooks/useTestSuites';
+import { useAuth } from '@/contexts/AuthContext';
+
+// Sesuai matriks izin backend: delete TestSuite butuh role global ADMIN atau TESTER.
+const RUN_DELETE_ROLES = ['ADMIN', 'TESTER'] as const;
 
 // Import UI Components (Shadcn/UI)
 import { 
@@ -36,27 +41,6 @@ const getSuiteStatus = (suite: TestSuite) => {
     return { label: "COMPLETED", Icon: CheckCircle, className: "bg-gray-100 text-gray-800 hover:bg-gray-100" };
 };
 
-// 🌟 PERBAIKAN FUNGSI FORMAT DURASI 🌟
-const formatDuration = (secondsInput: number): string => {
-    // Pembulatan ke bawah agar tampilan lebih rapi
-    const seconds = Math.floor(secondsInput); 
-
-    if (seconds < 60) return `${seconds} dtk`;
-    
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) {
-        const remainingSeconds = seconds % 60;
-        return remainingSeconds > 0 ? `${minutes} min ${remainingSeconds} dtk` : `${minutes} min`;
-    }
-    
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60; 
-    
-    return remainingMinutes > 0 
-        ? `${hours} jam ${remainingMinutes} min` 
-        : `${hours} jam`;
-};
-// -------------------------------------
 
 interface TestSuitesTableProps {
     data: TestSuite[] | undefined;
@@ -66,6 +50,8 @@ interface TestSuitesTableProps {
 
 const TestSuitesTable: React.FC<TestSuitesTableProps> = ({ data, isLoading, projectId }) => {
     const navigate = useNavigate();
+    const { hasRole } = useAuth();
+    const canDeleteRun = hasRole([...RUN_DELETE_ROLES]);
     const deleteMutation = useDeleteTestSuite();
     
     // State untuk Confirmation Dialog
@@ -186,10 +172,9 @@ const TestSuitesTable: React.FC<TestSuitesTableProps> = ({ data, isLoading, proj
                                         {totalFailedError}
                                     </TableCell>
                                     
-                                    {/* Durasi */}
+                                    {/* Durasi (elapsedTime dari backend dalam milidetik) */}
                                     <TableCell className="text-center text-gray-600">
-                                        {/* Mengirimkan elapsedTime yang sudah dalam detik */}
-                                        {suite.endDate ? formatDuration(suite.elapsedTime) : 'N/A'}
+                                        {suite.endDate ? formatDurationID(suite.elapsedTime) : 'N/A'}
                                     </TableCell>
                                     
                                     {/* Aksi */}
@@ -203,19 +188,21 @@ const TestSuitesTable: React.FC<TestSuitesTableProps> = ({ data, isLoading, proj
                                         >
                                             <Eye className="h-4 w-4 text-blue-600" />
                                         </Button>
-                                        <Button 
-                                            variant="destructive" 
-                                            size="icon" 
-                                            onClick={() => setSuiteToDelete(suite)} 
-                                            title="Hapus Run"
-                                            disabled={deleteMutation.isPending}
-                                        >
-                                            {isDeletingThisSuite ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <Trash className="h-4 w-4" />
-                                            )}
-                                        </Button>
+                                        {canDeleteRun && (
+                                            <Button
+                                                variant="destructive"
+                                                size="icon"
+                                                onClick={() => setSuiteToDelete(suite)}
+                                                title="Hapus Run"
+                                                disabled={deleteMutation.isPending}
+                                            >
+                                                {isDeletingThisSuite ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <Trash className="h-4 w-4" />
+                                                )}
+                                            </Button>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             );

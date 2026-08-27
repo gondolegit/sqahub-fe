@@ -16,6 +16,8 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 const LoginPage = lazy(() => import('./pages/Auth/LoginPage'));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
 const RegisterPage = lazy(() => import('./pages/Auth/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/Auth/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/Auth/ResetPasswordPage'));
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage'));
@@ -23,6 +25,8 @@ const FeaturesPage = lazy(() => import('./pages/FeaturesPage'));
 const TestCasesPage = lazy(() => import('./pages/TestCasesPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const UserManagementPage = lazy(() => import('./pages/UserManagementPage'));
+const ApiKeysPage = lazy(() => import('./pages/ApiKeysPage'));
+const ActivityLogPage = lazy(() => import('./pages/ActivityLogPage'));
 
 // Halaman Test Suites
 const TestSuitesPage = lazy(() => import('./pages/TestSuitePage'));
@@ -44,10 +48,9 @@ const App: React.FC = () => {
         return <RouteFallback />;
     }
 
-    // 🚨 LOGIKA BARU: Jika sudah login, rute default (/) mengarah ke Dashboard.
+    // Jika sudah login, rute default (/) mengarah ke Dashboard.
     // Jika belum login, rute default (/) mengarah ke Landing Page.
-    // const HomeRedirect = isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />;
-    const HomeRedirect = isAuthenticated ? <Navigate to="/projects" replace /> : <LandingPage />;
+    const HomeRedirect = isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />;
 
     return (
         <>
@@ -61,6 +64,8 @@ const App: React.FC = () => {
                     {/* Rute Auth Publik (Bukan MainLayout) */}
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} /> {/* 🚨 RUTE REGISTER BARU */}
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="/reset-password" element={<ResetPasswordPage />} />
 
                     {/* 2. Rute Terlindungi (Protected Routes) */}
                     <Route element={<ProtectedRoute />}>
@@ -111,6 +116,19 @@ const App: React.FC = () => {
                                 element={
                                     <ProtectedRoute allowedRoles={['ADMIN' as UserRole, 'TESTER' as UserRole]}>
                                         <ReportsPage />
+                                    </ProtectedRoute>
+                                }
+                            />
+
+                            {/* API Keys — semua user login boleh melihat kuncinya sendiri */}
+                            <Route path="/settings/api-keys" element={<ApiKeysPage />} />
+
+                            {/* Rute Khusus Peran: Activity Log (ADMIN) */}
+                            <Route
+                                path="/admin/activity-log"
+                                element={
+                                    <ProtectedRoute allowedRoles={['ADMIN' as UserRole]}>
+                                        <ActivityLogPage />
                                     </ProtectedRoute>
                                 }
                             />

@@ -12,9 +12,16 @@ import type {
     UpdateTestCaseParams,
     DeleteTestCaseParams
 } from '@/types/testCase'; // Asumsi jalur import Anda
+import type { Page } from '@/types/index';
 
 // --- CONFIGURATION DASAR ---
 const TC_QUERY_KEY = 'testcases';
+
+export interface PageParams {
+    page?: number;
+    size?: number;
+    sort?: string;
+}
 
 type ApiError = AxiosError<{ message?: string }>;
 const getErrorMessage = (error: ApiError, fallback: string): string =>
@@ -24,25 +31,32 @@ const getErrorMessage = (error: ApiError, fallback: string): string =>
 // --- HOOKS QUERY (READ) ---
 // #########################################
 
+// Halaman kosong pakai bentuk Page<T> yang valid — dipakai sebagai fallback saat featureId/projectId belum ada,
+// supaya konsumen tidak perlu menangani `undefined` secara terpisah dari "belum ada data".
+const emptyPage = <T,>(size: number): Page<T> => ({
+    content: [], totalElements: 0, totalPages: 0, number: 0, size, first: true, last: true,
+});
+
 /**
- * 1. Mengambil semua Test Case berdasarkan Feature ID
+ * 1. Mengambil Test Case berdasarkan Feature ID — [paginated] per spec backend.
  * @param featureId ID Feature. Mengizinkan number atau undefined untuk integrasi UI yang lebih baik.
  * EKSPOR DENGAN NAMA: useTestCasesByFeature
  */
-export const useTestCasesByFeature = (featureId: number | undefined) => {
-    const fetchTestCases = async (): Promise<TestCase[]> => {
-        if (!featureId || featureId < 1) return []; // Guard
+export const useTestCasesByFeature = (featureId: number | undefined, { page = 0, size = 10, sort }: PageParams = {}) => {
+    const fetchTestCases = async (): Promise<Page<TestCase>> => {
+        if (!featureId || featureId < 1) return emptyPage<TestCase>(size); // Guard
         // ENDPOINT: /api/v1/testcase/feature/{featureId}
-        const response = await API.get(`/testcase/feature/${featureId}`);
+        const response = await API.get(`/testcase/feature/${featureId}`, { params: { page, size, sort } });
         return response.data;
     };
 
-    return useQuery<TestCase[], Error>({
+    return useQuery<Page<TestCase>, Error>({
         // Key disesuaikan: [testcases, feature, <featureId>]
-        queryKey: [TC_QUERY_KEY, 'feature', featureId],
+        queryKey: [TC_QUERY_KEY, 'feature', featureId, { page, size, sort }],
         queryFn: fetchTestCases,
         // Query hanya diaktifkan jika featureId valid.
         enabled: !!featureId && featureId > 0,
+        placeholderData: (previousData) => previousData,
     });
 };
 
@@ -66,23 +80,26 @@ export const useTestCaseDetail = (testCaseId: number | undefined) => {
 };
 
 /**
- * 3. MENGAMBIL SEMUA TEST CASE berdasarkan Project ID (BARU, Digunakan untuk TestSuiteFormDialog)
+ * 3. Mengambil Test Case berdasarkan Project ID (Digunakan untuk TestSuiteFormDialog) — [paginated].
+ * Dipakai sebagai "picker" test case saat menyusun sebuah run, jadi default size dibuat besar
+ * agar terasa seperti "semua test case" tanpa perlu UI paginasi terpisah di dalam dialog.
  * @param projectId ID Project. Mengizinkan number atau undefined.
  */
-export const useTestCasesByProject = (projectId: number | undefined) => {
-    const fetchTestCases = async (): Promise<TestCase[]> => {
-        if (!projectId || projectId < 1) return []; // Guard
+export const useTestCasesByProject = (projectId: number | undefined, { page = 0, size = 200, sort }: PageParams = {}) => {
+    const fetchTestCases = async (): Promise<Page<TestCase>> => {
+        if (!projectId || projectId < 1) return emptyPage<TestCase>(size); // Guard
         // ENDPOINT: /api/v1/testcase/project/{projectId}
-        const response = await API.get(`/testcase/project/${projectId}`);
+        const response = await API.get(`/testcase/project/${projectId}`, { params: { page, size, sort } });
         return response.data;
     };
 
-    return useQuery<TestCase[], Error>({
+    return useQuery<Page<TestCase>, Error>({
         // Key disesuaikan untuk Project ID: [testcases, project, <projectId>]
-        queryKey: [TC_QUERY_KEY, 'project', projectId],
+        queryKey: [TC_QUERY_KEY, 'project', projectId, { page, size, sort }],
         queryFn: fetchTestCases,
         // Query hanya diaktifkan jika projectId valid
         enabled: !!projectId && projectId > 0,
+        placeholderData: (previousData) => previousData,
     });
 };
 

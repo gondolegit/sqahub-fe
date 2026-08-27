@@ -5,10 +5,11 @@ import { toPng } from 'html-to-image';
 import {
     AlertTriangle, Loader2, CheckCircle, XCircle,
     Download, ChevronLeft, Clock, Monitor, Globe, User, Tag,
-    Info, FastForward, Bug, Layers, Terminal, Server, Shield, Activity, Calendar
+    Info, FastForward, Bug, Layers, Terminal, Server, Shield, Activity, Calendar, FileSpreadsheet
 } from 'lucide-react';
 
-import { useTestSuiteById } from '@/hooks/useTestSuites';
+import { useTestSuiteById, useExportTestSuiteExcel } from '@/hooks/useTestSuites';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,11 +17,17 @@ import { Button } from '@/components/ui/button';
 import PdfExportButton from '@/components/reports/PdfExportButton';
 import StatusPieChart from '@/components/reports/StatusPieChart';
 import RunDetailList from '@/components/reports/RunDetailList';
+import DeployDecisionCard from '@/components/reports/DeployDecisionCard';
+import AddRunDetailDialog from '@/components/reports/AddRunDetailDialog';
+
+const RUN_DETAIL_ADD_ROLES = ['ADMIN', 'TESTER', 'DEVELOPER'] as const;
 
 // --- ISO Standard Formatter ---
-const formatDuration = (secondsInput: number): string => {
-    const minutes = Math.floor(secondsInput / 60);
-    const seconds = Math.floor(secondsInput % 60);
+// elapsedTime dari backend dalam milidetik.
+const formatDuration = (msInput: number): string => {
+    const totalSeconds = Math.floor(msInput / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} (MM:SS)`;
 };
 
@@ -40,6 +47,9 @@ const TestRunDetailPage: React.FC = () => {
     const { data: testRun, isLoading, error } = useTestSuiteById(testSuiteId);
     const [pieChartBase64, setPieChartBase64] = useState<string>('');
     const chartRef = useRef<HTMLDivElement>(null);
+    const { hasRole } = useAuth();
+    const canAddRunDetail = hasRole([...RUN_DETAIL_ADD_ROLES]);
+    const exportExcelMutation = useExportTestSuiteExcel();
 
     useEffect(() => {
         if (testRun && chartRef.current) {
@@ -121,18 +131,30 @@ const TestRunDetailPage: React.FC = () => {
                         </p>
                     </div>
 
-                    <PdfExportButton
-                        testSuite={testRun}
-                        pieChartImage={pieChartBase64}
-                        fileName={`ISO_IEC_29119_REPORT_${testRun.name}.pdf`}
-                    >
-                        {({ loading }) => (
-                            <Button size="lg" className="bg-white text-slate-900 hover:bg-red-500 hover:text-white font-black text-md px-10 py-8 shadow-2xl transition-all" disabled={loading}>
-                                {loading ? <Loader2 className="h-6 w-6 mr-3 animate-spin" /> : <Download className="h-6 w-6 mr-3" />}
-                                GENERATE DOCUMENT
-                            </Button>
-                        )}
-                    </PdfExportButton>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <Button
+                            size="lg"
+                            variant="outline"
+                            className="border-slate-500 text-slate-200 hover:bg-slate-700 hover:text-white font-bold px-6"
+                            onClick={() => exportExcelMutation.mutate({ testSuiteId: testRun.id, suiteName: testRun.name })}
+                            disabled={exportExcelMutation.isPending}
+                        >
+                            {exportExcelMutation.isPending ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <FileSpreadsheet className="h-5 w-5 mr-2" />}
+                            EXCEL
+                        </Button>
+                        <PdfExportButton
+                            testSuite={testRun}
+                            pieChartImage={pieChartBase64}
+                            fileName={`ISO_IEC_29119_REPORT_${testRun.name}.pdf`}
+                        >
+                            {({ loading }) => (
+                                <Button size="lg" className="bg-white text-slate-900 hover:bg-red-500 hover:text-white font-black text-md px-10 py-8 shadow-2xl transition-all" disabled={loading}>
+                                    {loading ? <Loader2 className="h-6 w-6 mr-3 animate-spin" /> : <Download className="h-6 w-6 mr-3" />}
+                                    GENERATE DOCUMENT
+                                </Button>
+                            )}
+                        </PdfExportButton>
+                    </div>
                 </div>
             </div>
 
@@ -177,6 +199,11 @@ const TestRunDetailPage: React.FC = () => {
                         );
                     })}
 
+                    {/* Deploy Decision */}
+                    <div className="col-span-2 xl:col-span-4">
+                        <DeployDecisionCard testSuiteId={testRun.id} />
+                    </div>
+
                     {/* Metadata Wall (ISO 29119-3 standard labels) */}
                     <Card className="col-span-2 xl:col-span-4 border-none shadow-2xl ring-2 ring-primary/10 bg-white">
                         <CardHeader className="bg-slate-100/50 py-4 border-b">
@@ -209,13 +236,22 @@ const TestRunDetailPage: React.FC = () => {
                         </h2>
                         <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.2em] mt-1">Verification and Validation of Individual Test Cases</p>
                     </div>
-                    <Badge className="bg-slate-900 text-white px-6 py-2 text-md font-black italic">
-                        TOTAL ITEMS: {testRun.runDetails.length}
-                    </Badge>
+                    <div className="flex items-center gap-3">
+                        {canAddRunDetail && (
+                            <AddRunDetailDialog
+                                testSuiteId={testRun.id}
+                                projectId={testRun.projectId}
+                                existingTestCaseIds={testRun.runDetails.map(d => d.idTestCase)}
+                            />
+                        )}
+                        <Badge className="bg-slate-900 text-white px-6 py-2 text-md font-black italic">
+                            TOTAL ITEMS: {testRun.runDetails.length}
+                        </Badge>
+                    </div>
                 </div>
                 
                 <div className="bg-white rounded-[2rem] shadow-2xl border-none ring-1 ring-slate-200 overflow-hidden">
-                    <RunDetailList runDetails={testRun.runDetails} />
+                    <RunDetailList runDetails={testRun.runDetails} testSuiteId={testRun.id} />
                 </div>
             </div>
         </div>

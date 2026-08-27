@@ -101,6 +101,7 @@ const RegisterPage: React.FC = () => {
                                 <SelectContent>
                                     <SelectItem value="TESTER">Tester</SelectItem>
                                     <SelectItem value="DEVELOPER">Developer</SelectItem>
+                                    <SelectItem value="AUTOMATION">Automation Engineer</SelectItem>
                                     <SelectItem value="ADMIN">Admin</SelectItem>
                                 </SelectContent>
                             </Select>

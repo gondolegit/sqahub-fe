@@ -18,6 +18,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // --- FUNGSI LOGOUT YANG STABIL ---
     const logout = React.useCallback(() => {
+        // Beri tahu backend agar token ini di-blacklist (POST /auth/logout).
+        // Fire-and-forget: kegagalan (mis. token sudah invalid/network error) tidak boleh
+        // menghalangi pengguna keluar dari sesi lokal.
+        API.post('/auth/logout').catch(() => { /* token mungkin sudah invalid — aman diabaikan */ });
+
         localStorage.removeItem('authToken');
         setToken(null);
         setUser(null);

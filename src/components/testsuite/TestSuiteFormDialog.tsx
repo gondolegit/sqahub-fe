@@ -21,6 +21,7 @@ import { useProjectDetail } from '@/hooks/useProjects';
 import { useTestCasesByProject } from '@/hooks/useTestCases';
 import { type TestCase } from '@/types/testCase';
 import type { TestSuiteRunRequest } from '@/types/testSuite';
+import { getStatusConfig } from '@/lib/status';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -29,7 +30,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 // --- CONSTANTS ---
-const RUN_STATUSES = ["PASS", "FAIL", "ERROR", "SKIPPED"] as const;
+const RUN_STATUSES = ["PASSED", "FAILED", "ERROR", "SKIPPED"] as const;
 const TEST_STAGES = ["SIT", "UAT", "STAGING", "PRODUCTION"] as const;
 const ENVIRONMENT_OPTIONS = ["Local", "Dev", "Staging", "Production"] as const;
 const EXECUTION_TYPES = ["MANUAL", "AUTOMATED"] as const;
@@ -131,7 +132,7 @@ const RunDetailCard = ({
 
     return (
         <Card className="border-none shadow-md overflow-hidden bg-white ring-1 ring-slate-200">
-            <div className={`h-1.5 w-full ${status === 'PASS' ? 'bg-emerald-500' : status === 'FAIL' ? 'bg-rose-500' : status === 'ERROR' ? 'bg-amber-500' : 'bg-slate-400'}`} />
+            <div className={`h-1.5 w-full ${getStatusConfig(status).barClassName}`} />
             <div className="p-4 md:p-6 space-y-5">
                 <div className="flex justify-between items-start gap-4">
                     <div className="flex-1 min-w-0">
@@ -248,7 +249,8 @@ const TestSuiteFormDialog: React.FC<{
     const [isSheetOpen, setIsSheetOpen] = useState(false);
 
     const { data: projectData, isLoading: isLoadingProject } = useProjectDetail(initialProjectId || 0);
-    const { data: availableTestCases, isLoading: isLoadingTC } = useTestCasesByProject(initialProjectId);
+    const { data: testCasesPage, isLoading: isLoadingTC } = useTestCasesByProject(initialProjectId);
+    const availableTestCases = testCasesPage?.content;
     const createMutation = useCreateTestSuiteRun();
 
     const form = useForm<TestSuiteFormData>({
@@ -297,7 +299,7 @@ const TestSuiteFormDialog: React.FC<{
         const idx = currentDetails.findIndex(f => f.idTestCase === tc.id);
         if (idx > -1) { remove(idx); }
         else {
-            append({ idTestCase: tc.id, testCaseName: tc.name, status: 'PASS', actualResult: 'As expected.', remarks: '' });
+            append({ idTestCase: tc.id, testCaseName: tc.name, status: 'PASSED', actualResult: 'As expected.', remarks: '' });
         }
     }, [append, remove, form]);
 
@@ -306,7 +308,7 @@ const TestSuiteFormDialog: React.FC<{
         const currentIds = new Set(fields.map(f => f.idTestCase));
         const newEntries = filteredTC
             .filter(tc => !currentIds.has(tc.id))
-            .map(tc => ({ idTestCase: tc.id, testCaseName: tc.name, status: 'PASS' as const, actualResult: 'As expected.', remarks: '' }));
+            .map(tc => ({ idTestCase: tc.id, testCaseName: tc.name, status: 'PASSED' as const, actualResult: 'As expected.', remarks: '' }));
         append(newEntries);
     };
 
@@ -319,9 +321,9 @@ const TestSuiteFormDialog: React.FC<{
             projectId: initialProjectId!,
             startDate: new Date(startTime!).toISOString(),
             endDate: new Date(endTime).toISOString(),
-            elapsedTime: Math.round((endTime - startTime!) / 1000),
-            statusTotalPassed: data.runDetails.filter(r => r.status === 'PASS').length,
-            statusTotalFailed: data.runDetails.filter(r => r.status === 'FAIL').length,
+            elapsedTime: Math.round(endTime - startTime!), // backend mengharapkan milidetik
+            statusTotalPassed: data.runDetails.filter(r => r.status === 'PASSED').length,
+            statusTotalFailed: data.runDetails.filter(r => r.status === 'FAILED').length,
             statusTotalError: data.runDetails.filter(r => r.status === 'ERROR').length,
             statusTotalSkipped: data.runDetails.filter(r => r.status === 'SKIPPED').length,
             runDetails: data.runDetails.map(r => ({

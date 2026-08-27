@@ -305,8 +305,9 @@ const ReportDocument: React.FC<ReportDocumentProps> = ({ testSuite, pieChartImag
                         <View style={styles.tableRow} key={detail.id} wrap={false}>
                             <Text style={styles.colId}>{detail.idTestCase}</Text>
                             <Text style={[styles.colStatus, {
-                                color: detail.status === 'PASS' ? COLORS.EMERALD :
-                                    detail.status === 'FAIL' ? COLORS.RED : COLORS.AMBER
+                                color: detail.status === 'PASSED' ? COLORS.EMERALD :
+                                    detail.status === 'FAILED' ? COLORS.RED :
+                                        detail.status === 'ERROR' ? COLORS.AMBER : COLORS.TEXT_MUTED
                             }]}>{detail.status}</Text>
                             <Text style={styles.colName}>{detail.testCaseName}</Text>
                             <View style={styles.colResult}>

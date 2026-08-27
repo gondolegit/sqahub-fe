@@ -32,8 +32,7 @@ const LoginPage: React.FC = () => {
     // --- Efek untuk Redirect ke Dashboard ---
     useEffect(() => {
         if (isAuthenticated) {
-            // navigate('/dashboard', { replace: true });
-            navigate('/projects', { replace: true });
+            navigate('/dashboard', { replace: true });
         }
     }, [isAuthenticated, navigate]); 
 
@@ -93,7 +92,12 @@ const LoginPage: React.FC = () => {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <div className="flex items-center justify-between">
+                                <Label htmlFor="password">Password</Label>
+                                <Link to="/forgot-password" className="text-xs font-medium text-primary hover:underline">
+                                    Lupa password?
+                                </Link>
+                            </div>
                             <Input
                                 id="password"
                                 type="password"
