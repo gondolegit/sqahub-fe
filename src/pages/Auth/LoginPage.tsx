@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft, UserPlus, CheckCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import GoogleAuthButton from '@/components/auth/GoogleAuthButton';
 
 const LoginPage: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -119,7 +120,16 @@ const LoginPage: React.FC = () => {
                             )}
                         </Button>
                     </form>
-                    
+
+                    <div className="relative my-6">
+                        <Separator />
+                        <span className="absolute inset-0 -top-2.5 flex justify-center">
+                            <span className="bg-card px-3 text-xs uppercase text-muted-foreground">atau</span>
+                        </span>
+                    </div>
+
+                    <GoogleAuthButton label="Login dengan Google" disabled={isLoading} />
+
                     <Separator className="my-6" />
 
                     {/* Tombol Register dan Kembali ke Landing Page */}

@@ -44,7 +44,8 @@ const ForgotPasswordPage: React.FC = () => {
                     </div>
                     <CardTitle className="text-2xl font-extrabold text-primary">Lupa Password?</CardTitle>
                     <CardDescription>
-                        Masukkan email akun Anda — kami kirimkan tautan reset password jika email terdaftar.
+                        Login SQAHub memakai username, tapi reset password dikirim lewat <span className="font-medium text-slate-600">email akun</span> Anda —
+                        masukkan email yang dipakai saat mendaftar, kami kirimkan tautan reset jika email tersebut terdaftar.
                     </CardDescription>
                     <Separator className="mt-2" />
                 </CardHeader>
@@ -66,7 +67,7 @@ const ForgotPasswordPage: React.FC = () => {
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="email">Email Akun Terdaftar</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -76,6 +77,7 @@ const ForgotPasswordPage: React.FC = () => {
                                     required
                                     disabled={isLoading}
                                 />
+                                <p className="text-xs text-slate-400">Bukan username login Anda — gunakan alamat email saat registrasi.</p>
                             </div>
 
                             {error && (

@@ -4,6 +4,11 @@ import axios from 'axios';
 // 1. Definisikan Base URL (dapat dikonfigurasi lewat env VITE_API_URL, fallback ke localhost untuk dev)
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 
+// Root backend TANPA suffix /api/v1 — dibutuhkan untuk endpoint di luar REST API biasa,
+// seperti alur Google OAuth2 (/oauth2/authorization/google) yang didaftarkan langsung oleh
+// Spring Security di root aplikasi, bukan di bawah /api/v1.
+export const API_ROOT_URL = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+
 const API = axios.create({
     baseURL: API_BASE_URL,
     headers: {

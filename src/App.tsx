@@ -18,6 +18,7 @@ const LandingPage = lazy(() => import('./pages/LandingPage'));
 const RegisterPage = lazy(() => import('./pages/Auth/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/Auth/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/Auth/ResetPasswordPage'));
+const OAuth2RedirectPage = lazy(() => import('./pages/Auth/OAuth2RedirectPage'));
 
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage'));
@@ -66,6 +67,7 @@ const App: React.FC = () => {
                     <Route path="/register" element={<RegisterPage />} /> {/* 🚨 RUTE REGISTER BARU */}
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     <Route path="/reset-password" element={<ResetPasswordPage />} />
+                    <Route path="/oauth2/redirect" element={<OAuth2RedirectPage />} />
 
                     {/* 2. Rute Terlindungi (Protected Routes) */}
                     <Route element={<ProtectedRoute />}>

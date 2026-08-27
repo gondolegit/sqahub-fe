@@ -51,21 +51,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
     }, [logout]);
 
+    // Dipakai bersama oleh login() biasa dan applySession() (alur Google OAuth2) agar
+    // logika "simpan token + set user" hanya ada di satu tempat.
+    const applySession = React.useCallback((session: { token: string; userId: string; username: string; role: UserRole }) => {
+        const userData: User = {
+            id: session.userId,
+            username: session.username,
+            roles: [session.role],
+        };
+
+        localStorage.setItem('authToken', session.token);
+        setToken(session.token);
+        setUser(userData);
+    }, []);
+
     const login = async (username: string, password: string): Promise<boolean> => {
         try {
             const response = await API.post<LoginApiResponse>('/auth/authenticate', { username, password });
-
             const { token: newToken, username: respUsername, role: respRole, userId } = response.data;
 
-            const userData: User = {
-                id: userId,
-                username: respUsername,
-                roles: [respRole],
-            };
-
-            localStorage.setItem('authToken', newToken);
-            setToken(newToken);
-            setUser(userData);
+            applySession({ token: newToken, userId, username: respUsername, role: respRole });
 
             return true;
         } catch (error) {
@@ -85,10 +90,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         loading,
         isAuthenticated,
         login,
+        applySession,
         logout,
         hasRole,
         api: API,
-    }), [token, user, loading, isAuthenticated, logout, hasRole]);
+    }), [token, user, loading, isAuthenticated, applySession, logout, hasRole]);
 
     return (
         <AuthContext.Provider value={contextValue}>

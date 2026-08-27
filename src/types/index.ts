@@ -20,6 +20,11 @@ export interface AuthContextType {
     token: string | null;
     loading: boolean;
     login: (username: string, password: string) => Promise<boolean>;
+    /**
+     * Terapkan sesi yang tokennya sudah diterbitkan di luar alur login biasa (mis. redirect
+     * balik dari Google OAuth2 di /oauth2/redirect), tanpa memanggil /auth/authenticate lagi.
+     */
+    applySession: (session: { token: string; userId: string; username: string; role: UserRole }) => void;
     logout: () => void;
     hasRole: (roles: UserRole[]) => boolean;
     api: AxiosInstance;

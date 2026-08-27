@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import GoogleAuthButton from '@/components/auth/GoogleAuthButton';
 import API from '@/utils/api';
 
 const RegisterPage: React.FC = () => {
@@ -99,10 +100,11 @@ const RegisterPage: React.FC = () => {
                                     <SelectValue placeholder="Pilih Role" />
                                 </SelectTrigger>
                                 <SelectContent>
+                                    {/* Backend hanya menerima TESTER/DEVELOPER dari registrasi publik — role lain
+                                        (ADMIN, AUTOMATION) diturunkan paksa jadi TESTER demi mencegah privilege
+                                        escalation, jadi tidak ditampilkan di sini agar tidak menyesatkan. */}
                                     <SelectItem value="TESTER">Tester</SelectItem>
                                     <SelectItem value="DEVELOPER">Developer</SelectItem>
-                                    <SelectItem value="AUTOMATION">Automation Engineer</SelectItem>
-                                    <SelectItem value="ADMIN">Admin</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -115,6 +117,15 @@ const RegisterPage: React.FC = () => {
                             )}
                         </Button>
                     </form>
+
+                    <div className="relative my-6">
+                        <Separator />
+                        <span className="absolute inset-0 -top-2.5 flex justify-center">
+                            <span className="bg-card px-3 text-xs uppercase text-muted-foreground">atau</span>
+                        </span>
+                    </div>
+
+                    <GoogleAuthButton label="Daftar dengan Google" disabled={isLoading} />
                 </CardContent>
                 
                 <CardFooter className="flex flex-col justify-center text-sm space-y-2">
