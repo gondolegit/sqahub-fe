@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Menu, LogOut, KeyRound, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import ThemeToggle from './ThemeToggle';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface HeaderProps {
     toggleSidebar: () => void;
@@ -16,6 +18,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
     const { user, logout } = useAuth();
+    const { t } = useTranslation();
     const username = user?.username || "User";
 
     return (
@@ -26,7 +29,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
                     size="icon"
                     onClick={toggleSidebar}
                     className="lg:hidden mr-2"
-                    aria-label="Buka menu navigasi"
+                    aria-label={t('header.openMenu')}
                 >
                     <Menu className="h-6 w-6" />
                 </Button>
@@ -36,6 +39,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             </div>
 
             <div className="flex items-center space-x-2 md:space-x-4">
+                <LanguageSwitcher />
                 <ThemeToggle />
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -59,12 +63,12 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
                             <Link to="/settings/api-keys" className="cursor-pointer">
-                                <KeyRound className="mr-2 h-4 w-4" /> API Keys
+                                <KeyRound className="mr-2 h-4 w-4" /> {t('common.apiKeys')}
                             </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive cursor-pointer">
-                            <LogOut className="mr-2 h-4 w-4" /> Logout
+                            <LogOut className="mr-2 h-4 w-4" /> {t('header.logout')}
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -75,7 +79,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
                     size="sm"
                     onClick={logout}
                     className="h-8 sm:hidden"
-                    aria-label="Logout"
+                    aria-label={t('header.logout')}
                 >
                     <LogOut className="h-4 w-4" />
                 </Button>

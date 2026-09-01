@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { LayoutDashboard, FolderKanban, X, ListChecks, KeyRound, ScrollText, Gauge } from 'lucide-react';
 import { cn } from "@/lib/utils"; // Gunakan utilitas classname shadcn
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ interface SidebarProps {
 }
 
 interface NavItem {
-    name: string;
+    labelKey: string;
     href: string;
     icon: React.ComponentType<{ className?: string }>;
     /** Jika diisi, item hanya tampil untuk user dengan salah satu role ini. */
@@ -20,17 +21,18 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Projects', href: '/projects', icon: FolderKanban },
-    { name: 'Test Suites', href: '/test-suites', icon: ListChecks },
-    { name: 'Quality Dashboard', href: '/reports', icon: Gauge },
-    { name: 'API Keys', href: '/settings/api-keys', icon: KeyRound },
-    { name: 'Activity Log', href: '/admin/activity-log', icon: ScrollText, requiredRoles: ['ADMIN'] },
+    { labelKey: 'nav.dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { labelKey: 'nav.projects', href: '/projects', icon: FolderKanban },
+    { labelKey: 'nav.testSuites', href: '/test-suites', icon: ListChecks },
+    { labelKey: 'nav.qualityDashboard', href: '/reports', icon: Gauge },
+    { labelKey: 'nav.apiKeys', href: '/settings/api-keys', icon: KeyRound },
+    { labelKey: 'nav.activityLog', href: '/admin/activity-log', icon: ScrollText, requiredRoles: ['ADMIN'] },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle }) => {
     const location = useLocation();
     const { hasRole } = useAuth();
+    const { t } = useTranslation();
 
     const visibleNavItems = navItems.filter((item) => !item.requiredRoles || hasRole(item.requiredRoles));
 
@@ -48,7 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle }) => {
                     size="icon"
                     className="lg:hidden text-muted-foreground hover:bg-muted"
                     onClick={toggle}
-                    aria-label="Tutup menu navigasi"
+                    aria-label={t('header.closeMenu')}
                 >
                     <X className="h-6 w-6" />
                 </Button>
@@ -59,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle }) => {
                     const isActive = location.pathname === item.href;
                     return (
                         <Link
-                            key={item.name}
+                            key={item.href}
                             to={item.href}
                             onClick={() => {
                                 if (window.innerWidth < 1024) toggle(); // Tutup hanya di mobile
@@ -72,7 +74,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggle }) => {
                             )}
                         >
                             <item.icon className={cn("h-5 w-5 mr-3", isActive ? "text-primary-foreground" : "text-muted-foreground")} />
-                            {item.name}
+                            {t(item.labelKey)}
                         </Link>
                     );
                 })}

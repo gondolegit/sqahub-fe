@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'; // <--
 import { ThemeProvider } from 'next-themes';
 import App from './App';
 import { AuthProvider } from '@/contexts/AuthContext';
+import './i18n'; // Side-effect: inisialisasi i18next sebelum App dirender.
 import './index.css';
 
 const queryClient = new QueryClient({

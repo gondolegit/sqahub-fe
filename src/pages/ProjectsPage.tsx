@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Plus, Search, MoreVertical,
   ExternalLink, Pencil, Trash2, FolderPlus, Users
@@ -31,6 +32,7 @@ const PROJECT_MANAGE_ROLES = ['ADMIN', 'TESTER'] as const;
 
 const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { hasRole } = useAuth();
   const canManageProjects = hasRole([...PROJECT_MANAGE_ROLES]);
 
@@ -65,13 +67,13 @@ const ProjectsPage: React.FC = () => {
 
   const confirmDelete = (project: Project) => {
     // Elegant toast replacement for window.confirm
-    toast("Hapus Proyek?", {
-      description: `Data '${project.name}' akan dihapus permanen.`,
+    toast(t('projects.deleteConfirmTitle'), {
+      description: t('projects.deleteConfirmDescription', { name: project.name }),
       action: {
-        label: "Hapus",
+        label: t('projects.deleteConfirmAction'),
         onClick: () => deleteMutation.mutate(project.id, {
-          onSuccess: () => toast.success("Terhapus"),
-          onError: (err) => toast.error("Gagal", { description: err.message })
+          onSuccess: () => toast.success(t('projects.deleteSuccess')),
+          onError: (err) => toast.error(t('projects.deleteError'), { description: err.message })
         }),
       },
     });
@@ -84,12 +86,12 @@ const ProjectsPage: React.FC = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Project Hub</h1>
-          <p className="text-muted-foreground">Kelola dan pantau seluruh sistem otomasi testing Anda.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">{t('projects.title')}</h1>
+          <p className="text-muted-foreground">{t('projects.subtitle')}</p>
         </div>
         {canManageProjects && (
           <Button onClick={() => handleAction(null)} className="shadow-md hover:shadow-lg transition-all">
-            <Plus className="mr-2 h-4 w-4" /> Proyek Baru
+            <Plus className="mr-2 h-4 w-4" /> {t('projects.newProject')}
           </Button>
         )}
       </div>
@@ -99,7 +101,7 @@ const ProjectsPage: React.FC = () => {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Cari proyek di halaman ini..."
+            placeholder={t('projects.searchPlaceholder')}
             className="pl-10 bg-background"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -166,49 +168,53 @@ interface ProjectCardProps {
   onManageMembers: () => void;
 }
 
-const ProjectCard = ({ project, canManage, onEdit, onDelete, onView, onManageMembers }: ProjectCardProps) => (
-  <Card className="group hover:border-primary/50 transition-all duration-300 flex flex-col overflow-hidden">
-    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-      <div className="space-y-1">
-        <Badge variant="outline" className="font-mono text-[10px] uppercase tracking-wider">
-          {project.type}
-        </Badge>
-        <h3 className="font-bold text-lg leading-none group-hover:text-primary transition-colors">
-          {project.name}
-        </h3>
-      </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Menu aksi untuk ${project.name}`}>
-            <MoreVertical className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={onManageMembers}><Users className="mr-2 h-4 w-4" /> Kelola Tim</DropdownMenuItem>
-          {canManage && (
-            <>
-              <DropdownMenuItem onClick={onEdit}><Pencil className="mr-2 h-4 w-4" /> Edit</DropdownMenuItem>
-              <DropdownMenuItem onClick={onDelete} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> Hapus</DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </CardHeader>
-    <CardContent className="flex-grow py-4">
-      <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-        {project.description || "Tidak ada deskripsi tersedia."}
-      </p>
-    </CardContent>
-    <CardFooter className="border-t bg-muted/50 p-4 flex justify-between items-center">
-      <StatusBadge status={project.status} />
-      <Button size="sm" variant="ghost" onClick={onView} className="text-primary hover:text-primary hover:bg-primary/10">
-        Features <ExternalLink className="ml-2 h-3 w-3" />
-      </Button>
-    </CardFooter>
-  </Card>
-);
+const ProjectCard = ({ project, canManage, onEdit, onDelete, onView, onManageMembers }: ProjectCardProps) => {
+  const { t } = useTranslation();
+  return (
+    <Card className="group hover:border-primary/50 transition-all duration-300 flex flex-col overflow-hidden">
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+        <div className="space-y-1">
+          <Badge variant="outline" className="font-mono text-[10px] uppercase tracking-wider">
+            {project.type}
+          </Badge>
+          <h3 className="font-bold text-lg leading-none group-hover:text-primary transition-colors">
+            {project.name}
+          </h3>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`${t('common.actions')}: ${project.name}`}>
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onManageMembers}><Users className="mr-2 h-4 w-4" /> {t('projects.manageTeam')}</DropdownMenuItem>
+            {canManage && (
+              <>
+                <DropdownMenuItem onClick={onEdit}><Pencil className="mr-2 h-4 w-4" /> {t('common.edit')}</DropdownMenuItem>
+                <DropdownMenuItem onClick={onDelete} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" /> {t('common.delete')}</DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </CardHeader>
+      <CardContent className="flex-grow py-4">
+        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+          {project.description || t('projects.noDescription')}
+        </p>
+      </CardContent>
+      <CardFooter className="border-t bg-muted/50 p-4 flex justify-between items-center">
+        <StatusBadge status={project.status} />
+        <Button size="sm" variant="ghost" onClick={onView} className="text-primary hover:text-primary hover:bg-primary/10">
+          {t('projects.features')} <ExternalLink className="ml-2 h-3 w-3" />
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+};
 
 const StatusBadge = ({ status }: { status: ProjectStatus }) => {
+  const { t } = useTranslation();
   const variants: Record<ProjectStatus, string> = {
     active: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30",
     completed: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30",
@@ -218,7 +224,7 @@ const StatusBadge = ({ status }: { status: ProjectStatus }) => {
   };
   return (
     <Badge variant="outline" className={`${variants[status] || variants.archived} capitalize px-2 py-0`}>
-      {status}
+      {t(`projects.status.${status}`)}
     </Badge>
   );
 };
@@ -229,21 +235,27 @@ const LoadingGrid = () => (
   </div>
 );
 
-const EmptyState = ({ onAdd, isSearch }: { onAdd?: () => void; isSearch: boolean }) => (
-  <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-2xl bg-muted/30">
-    <FolderPlus className="h-12 w-12 text-muted-foreground/40 mb-4" />
-    <h3 className="text-lg font-medium">{isSearch ? "Hasil tidak ditemukan" : "Belum ada proyek"}</h3>
-    <p className="text-muted-foreground mb-6 text-center max-w-xs">
-      {isSearch ? "Coba gunakan kata kunci lain." : "Mulai dengan membuat proyek pertama Anda sekarang."}
-    </p>
-    {!isSearch && onAdd && <Button onClick={onAdd}>Buat Proyek</Button>}
-  </div>
-);
+const EmptyState = ({ onAdd, isSearch }: { onAdd?: () => void; isSearch: boolean }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-2xl bg-muted/30">
+      <FolderPlus className="h-12 w-12 text-muted-foreground/40 mb-4" />
+      <h3 className="text-lg font-medium">{isSearch ? t('projects.emptySearchTitle') : t('projects.emptyTitle')}</h3>
+      <p className="text-muted-foreground mb-6 text-center max-w-xs">
+        {isSearch ? t('projects.emptySearchHint') : t('projects.emptyHint')}
+      </p>
+      {!isSearch && onAdd && <Button onClick={onAdd}>{t('projects.createFirst')}</Button>}
+    </div>
+  );
+};
 
-const ErrorState = () => (
-  <div className="p-8 text-center text-red-600 bg-red-50 dark:bg-red-500/10 dark:text-red-400 rounded-lg border border-red-100 dark:border-red-500/30 mt-10">
-    Gagal memuat data. Periksa koneksi API Anda.
-  </div>
-);
+const ErrorState = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="p-8 text-center text-red-600 bg-red-50 dark:bg-red-500/10 dark:text-red-400 rounded-lg border border-red-100 dark:border-red-500/30 mt-10">
+      {t('projects.errorLoading')}
+    </div>
+  );
+};
 
 export default ProjectsPage;

@@ -1,6 +1,7 @@
 // src/pages/Auth/ResetPasswordPage.tsx
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
 import { Loader2, ArrowLeft, ShieldCheck, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import API from '@/utils/api';
 const MIN_PASSWORD_LENGTH = 8;
 
 const ResetPasswordPage: React.FC = () => {
+    const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const token = searchParams.get('token') ?? '';
@@ -28,11 +30,11 @@ const ResetPasswordPage: React.FC = () => {
         setError(null);
 
         if (newPassword.length < MIN_PASSWORD_LENGTH) {
-            setError(`Password minimal ${MIN_PASSWORD_LENGTH} karakter.`);
+            setError(t('auth.resetPassword.errorMinLength', { min: MIN_PASSWORD_LENGTH }));
             return;
         }
         if (newPassword !== confirmPassword) {
-            setError('Konfirmasi password tidak cocok.');
+            setError(t('auth.resetPassword.errorMismatch'));
             return;
         }
 
@@ -45,7 +47,7 @@ const ResetPasswordPage: React.FC = () => {
             const message = isAxiosError<{ message?: string }>(err)
                 ? err.response?.data?.message
                 : undefined;
-            setError(message || 'Tautan reset tidak valid atau sudah kedaluwarsa.');
+            setError(message || t('auth.resetPassword.errorGeneric'));
         } finally {
             setIsLoading(false);
         }
@@ -58,8 +60,8 @@ const ResetPasswordPage: React.FC = () => {
                     <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
                         <ShieldCheck className="h-6 w-6 text-primary" />
                     </div>
-                    <CardTitle className="text-2xl font-extrabold text-primary">Atur Ulang Password</CardTitle>
-                    <CardDescription>Buat password baru untuk akun Anda.</CardDescription>
+                    <CardTitle className="text-2xl font-extrabold text-primary">{t('auth.resetPassword.title')}</CardTitle>
+                    <CardDescription>{t('auth.resetPassword.subtitle')}</CardDescription>
                     <Separator className="mt-2" />
                 </CardHeader>
 
@@ -68,10 +70,10 @@ const ResetPasswordPage: React.FC = () => {
                         <div className="space-y-4 text-center">
                             <div className="flex items-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
                                 <AlertTriangle className="h-4 w-4 shrink-0" />
-                                Tautan reset tidak lengkap. Silakan buka kembali tautan dari email Anda.
+                                {t('auth.resetPassword.incompleteLink')}
                             </div>
                             <Link to="/forgot-password" className="block">
-                                <Button variant="outline" className="w-full">Minta Tautan Baru</Button>
+                                <Button variant="outline" className="w-full">{t('auth.resetPassword.requestNewLink')}</Button>
                             </Link>
                         </div>
                     ) : success ? (
@@ -80,17 +82,17 @@ const ResetPasswordPage: React.FC = () => {
                                 <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                             </div>
                             <p className="text-sm text-muted-foreground">
-                                Password berhasil diperbarui. Mengalihkan ke halaman login...
+                                {t('auth.resetPassword.successMessage')}
                             </p>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="newPassword">Password Baru</Label>
+                                <Label htmlFor="newPassword">{t('auth.resetPassword.newPasswordLabel')}</Label>
                                 <Input
                                     id="newPassword"
                                     type="password"
-                                    placeholder="Minimal 8 karakter"
+                                    placeholder={t('auth.resetPassword.newPasswordPlaceholder')}
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     required
@@ -99,11 +101,11 @@ const ResetPasswordPage: React.FC = () => {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="confirmPassword">Konfirmasi Password</Label>
+                                <Label htmlFor="confirmPassword">{t('auth.resetPassword.confirmPasswordLabel')}</Label>
                                 <Input
                                     id="confirmPassword"
                                     type="password"
-                                    placeholder="Ulangi password baru"
+                                    placeholder={t('auth.resetPassword.confirmPasswordPlaceholder')}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     required
@@ -118,12 +120,12 @@ const ResetPasswordPage: React.FC = () => {
                             )}
 
                             <Button type="submit" className="w-full" disabled={isLoading}>
-                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Simpan Password Baru'}
+                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('auth.resetPassword.submit')}
                             </Button>
 
                             <Link to="/login" className="block">
                                 <Button type="button" variant="link" className="w-full text-muted-foreground hover:text-primary">
-                                    <ArrowLeft className="mr-2 h-4 w-4" /> Kembali ke Login
+                                    <ArrowLeft className="mr-2 h-4 w-4" /> {t('auth.resetPassword.backToLogin')}
                                 </Button>
                             </Link>
                         </form>

@@ -1,6 +1,7 @@
 // src/pages/DashboardPage.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
     FolderKanban, ListChecks, KeyRound, ArrowRight, Sparkles, ShieldCheck, ScrollText, Gauge,
 } from 'lucide-react';
@@ -17,14 +18,15 @@ const ROLE_BADGE_CLASSES: Record<string, string> = {
     AUTOMATION: 'bg-amber-100 text-amber-700 border-amber-200',
 };
 
-const QUICK_LINKS = [
-    { title: 'Projects', description: 'Kelola seluruh proyek pengujian Anda', href: '/projects', icon: FolderKanban, gradient: 'from-blue-500 to-blue-600' },
-    { title: 'Test Suites', description: 'Lihat riwayat eksekusi & buat run baru', href: '/test-suites', icon: ListChecks, gradient: 'from-emerald-500 to-emerald-600' },
-    { title: 'Quality Dashboard', description: 'Tren pass rate & cakupan test case per proyek', href: '/reports', icon: Gauge, gradient: 'from-violet-500 to-violet-600' },
-    { title: 'API Keys', description: 'Integrasikan dengan Katalon, Jenkins, dll.', href: '/settings/api-keys', icon: KeyRound, gradient: 'from-amber-500 to-amber-600' },
-];
+const QUICK_LINK_DEFS = [
+    { titleKey: 'dashboard.quickLinks.projectsTitle', descriptionKey: 'dashboard.quickLinks.projectsDescription', href: '/projects', icon: FolderKanban, gradient: 'from-blue-500 to-blue-600' },
+    { titleKey: 'dashboard.quickLinks.testSuitesTitle', descriptionKey: 'dashboard.quickLinks.testSuitesDescription', href: '/test-suites', icon: ListChecks, gradient: 'from-emerald-500 to-emerald-600' },
+    { titleKey: 'dashboard.quickLinks.qualityDashboardTitle', descriptionKey: 'dashboard.quickLinks.qualityDashboardDescription', href: '/reports', icon: Gauge, gradient: 'from-violet-500 to-violet-600' },
+    { titleKey: 'dashboard.quickLinks.apiKeysTitle', descriptionKey: 'dashboard.quickLinks.apiKeysDescription', href: '/settings/api-keys', icon: KeyRound, gradient: 'from-amber-500 to-amber-600' },
+] as const;
 
 const DashboardPage: React.FC = () => {
+    const { t } = useTranslation();
     const { user, hasRole } = useAuth();
     const { data: projectsPage, isLoading } = useProjects({ size: 5, sort: 'updatedAt,desc' });
     const recentProjects = projectsPage?.content ?? [];
@@ -34,7 +36,7 @@ const DashboardPage: React.FC = () => {
             {/* Welcome banner */}
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-primary/80 p-8 text-white shadow-xl">
                 <Sparkles className="absolute -right-4 -top-4 h-32 w-32 text-white/10" />
-                <p className="text-sm font-medium text-white/70">Selamat datang kembali,</p>
+                <p className="text-sm font-medium text-white/70">{t('dashboard.welcomeBack')}</p>
                 <h1 className="text-3xl font-extrabold tracking-tight">{user?.username || 'Tester'} 👋</h1>
                 <div className="mt-3 flex flex-wrap gap-2">
                     {user?.roles.map((role) => (
@@ -47,7 +49,7 @@ const DashboardPage: React.FC = () => {
 
             {/* Quick links */}
             <div className="grid gap-4 md:grid-cols-3">
-                {QUICK_LINKS.map((link) => (
+                {QUICK_LINK_DEFS.map((link) => (
                     <Link key={link.href} to={link.href} className="group">
                         <Card className="h-full border-none shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
                             <CardContent className="p-6">
@@ -55,10 +57,10 @@ const DashboardPage: React.FC = () => {
                                     <link.icon className="h-5 w-5" />
                                 </div>
                                 <h3 className="font-bold text-lg flex items-center gap-1.5">
-                                    {link.title}
+                                    {t(link.titleKey)}
                                     <ArrowRight className="h-4 w-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                                 </h3>
-                                <p className="text-sm text-muted-foreground mt-1">{link.description}</p>
+                                <p className="text-sm text-muted-foreground mt-1">{t(link.descriptionKey)}</p>
                             </CardContent>
                         </Card>
                     </Link>
@@ -71,10 +73,10 @@ const DashboardPage: React.FC = () => {
                                     <ScrollText className="h-5 w-5" />
                                 </div>
                                 <h3 className="font-bold text-lg flex items-center gap-1.5">
-                                    Activity Log
+                                    {t('dashboard.quickLinks.activityLogTitle')}
                                     <ArrowRight className="h-4 w-4 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                                 </h3>
-                                <p className="text-sm text-muted-foreground mt-1">Audit seluruh aktivitas sistem</p>
+                                <p className="text-sm text-muted-foreground mt-1">{t('dashboard.quickLinks.activityLogDescription')}</p>
                             </CardContent>
                         </Card>
                     </Link>
@@ -85,11 +87,11 @@ const DashboardPage: React.FC = () => {
             <Card className="border-none shadow-md">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0">
                     <div>
-                        <CardTitle className="text-lg">Proyek Terbaru</CardTitle>
-                        <CardDescription>Proyek yang baru saja diperbarui</CardDescription>
+                        <CardTitle className="text-lg">{t('dashboard.recentProjects.title')}</CardTitle>
+                        <CardDescription>{t('dashboard.recentProjects.subtitle')}</CardDescription>
                     </div>
                     <Link to="/projects" className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
-                        Lihat semua <ArrowRight className="h-3.5 w-3.5" />
+                        {t('dashboard.recentProjects.viewAll')} <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                 </CardHeader>
                 <CardContent className="space-y-2">
@@ -98,7 +100,7 @@ const DashboardPage: React.FC = () => {
                     ) : recentProjects.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-10 text-center gap-2">
                             <ShieldCheck className="h-8 w-8 text-muted-foreground/30" />
-                            <p className="text-muted-foreground text-sm">Belum ada proyek. Mulai dengan membuat proyek pertama Anda.</p>
+                            <p className="text-muted-foreground text-sm">{t('dashboard.recentProjects.empty')}</p>
                         </div>
                     ) : (
                         recentProjects.map((project) => (
@@ -109,7 +111,7 @@ const DashboardPage: React.FC = () => {
                             >
                                 <div className="min-w-0">
                                     <p className="font-semibold truncate">{project.name}</p>
-                                    <p className="text-xs text-muted-foreground truncate">{project.description || 'Tidak ada deskripsi'}</p>
+                                    <p className="text-xs text-muted-foreground truncate">{project.description || t('dashboard.recentProjects.noDescription')}</p>
                                 </div>
                                 <Badge variant="outline" className="shrink-0 ml-3 font-mono text-[10px] uppercase">{project.type}</Badge>
                             </Link>

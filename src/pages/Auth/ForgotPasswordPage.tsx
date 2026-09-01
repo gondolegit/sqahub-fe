@@ -1,6 +1,7 @@
 // src/pages/Auth/ForgotPasswordPage.tsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
 import { Loader2, ArrowLeft, MailCheck, KeyRound, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import API from '@/utils/api';
 
 const ForgotPasswordPage: React.FC = () => {
+    const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -29,7 +31,7 @@ const ForgotPasswordPage: React.FC = () => {
             const message = isAxiosError<{ message?: string }>(err)
                 ? err.response?.data?.message
                 : undefined;
-            setError(message || 'Gagal mengirim permintaan. Coba lagi beberapa saat lagi.');
+            setError(message || t('auth.forgotPassword.errorGeneric'));
         } finally {
             setIsLoading(false);
         }
@@ -42,10 +44,9 @@ const ForgotPasswordPage: React.FC = () => {
                     <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
                         <KeyRound className="h-6 w-6 text-primary" />
                     </div>
-                    <CardTitle className="text-2xl font-extrabold text-primary">Lupa Password?</CardTitle>
+                    <CardTitle className="text-2xl font-extrabold text-primary">{t('auth.forgotPassword.title')}</CardTitle>
                     <CardDescription>
-                        Login SQAHub memakai username, tapi reset password dikirim lewat <span className="font-medium text-foreground">email akun</span> Anda —
-                        masukkan email yang dipakai saat mendaftar, kami kirimkan tautan reset jika email tersebut terdaftar.
+                        <Trans i18nKey="auth.forgotPassword.subtitle" components={{ bold: <span className="font-medium text-foreground" /> }} />
                     </CardDescription>
                     <Separator className="mt-2" />
                 </CardHeader>
@@ -57,27 +58,26 @@ const ForgotPasswordPage: React.FC = () => {
                                 <MailCheck className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                             </div>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                Jika <span className="font-semibold text-foreground">{email}</span> terdaftar,
-                                kami sudah mengirimkan instruksi reset password ke alamat tersebut. Periksa juga folder spam.
+                                <Trans i18nKey="auth.forgotPassword.sentMessage" values={{ email }} components={{ bold: <span className="font-semibold text-foreground" /> }} />
                             </p>
                             <Button asChild className="w-full">
-                                <Link to="/login"><ArrowLeft className="mr-2 h-4 w-4" /> Kembali ke Login</Link>
+                                <Link to="/login"><ArrowLeft className="mr-2 h-4 w-4" /> {t('auth.forgotPassword.backToLogin')}</Link>
                             </Button>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email Akun Terdaftar</Label>
+                                <Label htmlFor="email">{t('auth.forgotPassword.emailLabel')}</Label>
                                 <Input
                                     id="email"
                                     type="email"
-                                    placeholder="nama@perusahaan.com"
+                                    placeholder={t('auth.forgotPassword.emailPlaceholder')}
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
                                     disabled={isLoading}
                                 />
-                                <p className="text-xs text-muted-foreground">Bukan username login Anda — gunakan alamat email saat registrasi.</p>
+                                <p className="text-xs text-muted-foreground">{t('auth.forgotPassword.emailHint')}</p>
                             </div>
 
                             {error && (
@@ -87,12 +87,12 @@ const ForgotPasswordPage: React.FC = () => {
                             )}
 
                             <Button type="submit" className="w-full" disabled={isLoading}>
-                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Kirim Tautan Reset'}
+                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : t('auth.forgotPassword.submit')}
                             </Button>
 
                             <Link to="/login" className="block">
                                 <Button type="button" variant="link" className="w-full text-muted-foreground hover:text-primary">
-                                    <ArrowLeft className="mr-2 h-4 w-4" /> Kembali ke Login
+                                    <ArrowLeft className="mr-2 h-4 w-4" /> {t('auth.forgotPassword.backToLogin')}
                                 </Button>
                             </Link>
                         </form>

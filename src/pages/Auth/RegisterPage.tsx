@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { isAxiosError } from 'axios';
 import { Loader2, UserPlus, AlertTriangle, CheckCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import GoogleAuthButton from '@/components/auth/GoogleAuthButton';
 import API from '@/utils/api';
 
 const RegisterPage: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         username: '',
@@ -41,7 +43,7 @@ const RegisterPage: React.FC = () => {
         try {
             const { data } = await API.post('/auth/register', formData);
 
-            setSuccess(data.message || "Registrasi Berhasil! Anda akan diarahkan ke halaman Login.");
+            setSuccess(data.message || t('auth.register.successGeneric'));
 
             // Redirect ke login dan bawa username melalui state
             setTimeout(() => {
@@ -51,9 +53,9 @@ const RegisterPage: React.FC = () => {
         } catch (err) {
             console.error('Error saat registrasi:', err);
             if (isAxiosError(err)) {
-                setError(err.response?.data?.message || err.response?.data?.error || 'Registrasi Gagal. Coba lagi.');
+                setError(err.response?.data?.message || err.response?.data?.error || t('auth.register.errorGeneric'));
             } else {
-                setError('Gagal terhubung ke server. Pastikan API berjalan.');
+                setError(t('auth.register.errorConnection'));
             }
         } finally {
             setIsLoading(false);
@@ -65,10 +67,10 @@ const RegisterPage: React.FC = () => {
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
                     <CardTitle className="text-3xl font-extrabold text-primary flex items-center justify-center">
-                        <UserPlus className="h-6 w-6 mr-2" /> Daftar SQAHub
+                        <UserPlus className="h-6 w-6 mr-2" /> {t('auth.register.title')}
                     </CardTitle>
                     <CardDescription>
-                        Buat akun Anda dan pilih peran Anda dalam tim.
+                        {t('auth.register.subtitle')}
                     </CardDescription>
                     <Separator className="mt-2" />
                 </CardHeader>
@@ -87,33 +89,33 @@ const RegisterPage: React.FC = () => {
                         )}
                         
                         {/* Form Inputs */}
-                        <div className="grid gap-2"><Label htmlFor="username">Username</Label><Input id="username" type="text" value={formData.username} onChange={handleChange} required /></div>
-                        <div className="grid gap-2"><Label htmlFor="name">Nama Lengkap</Label><Input id="name" type="text" value={formData.name} onChange={handleChange} required /></div>
-                        <div className="grid gap-2"><Label htmlFor="email">Email</Label><Input id="email" type="email" value={formData.email} onChange={handleChange} required /></div>
-                        <div className="grid gap-2"><Label htmlFor="password">Password</Label><Input id="password" type="password" value={formData.password} onChange={handleChange} required /></div>
-                        
+                        <div className="grid gap-2"><Label htmlFor="username">{t('auth.register.usernameLabel')}</Label><Input id="username" type="text" value={formData.username} onChange={handleChange} required /></div>
+                        <div className="grid gap-2"><Label htmlFor="name">{t('auth.register.nameLabel')}</Label><Input id="name" type="text" value={formData.name} onChange={handleChange} required /></div>
+                        <div className="grid gap-2"><Label htmlFor="email">{t('auth.register.emailLabel')}</Label><Input id="email" type="email" value={formData.email} onChange={handleChange} required /></div>
+                        <div className="grid gap-2"><Label htmlFor="password">{t('auth.register.passwordLabel')}</Label><Input id="password" type="password" value={formData.password} onChange={handleChange} required /></div>
+
                         {/* Role Selection */}
                         <div className="grid gap-2">
-                            <Label htmlFor="role">Role</Label>
+                            <Label htmlFor="role">{t('auth.register.roleLabel')}</Label>
                             <Select onValueChange={handleSelectChange} defaultValue={formData.role}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Pilih Role" />
+                                    <SelectValue placeholder={t('auth.register.rolePlaceholder')} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {/* Backend hanya menerima TESTER/DEVELOPER dari registrasi publik — role lain
                                         (ADMIN, AUTOMATION) diturunkan paksa jadi TESTER demi mencegah privilege
                                         escalation, jadi tidak ditampilkan di sini agar tidak menyesatkan. */}
-                                    <SelectItem value="TESTER">Tester</SelectItem>
-                                    <SelectItem value="DEVELOPER">Developer</SelectItem>
+                                    <SelectItem value="TESTER">{t('auth.register.roleTester')}</SelectItem>
+                                    <SelectItem value="DEVELOPER">{t('auth.register.roleDeveloper')}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
-                        
+
                         <Button type="submit" className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isLoading}>
                             {isLoading ? (
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                             ) : (
-                                'Buat Akun Baru'
+                                t('auth.register.submit')
                             )}
                         </Button>
                     </form>
@@ -121,19 +123,19 @@ const RegisterPage: React.FC = () => {
                     <div className="relative my-6">
                         <Separator />
                         <span className="absolute inset-0 -top-2.5 flex justify-center">
-                            <span className="bg-card px-3 text-xs uppercase text-muted-foreground">atau</span>
+                            <span className="bg-card px-3 text-xs uppercase text-muted-foreground">{t('common.or')}</span>
                         </span>
                     </div>
 
-                    <GoogleAuthButton label="Daftar dengan Google" disabled={isLoading} />
+                    <GoogleAuthButton label={t('auth.register.googleButton')} disabled={isLoading} />
                 </CardContent>
-                
+
                 <CardFooter className="flex flex-col justify-center text-sm space-y-2">
                     <Link to="/login" className="text-primary hover:underline">
-                        Sudah punya akun? Login di sini.
+                        {t('auth.register.haveAccount')}
                     </Link>
                     <Link to="/" className="text-muted-foreground hover:text-primary flex items-center">
-                        <ArrowLeft className="h-3 w-3 mr-1" /> Kembali ke Beranda
+                        <ArrowLeft className="h-3 w-3 mr-1" /> {t('auth.register.backToHome')}
                     </Link>
                 </CardFooter>
             </Card>
