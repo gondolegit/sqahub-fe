@@ -26,6 +26,7 @@ export default {
     "projects": "项目",
     "testSuites": "测试套件",
     "qualityDashboard": "质量仪表盘",
+    "traceability": "可追溯性",
     "apiKeys": "API 密钥",
     "activityLog": "活动日志"
   },
@@ -594,6 +595,28 @@ export default {
     "coverageChart": {
       "gap": "尚无测试用例（覆盖缺口）",
       "count": "{{count}} 个测试用例"
+    }
+  },
+  "traceability": {
+    "subtitle": "追溯需求（功能）到测试用例及其最新执行状态。",
+    "loading": "正在生成可追溯性矩阵...",
+    "loadError": "加载可追溯性矩阵失败，请确认您有权访问该项目。",
+    "emptyHint": "该项目尚无功能。",
+    "noCoverage": "尚无测试用例",
+    "neverExecuted": "从未执行",
+    "stats": {
+      "requirements": "需求总数",
+      "uncoveredRequirements": "无测试用例的需求",
+      "totalTestCases": "测试用例总数",
+      "neverExecuted": "从未执行的测试用例"
+    },
+    "table": {
+      "requirement": "需求（功能）",
+      "testCaseCount": "测试用例",
+      "executed": "已执行",
+      "passed": "通过",
+      "failed": "失败",
+      "coverage": "覆盖率"
     }
   },
   "manualForm": {

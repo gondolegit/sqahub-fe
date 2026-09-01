@@ -26,6 +26,7 @@ export default {
     "projects": "Projects",
     "testSuites": "Test Suites",
     "qualityDashboard": "Quality Dashboard",
+    "traceability": "Traceability",
     "apiKeys": "API Keys",
     "activityLog": "Activity Log"
   },
@@ -594,6 +595,28 @@ export default {
     "coverageChart": {
       "gap": "Belum ada test case (gap cakupan)",
       "count": "{{count}} test case"
+    }
+  },
+  "traceability": {
+    "subtitle": "Telusuri requirement (Feature) ke Test Case dan status eksekusi terakhirnya.",
+    "loading": "Menyusun traceability matrix...",
+    "loadError": "Gagal memuat traceability matrix. Pastikan Anda memiliki akses ke proyek ini.",
+    "emptyHint": "Belum ada Feature di proyek ini.",
+    "noCoverage": "Belum Ada Test Case",
+    "neverExecuted": "Belum Dieksekusi",
+    "stats": {
+      "requirements": "Total Requirement",
+      "uncoveredRequirements": "Requirement Tanpa Test Case",
+      "totalTestCases": "Total Test Case",
+      "neverExecuted": "Test Case Belum Dieksekusi"
+    },
+    "table": {
+      "requirement": "Requirement (Feature)",
+      "testCaseCount": "Test Case",
+      "executed": "Dieksekusi",
+      "passed": "Passed",
+      "failed": "Failed",
+      "coverage": "Cakupan"
     }
   },
   "manualForm": {

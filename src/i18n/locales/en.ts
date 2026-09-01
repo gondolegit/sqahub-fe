@@ -26,6 +26,7 @@ export default {
     "projects": "Projects",
     "testSuites": "Test Suites",
     "qualityDashboard": "Quality Dashboard",
+    "traceability": "Traceability",
     "apiKeys": "API Keys",
     "activityLog": "Activity Log"
   },
@@ -594,6 +595,28 @@ export default {
     "coverageChart": {
       "gap": "No test cases yet (coverage gap)",
       "count": "{{count}} test cases"
+    }
+  },
+  "traceability": {
+    "subtitle": "Trace requirements (Features) to Test Cases and their latest execution status.",
+    "loading": "Building traceability matrix...",
+    "loadError": "Failed to load the traceability matrix. Make sure you have access to this project.",
+    "emptyHint": "No Features in this project yet.",
+    "noCoverage": "No Test Cases Yet",
+    "neverExecuted": "Never Executed",
+    "stats": {
+      "requirements": "Total Requirements",
+      "uncoveredRequirements": "Requirements Without Test Cases",
+      "totalTestCases": "Total Test Cases",
+      "neverExecuted": "Never-Executed Test Cases"
+    },
+    "table": {
+      "requirement": "Requirement (Feature)",
+      "testCaseCount": "Test Cases",
+      "executed": "Executed",
+      "passed": "Passed",
+      "failed": "Failed",
+      "coverage": "Coverage"
     }
   },
   "manualForm": {

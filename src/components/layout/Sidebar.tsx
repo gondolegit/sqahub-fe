@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LayoutDashboard, FolderKanban, X, ListChecks, KeyRound, ScrollText, Gauge } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, X, ListChecks, KeyRound, ScrollText, Gauge, GitBranch } from 'lucide-react';
 import { cn } from "@/lib/utils"; // Gunakan utilitas classname shadcn
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,6 +25,7 @@ const navItems: NavItem[] = [
     { labelKey: 'nav.projects', href: '/projects', icon: FolderKanban },
     { labelKey: 'nav.testSuites', href: '/test-suites', icon: ListChecks },
     { labelKey: 'nav.qualityDashboard', href: '/reports', icon: Gauge },
+    { labelKey: 'nav.traceability', href: '/traceability', icon: GitBranch },
     { labelKey: 'nav.apiKeys', href: '/settings/api-keys', icon: KeyRound },
     { labelKey: 'nav.activityLog', href: '/admin/activity-log', icon: ScrollText, requiredRoles: ['ADMIN'] },
 ];

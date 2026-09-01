@@ -33,6 +33,7 @@ const ActivityLogPage = lazy(() => import('./pages/ActivityLogPage'));
 const TestSuitesPage = lazy(() => import('./pages/TestSuitePage'));
 const TestRunDetailPage = lazy(() => import('./pages/TestRunDetailPage'));
 const QualityDashboardPage = lazy(() => import('./pages/QualityDashboardPage'));
+const RequirementsTraceabilityPage = lazy(() => import('./pages/RequirementsTraceabilityPage'));
 
 const RouteFallback = () => (
     <div className="flex h-screen items-center justify-center">
@@ -110,6 +111,10 @@ const App: React.FC = () => {
                                 diverifikasi backend (ProjectMemberService.isViewAccessAllowed), sama
                                 seperti halaman Projects/Test Suites lainnya. */}
                             <Route path="/reports" element={<QualityDashboardPage />} />
+
+                            {/* Requirements Traceability Matrix — sama seperti Quality Dashboard, tanpa
+                                batasan role di rute; akses per-proyek diverifikasi backend. */}
+                            <Route path="/traceability" element={<RequirementsTraceabilityPage />} />
 
                             {/* API Keys — semua user login boleh melihat kuncinya sendiri */}
                             <Route path="/settings/api-keys" element={<ApiKeysPage />} />
