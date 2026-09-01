@@ -495,6 +495,9 @@ export default {
       "loading": "Memuat bukti...",
       "empty": "Belum ada bukti yang dilampirkan.",
       "uploadNewLabel": "Unggah Bukti Baru",
+      "uploadHint": "Maks {{maxSize}}MB per file. Gambar JPEG/PNG otomatis dikompresi di server.",
+      "fileTooLargeTitle": "File Terlalu Besar",
+      "fileTooLargeDescription": "Ukuran file melebihi batas maksimum {{maxSize}}MB per file.",
       "descriptionPlaceholder": "Deskripsi (opsional)",
       "uploadButton": "Unggah",
       "downloadAria": "Unduh {{name}}"

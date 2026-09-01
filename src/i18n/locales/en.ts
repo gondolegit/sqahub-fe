@@ -495,6 +495,9 @@ export default {
       "loading": "Loading evidence...",
       "empty": "No evidence has been attached yet.",
       "uploadNewLabel": "Upload New Evidence",
+      "uploadHint": "Max {{maxSize}}MB per file. JPEG/PNG images are automatically compressed on the server.",
+      "fileTooLargeTitle": "File Too Large",
+      "fileTooLargeDescription": "The file exceeds the maximum size of {{maxSize}}MB per file.",
       "descriptionPlaceholder": "Description (optional)",
       "uploadButton": "Upload",
       "downloadAria": "Download {{name}}"

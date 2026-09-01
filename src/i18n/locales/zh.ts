@@ -495,6 +495,9 @@ export default {
       "loading": "正在加载证据……",
       "empty": "尚未附加任何证据。",
       "uploadNewLabel": "上传新证据",
+      "uploadHint": "每个文件最大 {{maxSize}}MB。JPEG/PNG 图片会在服务器端自动压缩。",
+      "fileTooLargeTitle": "文件过大",
+      "fileTooLargeDescription": "文件大小超过了每个文件 {{maxSize}}MB 的最大限制。",
       "descriptionPlaceholder": "描述（可选）",
       "uploadButton": "上传",
       "downloadAria": "下载 {{name}}"

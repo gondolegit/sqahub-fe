@@ -1,6 +1,7 @@
 // src/components/reports/EvidenceDialog.tsx
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { Paperclip, Download, Loader2, UploadCloud, FileText, Image as ImageIcon, File as FileIcon } from 'lucide-react';
 
 import {
@@ -13,6 +14,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { useEvidenceByRunDetail, useUploadEvidence, useDownloadEvidence } from '@/hooks/useTestEvidence';
 import type { TestEvidence } from '@/types/testEvidence';
+
+// Sesuai default backend (app.evidence.max-file-size-mb) — cek di sini HANYA agar pengguna dapat
+// feedback instan tanpa menunggu round-trip network; validasi SESUNGGUHNYA tetap di backend
+// (nilai ini bisa saja di-override lewat env var EVIDENCE_MAX_FILE_SIZE_MB di server, jadi
+// pengecekan di server selalu jadi sumber kebenaran akhir, ini cuma optimisasi UX).
+const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 interface EvidenceDialogProps {
     runDetailId: number | null;
@@ -47,6 +55,18 @@ const EvidenceDialog: React.FC<EvidenceDialogProps> = ({ runDetailId, testCaseNa
     const { data: evidenceList, isLoading } = useEvidenceByRunDetail(runDetailId ?? undefined);
     const uploadMutation = useUploadEvidence();
     const downloadMutation = useDownloadEvidence();
+
+    const handleFileSelect = (selected: File | null) => {
+        if (selected && selected.size > MAX_FILE_SIZE_BYTES) {
+            toast.error(t('testSuites.evidenceDialog.fileTooLargeTitle'), {
+                description: t('testSuites.evidenceDialog.fileTooLargeDescription', { maxSize: MAX_FILE_SIZE_MB }),
+            });
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            setSelectedFile(null);
+            return;
+        }
+        setSelectedFile(selected);
+    };
 
     const handleUpload = () => {
         if (!runDetailId || !selectedFile) return;
@@ -117,8 +137,11 @@ const EvidenceDialog: React.FC<EvidenceDialogProps> = ({ runDetailId, testCaseNa
                         <Input
                             ref={fileInputRef}
                             type="file"
-                            onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+                            onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)}
                         />
+                        <p className="text-[11px] text-muted-foreground">
+                            {t('testSuites.evidenceDialog.uploadHint', { maxSize: MAX_FILE_SIZE_MB })}
+                        </p>
                         <Input
                             placeholder={t('testSuites.evidenceDialog.descriptionPlaceholder')}
                             value={description}
