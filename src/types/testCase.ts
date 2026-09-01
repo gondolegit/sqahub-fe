@@ -49,3 +49,18 @@ export interface DeleteTestCaseParams {
     testCaseId: number;
     idFeature: number;
 }
+
+// --- Import massal (CSV/Excel) ---
+
+export interface TestCaseImportRowError {
+    rowNumber: number;
+    testCaseName: string | null;
+    message: string;
+}
+
+export interface TestCaseImportResponse {
+    totalRows: number;
+    importedCount: number;
+    failedCount: number;
+    errors: TestCaseImportRowError[];
+}

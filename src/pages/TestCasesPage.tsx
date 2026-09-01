@@ -10,7 +10,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { Loader2, PlusCircle, Frown, ArrowLeft, Search, Pencil, Trash, ClipboardList } from 'lucide-react';
+import { Loader2, PlusCircle, Frown, ArrowLeft, Search, Pencil, Trash, ClipboardList, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -24,6 +24,7 @@ import { useFeatureDetail } from '@/hooks/useFeatures';
 import { useTestCasesByFeature, useDeleteTestCase } from '@/hooks/useTestCases';
 import { useAuth } from '@/contexts/AuthContext';
 import TestCaseFormDialog from '@/components/testcase/TestCaseFormDialog';
+import ImportTestCaseDialog from '@/components/testcase/ImportTestCaseDialog';
 
 const PAGE_SIZE = 10;
 // Sesuai matriks izin backend: create/edit/delete TestCase butuh role global ADMIN atau TESTER.
@@ -49,6 +50,7 @@ const TestCasesPage: React.FC = () => {
     const [page, setPage] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
     const [isTcDialogOpen, setIsTcDialogOpen] = useState(false);
+    const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
     const [initialTcData, setInitialTcData] = useState<TestCaseWithMode | null>(null);
     const [caseToDelete, setCaseToDelete] = useState<{ id: number; name: string } | null>(null);
 
@@ -179,9 +181,14 @@ const TestCasesPage: React.FC = () => {
                     />
                 </div>
                 {canManageTestCases && (
-                    <Button onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
-                        <PlusCircle className="mr-2 h-4 w-4" /> Tambah Baru
-                    </Button>
+                    <div className="flex gap-2 w-full sm:w-auto">
+                        <Button variant="outline" onClick={() => setIsImportDialogOpen(true)} className="w-full sm:w-auto">
+                            <Upload className="mr-2 h-4 w-4" /> Import
+                        </Button>
+                        <Button onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
+                            <PlusCircle className="mr-2 h-4 w-4" /> Tambah Baru
+                        </Button>
+                    </div>
                 )}
             </div>
 
@@ -272,6 +279,13 @@ const TestCasesPage: React.FC = () => {
                 initialData={initialTcData}
                 idFeature={featureId}
                 idProject={projectId}
+            />
+
+            {/* Import Dialog */}
+            <ImportTestCaseDialog
+                open={isImportDialogOpen}
+                onOpenChange={setIsImportDialogOpen}
+                idFeature={featureId}
             />
 
             {/* Delete Confirmation */}

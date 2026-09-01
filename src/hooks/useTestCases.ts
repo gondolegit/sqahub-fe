@@ -10,7 +10,8 @@ import type {
     TestCase,
     TestCaseRequest,
     UpdateTestCaseParams,
-    DeleteTestCaseParams
+    DeleteTestCaseParams,
+    TestCaseImportResponse,
 } from '@/types/testCase'; // Asumsi jalur import Anda
 import type { Page } from '@/types/index';
 
@@ -152,6 +153,67 @@ export const useUpdateTestCase = () => {
         onError: (error) => {
             toast.error("Gagal Update Test Case", { description: getErrorMessage(error, "Terjadi kesalahan saat memperbarui TC.") });
         }
+    });
+};
+
+/**
+ * 6b. IMPORT massal Test Case dari file CSV/Excel ke satu Feature.
+ * Baris yang gagal validasi TIDAK melempar error di sini — backend tetap mengembalikan
+ * 200 OK berisi ringkasan (importedCount/failedCount/errors), jadi pemanggil harus
+ * memeriksa `failedCount` sendiri untuk memberi feedback per baris ke pengguna.
+ */
+export const useImportTestCases = (idFeature: number | undefined) => {
+    const queryClient = useQueryClient();
+    const importTestCases = async (file: File): Promise<TestCaseImportResponse> => {
+        const formData = new FormData();
+        formData.append('file', file);
+        // Jangan set Content-Type manual — biarkan browser menentukan multipart boundary-nya.
+        // ENDPOINT: POST /api/v1/testcase/feature/{featureId}/import
+        const response = await API.post(`/testcase/feature/${idFeature}/import`, formData);
+        return response.data;
+    };
+
+    return useMutation<TestCaseImportResponse, ApiError, File>({
+        mutationFn: importTestCases,
+        onSuccess: (result) => {
+            if (result.importedCount > 0) {
+                queryClient.invalidateQueries({ queryKey: [TC_QUERY_KEY, 'feature', idFeature] });
+            }
+            if (result.failedCount === 0) {
+                toast.success("Import Selesai", { description: `${result.importedCount} test case berhasil diimpor.` });
+            } else if (result.importedCount > 0) {
+                toast.warning("Import Sebagian Berhasil", {
+                    description: `${result.importedCount} berhasil, ${result.failedCount} baris gagal — lihat rincian di bawah.`,
+                });
+            } else {
+                toast.error("Import Gagal", { description: `Semua ${result.failedCount} baris gagal divalidasi — lihat rincian di bawah.` });
+            }
+        },
+        onError: (error) => {
+            toast.error("Gagal Mengimpor File", { description: getErrorMessage(error, "Terjadi kesalahan saat memproses file import.") });
+        },
+    });
+};
+
+/**
+ * 6c. Unduh template Excel siap-isi untuk import Test Case.
+ */
+export const useDownloadImportTemplate = () => {
+    return useMutation<void, ApiError, void>({
+        mutationFn: async () => {
+            const response = await API.get('/testcase/import/template', { responseType: 'blob' });
+            const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = 'template-import-test-case.xlsx';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(blobUrl);
+        },
+        onError: (error) => {
+            toast.error("Gagal Mengunduh Template", { description: getErrorMessage(error, "Terjadi kesalahan saat mengunduh template.") });
+        },
     });
 };
 
