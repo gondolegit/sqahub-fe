@@ -96,8 +96,8 @@ const DashboardPage: React.FC = () => {
                         [1, 2, 3].map((i) => <Skeleton key={i} className="h-14 w-full" />)
                     ) : recentProjects.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-10 text-center gap-2">
-                            <ShieldCheck className="h-8 w-8 text-slate-200" />
-                            <p className="text-slate-400 text-sm">Belum ada proyek. Mulai dengan membuat proyek pertama Anda.</p>
+                            <ShieldCheck className="h-8 w-8 text-muted-foreground/30" />
+                            <p className="text-muted-foreground text-sm">Belum ada proyek. Mulai dengan membuat proyek pertama Anda.</p>
                         </div>
                     ) : (
                         recentProjects.map((project) => (

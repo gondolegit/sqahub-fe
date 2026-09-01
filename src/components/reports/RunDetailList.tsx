@@ -51,7 +51,7 @@ const RunDetailList: React.FC<RunDetailListProps> = ({ runDetails, testSuiteId }
         <div className="overflow-x-auto border rounded-lg">
             <Table>
                 <TableHeader>
-                    <TableRow className="bg-gray-50">
+                    <TableRow className="bg-muted">
                         <TableHead className="w-[100px]">ID TC</TableHead>
                         <TableHead className="w-[150px]">Status</TableHead>
                         <TableHead>Nama Test Case</TableHead>
@@ -67,7 +67,7 @@ const RunDetailList: React.FC<RunDetailListProps> = ({ runDetails, testSuiteId }
 
                         return (
                             // Menggunakan id (dari RunDetail) sebagai key, atau idTestCase jika id RunDetail tidak unik
-                            <TableRow key={detail.id} className={detail.status !== 'PASSED' ? 'bg-red-50/50 hover:bg-red-50' : ''}>
+                            <TableRow key={detail.id} className={detail.status !== 'PASSED' ? 'bg-red-50/50 hover:bg-red-50 dark:bg-red-500/10 dark:hover:bg-red-500/15' : ''}>
                                 <TableCell className="font-semibold">TC-{detail.idTestCase}</TableCell>
                                 <TableCell>
                                     <Badge className={`font-semibold ${status.badgeClassName}`}>
@@ -77,7 +77,7 @@ const RunDetailList: React.FC<RunDetailListProps> = ({ runDetails, testSuiteId }
                                 {/* 🚨 Menggunakan testCaseName dari RunDetail */}
                                 <TableCell className="font-medium">{detail.testCaseName}</TableCell>
                                 <TableCell className="text-sm">{detail.actualResult}</TableCell>
-                                <TableCell className="text-xs text-gray-600 max-w-xs whitespace-pre-wrap">{detail.remarks || '-'}</TableCell>
+                                <TableCell className="text-xs text-muted-foreground max-w-xs whitespace-pre-wrap">{detail.remarks || '-'}</TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-0.5">
                                         <Button
@@ -86,7 +86,7 @@ const RunDetailList: React.FC<RunDetailListProps> = ({ runDetails, testSuiteId }
                                             title="Bukti Eksekusi"
                                             aria-label={`Lihat bukti untuk TC-${detail.idTestCase}`}
                                         >
-                                            <Paperclip className="h-4 w-4 text-slate-500" />
+                                            <Paperclip className="h-4 w-4 text-muted-foreground" />
                                         </Button>
                                         {canEdit && (
                                             <Button
@@ -95,7 +95,7 @@ const RunDetailList: React.FC<RunDetailListProps> = ({ runDetails, testSuiteId }
                                                 title="Edit Hasil"
                                                 aria-label={`Edit hasil TC-${detail.idTestCase}`}
                                             >
-                                                <Pencil className="h-4 w-4 text-slate-500" />
+                                                <Pencil className="h-4 w-4 text-muted-foreground" />
                                             </Button>
                                         )}
                                         {canDelete && (

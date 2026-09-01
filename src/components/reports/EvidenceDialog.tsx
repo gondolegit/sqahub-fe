@@ -34,7 +34,7 @@ const formatFileSize = (bytes: number): string => {
 const FileTypeIcon = ({ fileType }: { fileType: string }) => {
     if (fileType?.startsWith('image/')) return <ImageIcon className="h-5 w-5 text-blue-500" />;
     if (fileType === 'application/pdf') return <FileText className="h-5 w-5 text-red-500" />;
-    return <FileIcon className="h-5 w-5 text-slate-400" />;
+    return <FileIcon className="h-5 w-5 text-muted-foreground" />;
 };
 
 const EvidenceDialog: React.FC<EvidenceDialogProps> = ({ runDetailId, testCaseName, onOpenChange }) => {
@@ -63,7 +63,7 @@ const EvidenceDialog: React.FC<EvidenceDialogProps> = ({ runDetailId, testCaseNa
     return (
         <Dialog open={!!runDetailId} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden">
-                <DialogHeader className="p-6 pb-4 border-b bg-slate-50/60">
+                <DialogHeader className="p-6 pb-4 border-b bg-muted/60">
                     <DialogTitle className="flex items-center gap-2 text-lg">
                         <Paperclip className="h-5 w-5 text-primary" /> Bukti Eksekusi
                     </DialogTitle>
@@ -77,7 +77,7 @@ const EvidenceDialog: React.FC<EvidenceDialogProps> = ({ runDetailId, testCaseNa
                                 <Loader2 className="h-5 w-5 animate-spin mr-2" /> Memuat bukti...
                             </div>
                         ) : !evidenceList || evidenceList.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full text-slate-400 text-sm gap-1">
+                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm gap-1">
                                 <Paperclip className="h-6 w-6 opacity-30" />
                                 Belum ada bukti yang dilampirkan.
                             </div>
@@ -88,7 +88,7 @@ const EvidenceDialog: React.FC<EvidenceDialogProps> = ({ runDetailId, testCaseNa
                                         <FileTypeIcon fileType={ev.fileType} />
                                         <div className="min-w-0 flex-1">
                                             <p className="text-sm font-medium truncate">{ev.fileName}</p>
-                                            <p className="text-xs text-slate-400">
+                                            <p className="text-xs text-muted-foreground">
                                                 {formatFileSize(ev.fileSize)}{ev.description ? ` • ${ev.description}` : ''}
                                             </p>
                                         </div>
@@ -110,8 +110,8 @@ const EvidenceDialog: React.FC<EvidenceDialogProps> = ({ runDetailId, testCaseNa
                         )}
                     </ScrollArea>
 
-                    <div className="space-y-3 rounded-xl border border-dashed p-4 bg-slate-50/40">
-                        <Label className="text-xs font-bold uppercase text-slate-500">Unggah Bukti Baru</Label>
+                    <div className="space-y-3 rounded-xl border border-dashed p-4 bg-muted/40">
+                        <Label className="text-xs font-bold uppercase text-muted-foreground">Unggah Bukti Baru</Label>
                         <Input
                             ref={fileInputRef}
                             type="file"

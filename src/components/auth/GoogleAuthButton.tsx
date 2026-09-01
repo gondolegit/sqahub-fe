@@ -30,7 +30,7 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({ label = 'Lanjutkan 
         <Button
             type="button"
             variant="outline"
-            className="w-full border-slate-300 hover:bg-slate-50"
+            className="w-full border-border hover:bg-muted"
             onClick={handleClick}
             disabled={disabled}
         >

@@ -61,7 +61,7 @@ const RegisterPage: React.FC = () => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
+        <div className="flex items-center justify-center min-h-screen bg-muted/40 p-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
                     <CardTitle className="text-3xl font-extrabold text-primary flex items-center justify-center">
@@ -76,12 +76,12 @@ const RegisterPage: React.FC = () => {
                     <form onSubmit={handleSubmit} className="grid gap-4">
                         {/* Status Message */}
                         {error && (
-                            <div className="p-3 text-sm text-red-700 bg-red-100 rounded-lg flex items-center">
+                            <div className="p-3 text-sm text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-500/15 rounded-lg flex items-center">
                                 <AlertTriangle className="h-4 w-4 mr-2" /> {error}
                             </div>
                         )}
                         {success && (
-                            <div className="p-3 text-sm text-green-700 bg-green-100 rounded-lg flex items-center">
+                            <div className="p-3 text-sm text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-500/15 rounded-lg flex items-center">
                                 <CheckCircle className="h-4 w-4 mr-2" /> {success}
                             </div>
                         )}
@@ -132,7 +132,7 @@ const RegisterPage: React.FC = () => {
                     <Link to="/login" className="text-primary hover:underline">
                         Sudah punya akun? Login di sini.
                     </Link>
-                    <Link to="/" className="text-gray-500 hover:text-primary flex items-center">
+                    <Link to="/" className="text-muted-foreground hover:text-primary flex items-center">
                         <ArrowLeft className="h-3 w-3 mr-1" /> Kembali ke Beranda
                     </Link>
                 </CardFooter>

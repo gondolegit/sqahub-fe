@@ -14,11 +14,11 @@ const PAGE_SIZE = 20;
 
 const actionBadgeClass = (action: string): string => {
     const a = action.toUpperCase();
-    if (a.includes('DELETE') || a.includes('REVOKE') || a.includes('REMOVE')) return 'bg-red-100 text-red-700 border-red-200';
-    if (a.includes('CREATE') || a.includes('ADD') || a.includes('REGISTER')) return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-    if (a.includes('UPDATE') || a.includes('EDIT')) return 'bg-blue-100 text-blue-700 border-blue-200';
-    if (a.includes('LOGIN') || a.includes('LOGOUT') || a.includes('AUTH')) return 'bg-violet-100 text-violet-700 border-violet-200';
-    return 'bg-slate-100 text-slate-600 border-slate-200';
+    if (a.includes('DELETE') || a.includes('REVOKE') || a.includes('REMOVE')) return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/30';
+    if (a.includes('CREATE') || a.includes('ADD') || a.includes('REGISTER')) return 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30';
+    if (a.includes('UPDATE') || a.includes('EDIT')) return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30';
+    if (a.includes('LOGIN') || a.includes('LOGOUT') || a.includes('AUTH')) return 'bg-violet-100 text-violet-700 border-violet-200 dark:bg-violet-500/15 dark:text-violet-400 dark:border-violet-500/30';
+    return 'bg-muted text-muted-foreground border-border';
 };
 
 const ActivityLogPage: React.FC = () => {
@@ -31,7 +31,7 @@ const ActivityLogPage: React.FC = () => {
                 <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
                     <ScrollText className="h-7 w-7 text-primary" /> Activity Log
                 </h1>
-                <p className="text-slate-500 mt-1">Riwayat aktivitas seluruh sistem (khusus Admin).</p>
+                <p className="text-muted-foreground mt-1">Riwayat aktivitas seluruh sistem (khusus Admin).</p>
             </div>
 
             <Card className="shadow-md border-none overflow-hidden">
@@ -50,7 +50,7 @@ const ActivityLogPage: React.FC = () => {
                             <Loader2 className="h-6 w-6 animate-spin mr-2" /> Memuat log...
                         </div>
                     ) : !data || data.content.length === 0 ? (
-                        <div className="p-16 text-center text-slate-400">Belum ada aktivitas tercatat.</div>
+                        <div className="p-16 text-center text-muted-foreground">Belum ada aktivitas tercatat.</div>
                     ) : (
                         <>
                             <div className="overflow-x-auto">
@@ -80,7 +80,7 @@ const ActivityLogPage: React.FC = () => {
                                                 <TableCell className="text-sm">
                                                     {log.entityType} <span className="text-muted-foreground">#{log.entityId}</span>
                                                 </TableCell>
-                                                <TableCell className="text-xs text-slate-600 max-w-xs truncate" title={log.details}>
+                                                <TableCell className="text-xs text-muted-foreground max-w-xs truncate" title={log.details}>
                                                     {log.details || '-'}
                                                 </TableCell>
                                                 <TableCell className="text-xs font-mono text-muted-foreground">{log.ipAddress || '-'}</TableCell>

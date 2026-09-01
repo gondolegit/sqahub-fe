@@ -63,7 +63,7 @@ const LoginPage: React.FC = () => {
     };
 
     return (
-        <div className="flex h-screen items-center justify-center bg-gray-50 p-4">
+        <div className="flex h-screen items-center justify-center bg-muted/40 p-4">
             <Card className="w-[400px]">
                 <CardHeader className="text-center">
                     <CardTitle className="text-3xl font-extrabold text-primary">SQAHUB</CardTitle>
@@ -74,7 +74,7 @@ const LoginPage: React.FC = () => {
                 <CardContent>
                     {/* Pesan Sukses Registrasi */}
                     {registrationSuccessMessage && (
-                        <div className="p-3 mb-4 text-sm text-green-700 bg-green-100 rounded-lg flex items-center">
+                        <div className="p-3 mb-4 text-sm text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-500/15 rounded-lg flex items-center">
                             <CheckCircle className="h-4 w-4 mr-2" /> {registrationSuccessMessage}
                         </div>
                     )}
@@ -110,7 +110,7 @@ const LoginPage: React.FC = () => {
                             />
                         </div>
 
-                        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+                        {error && <p className="text-sm text-red-500 dark:text-red-400 text-center">{error}</p>}
 
                         <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isLoading}>
                             {isLoading ? (
@@ -135,12 +135,12 @@ const LoginPage: React.FC = () => {
                     {/* Tombol Register dan Kembali ke Landing Page */}
                     <div className="space-y-3">
                         <Link to="/register" className="block">
-                            <Button variant="outline" className="w-full text-gray-700 border-gray-300 hover:bg-gray-100">
+                            <Button variant="outline" className="w-full text-foreground border-border hover:bg-muted">
                                 <UserPlus className="mr-2 h-4 w-4" /> Belum punya akun? Daftar
                             </Button>
                         </Link>
                         <Link to="/" className="block">
-                            <Button variant="link" className="w-full text-gray-500 hover:text-primary">
+                            <Button variant="link" className="w-full text-muted-foreground hover:text-primary">
                                 <ArrowLeft className="mr-2 h-4 w-4" /> Kembali ke Landing Page
                             </Button>
                         </Link>

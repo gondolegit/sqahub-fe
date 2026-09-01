@@ -121,7 +121,7 @@ const FeaturesPage: React.FC = () => {
     if (isLoadingTotal) return <div className="flex justify-center p-20"><Loader2 className="animate-spin h-8 w-8 text-blue-600" /></div>;
 
     return (
-        <div className="container mx-auto p-6 space-y-8 bg-slate-50/30 min-h-screen">
+        <div className="container mx-auto p-6 space-y-8 bg-muted/30 min-h-screen">
             {/* --- TOP HEADER --- */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
@@ -129,8 +129,8 @@ const FeaturesPage: React.FC = () => {
                         <ArrowLeft className="h-4 w-4" />
                         <span className="text-sm font-medium">Kembali ke Proyek</span>
                     </div>
-                    <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">{projectName}</h1>
-                    <p className="text-slate-500 mt-1 flex items-center gap-2">
+                    <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{projectName}</h1>
+                    <p className="text-muted-foreground mt-1 flex items-center gap-2">
                         <Layers className="h-4 w-4" /> Kelola cakupan testing fitur aplikasi
                     </p>
                 </div>
@@ -147,17 +147,17 @@ const FeaturesPage: React.FC = () => {
             </div>
 
             {/* --- MAIN CONTENT --- */}
-            <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm">
+            <Card className="border-none shadow-xl bg-card/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 pb-6 border-b">
                     <div className="w-full md:w-auto">
                         <CardTitle>Daftar Fitur</CardTitle>
                         <CardDescription>Cari dan kelola fungsionalitas aplikasi.</CardDescription>
                     </div>
                     <div className="relative w-full md:w-80">
-                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                        <Input 
-                            placeholder="Cari fitur..." 
-                            className="pl-9 bg-slate-50/50" 
+                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Cari fitur..."
+                            className="pl-9 bg-muted/50"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -166,26 +166,26 @@ const FeaturesPage: React.FC = () => {
                 <CardContent className="p-0">
                     {filteredFeatures.length > 0 ? (
                         <Table>
-                            <TableHeader className="bg-slate-50/50">
+                            <TableHeader className="bg-muted/50">
                                 <TableRow>
-                                    <TableHead className="font-bold text-slate-700">Fitur & Deskripsi</TableHead>
-                                    <TableHead className="hidden md:table-cell font-bold text-slate-700">Status</TableHead>
-                                    <TableHead className="hidden md:table-cell font-bold text-slate-700">Tipe</TableHead>
-                                    <TableHead className="text-center font-bold text-slate-700">Test Cases</TableHead>
-                                    <TableHead className="text-right font-bold text-slate-700">Aksi</TableHead>
+                                    <TableHead className="font-bold text-foreground">Fitur & Deskripsi</TableHead>
+                                    <TableHead className="hidden md:table-cell font-bold text-foreground">Status</TableHead>
+                                    <TableHead className="hidden md:table-cell font-bold text-foreground">Tipe</TableHead>
+                                    <TableHead className="text-center font-bold text-foreground">Test Cases</TableHead>
+                                    <TableHead className="text-right font-bold text-foreground">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {filteredFeatures.map((f) => (
-                                    <TableRow key={f.id} className="hover:bg-blue-50/30 transition-colors group">
+                                    <TableRow key={f.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-500/10 transition-colors group">
                                         <TableCell>
                                             <div className="flex flex-col">
-                                                <span className="font-bold text-slate-800 group-hover:text-blue-600 transition-colors cursor-pointer" onClick={() => handleViewTestCases(f.id)}>
+                                                <span className="font-bold text-foreground group-hover:text-blue-600 transition-colors cursor-pointer" onClick={() => handleViewTestCases(f.id)}>
                                                     {f.name}
                                                 </span>
-                                                <span className="text-xs text-slate-500 line-clamp-1 italic">{f.description || 'N/A'}</span>
+                                                <span className="text-xs text-muted-foreground line-clamp-1 italic">{f.description || 'N/A'}</span>
                                                 {f.tag && (
-                                                    <div className="flex items-center gap-1 mt-1 text-[10px] text-slate-400">
+                                                    <div className="flex items-center gap-1 mt-1 text-[10px] text-muted-foreground">
                                                         <Tag className="h-3 w-3" /> {f.tag}
                                                     </div>
                                                 )}
@@ -195,7 +195,7 @@ const FeaturesPage: React.FC = () => {
                                             <StatusBadge status={f.status} />
                                         </TableCell>
                                         <TableCell className="hidden md:table-cell">
-                                            <span className="text-[10px] font-mono font-semibold bg-slate-100 px-2 py-0.5 rounded border">
+                                            <span className="text-[10px] font-mono font-semibold bg-muted px-2 py-0.5 rounded border">
                                                 {f.type}
                                             </span>
                                         </TableCell>
@@ -203,7 +203,7 @@ const FeaturesPage: React.FC = () => {
                                             <Button 
                                                 variant="outline" 
                                                 size="sm" 
-                                                className="h-8 border-blue-200 text-blue-600 hover:bg-blue-50 font-bold"
+                                                className="h-8 border-blue-200 dark:border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/15 font-bold"
                                                 onClick={() => handleViewTestCases(f.id)}
                                             >
                                                 {f.testCaseCount} TC
@@ -223,7 +223,7 @@ const FeaturesPage: React.FC = () => {
                                                         <Pencil className="mr-2 h-4 w-4" /> Edit
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem onClick={() => handlePrepareDelete(f)} className="text-red-600 focus:bg-red-50">
+                                                    <DropdownMenuItem onClick={() => handlePrepareDelete(f)} className="text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/15">
                                                         <Trash className="mr-2 h-4 w-4" /> Hapus
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
@@ -234,7 +234,7 @@ const FeaturesPage: React.FC = () => {
                             </TableBody>
                         </Table>
                     ) : (
-                        <div className="p-20 text-center"><Search className="mx-auto h-12 w-12 text-slate-200 mb-4" /><p className="text-slate-500 font-medium italic">Data tidak ditemukan</p></div>
+                        <div className="p-20 text-center"><Search className="mx-auto h-12 w-12 text-muted-foreground/30 mb-4" /><p className="text-muted-foreground font-medium italic">Data tidak ditemukan</p></div>
                     )}
                 </CardContent>
             </Card>
@@ -262,9 +262,9 @@ const FeaturesPage: React.FC = () => {
 // Kelas Tailwind harus berupa string statis lengkap agar terdeteksi oleh JIT compiler saat build produksi
 // (string interpolation seperti `border-l-${color}-500` tidak akan pernah masuk ke CSS hasil build).
 const STAT_CARD_COLORS = {
-    blue: { border: 'border-l-blue-500', iconBg: 'bg-blue-50' },
-    emerald: { border: 'border-l-emerald-500', iconBg: 'bg-emerald-50' },
-    purple: { border: 'border-l-purple-500', iconBg: 'bg-purple-50' },
+    blue: { border: 'border-l-blue-500', iconBg: 'bg-blue-50 dark:bg-blue-500/15' },
+    emerald: { border: 'border-l-emerald-500', iconBg: 'bg-emerald-50 dark:bg-emerald-500/15' },
+    purple: { border: 'border-l-purple-500', iconBg: 'bg-purple-50 dark:bg-purple-500/15' },
 } as const;
 
 interface StatCardProps {
@@ -279,7 +279,7 @@ const StatCard = ({ title, value, icon, color }: StatCardProps) => {
     return (
         <Card className={`border-l-4 ${border} shadow-md`}>
             <CardContent className="p-5 flex items-center justify-between">
-                <div><p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{title}</p><h3 className="text-2xl font-bold text-slate-900">{value}</h3></div>
+                <div><p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{title}</p><h3 className="text-2xl font-bold text-foreground">{value}</h3></div>
                 <div className={`p-3 ${iconBg} rounded-xl`}>{icon}</div>
             </CardContent>
         </Card>
@@ -288,12 +288,12 @@ const StatCard = ({ title, value, icon, color }: StatCardProps) => {
 
 const StatusBadge = ({ status }: { status: string }) => {
     const config: Record<string, string> = {
-        active: "bg-emerald-100 text-emerald-700 border-emerald-200",
-        pending: "bg-amber-100 text-amber-700 border-amber-200",
-        deprecated: "bg-rose-100 text-rose-700 border-rose-200",
+        active: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30",
+        pending: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/30",
+        deprecated: "bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-400 dark:border-rose-500/30",
     };
     return (
-        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${config[status] || "bg-slate-100 text-slate-600"}`}>
+        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${config[status] || "bg-muted text-muted-foreground"}`}>
             {status}
         </span>
     );

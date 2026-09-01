@@ -43,13 +43,13 @@ const OAuth2RedirectPage: React.FC = () => {
 
     if (error) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 p-4">
-                <Card className="w-[400px] shadow-xl border-red-100">
+            <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-background p-4">
+                <Card className="w-[400px] shadow-xl border-red-100 dark:border-red-500/30">
                     <CardHeader className="text-center space-y-2">
-                        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100">
-                            <AlertTriangle className="h-6 w-6 text-red-600" />
+                        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 dark:bg-red-500/15">
+                            <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
                         </div>
-                        <CardTitle className="text-xl font-bold text-red-600">Login Google Gagal</CardTitle>
+                        <CardTitle className="text-xl font-bold text-red-600 dark:text-red-400">Login Google Gagal</CardTitle>
                         <CardDescription>{error}</CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -63,10 +63,10 @@ const OAuth2RedirectPage: React.FC = () => {
     }
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 p-4">
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-background p-4">
             <div className="flex flex-col items-center gap-3 text-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm font-medium text-slate-500">Menyelesaikan login dengan Google...</p>
+                <p className="text-sm font-medium text-muted-foreground">Menyelesaikan login dengan Google...</p>
             </div>
         </div>
     );

@@ -8,6 +8,7 @@ import {
     DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
+import ThemeToggle from './ThemeToggle';
 
 interface HeaderProps {
     toggleSidebar: () => void;
@@ -35,6 +36,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             </div>
 
             <div className="flex items-center space-x-2 md:space-x-4">
+                <ThemeToggle />
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className="hidden sm:flex items-center gap-1.5">

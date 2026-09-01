@@ -26,8 +26,8 @@ const UserManagementPage: React.FC = () => {
                 <CardContent className="space-y-4">
                     
                     {isAdmin ? (
-                        <div className="p-4 bg-green-50 border border-green-200 rounded-md">
-                            <p className="text-sm font-medium text-green-700 flex items-center">
+                        <div className="p-4 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 rounded-md">
+                            <p className="text-sm font-medium text-green-700 dark:text-green-400 flex items-center">
                                 <ShieldCheck className="mr-2 h-4 w-4" /> Akses Diizinkan. Selamat datang, Admin {user?.username || 'Guest'}!
                             </p>
                             <Separator className="my-3" />
@@ -36,8 +36,8 @@ const UserManagementPage: React.FC = () => {
                             </p>
                         </div>
                     ) : (
-                        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-                            <p className="text-sm font-medium text-red-700 flex items-center">
+                        <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-md">
+                            <p className="text-sm font-medium text-red-700 dark:text-red-400 flex items-center">
                                 <AlertTriangle className="mr-2 h-4 w-4" /> Akses Ditolak. Anda tidak memiliki peran ADMIN.
                             </p>
                         </div>
@@ -47,7 +47,7 @@ const UserManagementPage: React.FC = () => {
                         <h3 className="text-lg font-semibold mb-2">Konten User Management</h3>
                         <p>Tabel daftar pengguna akan ditempatkan di sini.</p>
                         {/* Placeholder untuk tabel pengguna */}
-                        <div className="h-40 bg-gray-100 rounded-md mt-2 flex items-center justify-center text-gray-500">
+                        <div className="h-40 bg-muted rounded-md mt-2 flex items-center justify-center text-muted-foreground">
                             (Tabel Pengguna Aktif/Role)
                         </div>
                     </div>

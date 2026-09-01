@@ -28,9 +28,9 @@ import type { ApiKey } from '@/types/index';
 const API_KEY_MANAGE_ROLES = ['ADMIN', 'TESTER', 'DEVELOPER'] as const;
 
 const STATUS_BADGE: Record<string, string> = {
-    ACTIVE: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    REVOKED: 'bg-slate-100 text-slate-500 border-slate-200',
-    EXPIRED: 'bg-amber-100 text-amber-700 border-amber-200',
+    ACTIVE: 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30',
+    REVOKED: 'bg-muted text-muted-foreground border-border',
+    EXPIRED: 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/30',
 };
 
 const ApiKeysPage: React.FC = () => {
@@ -78,7 +78,7 @@ const ApiKeysPage: React.FC = () => {
                     <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
                         <KeyRound className="h-7 w-7 text-primary" /> API Keys
                     </h1>
-                    <p className="text-slate-500 mt-1">
+                    <p className="text-muted-foreground mt-1">
                         Kelola kredensial untuk integrasi eksternal (Katalon, Jenkins, dsb).
                     </p>
                 </div>
@@ -101,8 +101,8 @@ const ApiKeysPage: React.FC = () => {
                         </div>
                     ) : !apiKeys || apiKeys.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 text-center">
-                            <KeyRound className="h-10 w-10 text-slate-200 mb-3" />
-                            <p className="text-slate-500">Belum ada API Key.</p>
+                            <KeyRound className="h-10 w-10 text-muted-foreground/30 mb-3" />
+                            <p className="text-muted-foreground">Belum ada API Key.</p>
                         </div>
                     ) : (
                         <Table>
@@ -121,7 +121,7 @@ const ApiKeysPage: React.FC = () => {
                                     <TableRow key={key.id}>
                                         <TableCell className="font-medium">{key.name}</TableCell>
                                         <TableCell>
-                                            <Badge variant="outline" className={STATUS_BADGE[key.status] || 'bg-slate-100 text-slate-600'}>
+                                            <Badge variant="outline" className={STATUS_BADGE[key.status] || 'bg-muted text-muted-foreground'}>
                                                 {key.status}
                                             </Badge>
                                         </TableCell>
@@ -137,7 +137,7 @@ const ApiKeysPage: React.FC = () => {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="text-slate-400 hover:text-destructive"
+                                                    className="text-muted-foreground hover:text-destructive"
                                                     onClick={() => setKeyToRevoke(key)}
                                                     disabled={key.status === 'REVOKED'}
                                                     aria-label={`Cabut kunci ${key.name}`}
@@ -194,8 +194,8 @@ const ApiKeysPage: React.FC = () => {
                             Salin kunci ini sekarang — demi keamanan, kunci lengkap <span className="font-semibold">tidak akan ditampilkan lagi</span> setelah dialog ini ditutup.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="flex items-center gap-2 rounded-lg border bg-slate-50 p-3">
-                        <code className="flex-1 break-all text-sm font-mono text-slate-800">{revealedKey?.rawKey}</code>
+                    <div className="flex items-center gap-2 rounded-lg border bg-muted p-3">
+                        <code className="flex-1 break-all text-sm font-mono text-foreground">{revealedKey?.rawKey}</code>
                         <Button type="button" size="icon" variant="outline" className="shrink-0" onClick={handleCopy} aria-label="Salin API key">
                             {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
                         </Button>

@@ -158,9 +158,9 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ open, onOpenChang
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-semibold text-slate-700">Identitas Proyek</FormLabel>
+                  <FormLabel className="font-semibold text-foreground">Identitas Proyek</FormLabel>
                   <FormControl>
-                    <Input placeholder="Contoh: Core Banking API" {...field} className="focus-visible:ring-slate-900" />
+                    <Input placeholder="Contoh: Core Banking API" {...field} className="focus-visible:ring-ring" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -173,7 +173,7 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ open, onOpenChang
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold text-slate-700">Kategori</FormLabel>
+                    <FormLabel className="font-semibold text-foreground">Kategori</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger><SelectValue /></SelectTrigger>
@@ -193,7 +193,7 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ open, onOpenChang
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold text-slate-700">Status Operasional</FormLabel>
+                    <FormLabel className="font-semibold text-foreground">Status Operasional</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger><SelectValue /></SelectTrigger>
@@ -219,7 +219,7 @@ const ProjectFormDialog: React.FC<ProjectFormDialogProps> = ({ open, onOpenChang
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="font-semibold text-slate-700">Abstraksi Proyek</FormLabel>
+                  <FormLabel className="font-semibold text-foreground">Abstraksi Proyek</FormLabel>
                   <FormControl>
                     <Textarea 
                       placeholder="Jelaskan tujuan dan cakupan proyek ini..." 

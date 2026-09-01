@@ -36,15 +36,15 @@ const ForgotPasswordPage: React.FC = () => {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 p-4">
-            <Card className="w-[400px] shadow-xl border-slate-200/70">
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-background p-4">
+            <Card className="w-[400px] shadow-xl border-slate-200/70 dark:border-border">
                 <CardHeader className="text-center space-y-2">
                     <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
                         <KeyRound className="h-6 w-6 text-primary" />
                     </div>
                     <CardTitle className="text-2xl font-extrabold text-primary">Lupa Password?</CardTitle>
                     <CardDescription>
-                        Login SQAHub memakai username, tapi reset password dikirim lewat <span className="font-medium text-slate-600">email akun</span> Anda —
+                        Login SQAHub memakai username, tapi reset password dikirim lewat <span className="font-medium text-foreground">email akun</span> Anda —
                         masukkan email yang dipakai saat mendaftar, kami kirimkan tautan reset jika email tersebut terdaftar.
                     </CardDescription>
                     <Separator className="mt-2" />
@@ -53,11 +53,11 @@ const ForgotPasswordPage: React.FC = () => {
                 <CardContent>
                     {sent ? (
                         <div className="space-y-4 text-center">
-                            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-                                <MailCheck className="h-6 w-6 text-emerald-600" />
+                            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-500/15">
+                                <MailCheck className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                             </div>
-                            <p className="text-sm text-slate-600 leading-relaxed">
-                                Jika <span className="font-semibold text-slate-800">{email}</span> terdaftar,
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                Jika <span className="font-semibold text-foreground">{email}</span> terdaftar,
                                 kami sudah mengirimkan instruksi reset password ke alamat tersebut. Periksa juga folder spam.
                             </p>
                             <Button asChild className="w-full">
@@ -77,11 +77,11 @@ const ForgotPasswordPage: React.FC = () => {
                                     required
                                     disabled={isLoading}
                                 />
-                                <p className="text-xs text-slate-400">Bukan username login Anda — gunakan alamat email saat registrasi.</p>
+                                <p className="text-xs text-muted-foreground">Bukan username login Anda — gunakan alamat email saat registrasi.</p>
                             </div>
 
                             {error && (
-                                <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                                <div className="flex items-center gap-2 rounded-lg bg-red-50 dark:bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-400">
                                     <AlertTriangle className="h-4 w-4 shrink-0" /> {error}
                                 </div>
                             )}
@@ -91,7 +91,7 @@ const ForgotPasswordPage: React.FC = () => {
                             </Button>
 
                             <Link to="/login" className="block">
-                                <Button type="button" variant="link" className="w-full text-slate-500 hover:text-primary">
+                                <Button type="button" variant="link" className="w-full text-muted-foreground hover:text-primary">
                                     <ArrowLeft className="mr-2 h-4 w-4" /> Kembali ke Login
                                 </Button>
                             </Link>

@@ -31,14 +31,14 @@ const DeployDecisionCard: React.FC<DeployDecisionCardProps> = ({ testSuiteId, cl
     const isDeployReady = data.decision === 'LAYAK_DEPLOY';
 
     return (
-        <Card className={`overflow-hidden border-none shadow-xl ring-1 ${isDeployReady ? 'ring-emerald-200' : 'ring-red-200'} ${className}`}>
-            <CardHeader className={`pb-3 ${isDeployReady ? 'bg-emerald-50/70' : 'bg-red-50/70'}`}>
+        <Card className={`overflow-hidden border-none shadow-xl ring-1 ${isDeployReady ? 'ring-emerald-200 dark:ring-emerald-500/30' : 'ring-red-200 dark:ring-red-500/30'} ${className}`}>
+            <CardHeader className={`pb-3 ${isDeployReady ? 'bg-emerald-50/70 dark:bg-emerald-500/10' : 'bg-red-50/70 dark:bg-red-500/10'}`}>
                 <CardTitle className="flex items-center justify-between text-base">
                     <span className="flex items-center gap-2">
                         {isDeployReady ? (
-                            <Rocket className="h-5 w-5 text-emerald-600" />
+                            <Rocket className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                         ) : (
-                            <ShieldAlert className="h-5 w-5 text-red-600" />
+                            <ShieldAlert className="h-5 w-5 text-red-600 dark:text-red-400" />
                         )}
                         Keputusan Deploy
                     </span>
@@ -63,25 +63,25 @@ const DeployDecisionCard: React.FC<DeployDecisionCardProps> = ({ testSuiteId, cl
                 </div>
 
                 <div className="grid grid-cols-4 gap-2 text-center text-xs">
-                    <div className="rounded-lg bg-emerald-50 p-2">
-                        <div className="font-bold text-emerald-700">{data.totalPassed}</div>
-                        <div className="text-emerald-600">Passed</div>
+                    <div className="rounded-lg bg-emerald-50 dark:bg-emerald-500/10 p-2">
+                        <div className="font-bold text-emerald-700 dark:text-emerald-400">{data.totalPassed}</div>
+                        <div className="text-emerald-600 dark:text-emerald-400/80">Passed</div>
                     </div>
-                    <div className="rounded-lg bg-red-50 p-2">
-                        <div className="font-bold text-red-700">{data.totalFailed}</div>
-                        <div className="text-red-600">Failed</div>
+                    <div className="rounded-lg bg-red-50 dark:bg-red-500/10 p-2">
+                        <div className="font-bold text-red-700 dark:text-red-400">{data.totalFailed}</div>
+                        <div className="text-red-600 dark:text-red-400/80">Failed</div>
                     </div>
-                    <div className="rounded-lg bg-amber-50 p-2">
-                        <div className="font-bold text-amber-700">{data.totalError}</div>
-                        <div className="text-amber-600">Error</div>
+                    <div className="rounded-lg bg-amber-50 dark:bg-amber-500/10 p-2">
+                        <div className="font-bold text-amber-700 dark:text-amber-400">{data.totalError}</div>
+                        <div className="text-amber-600 dark:text-amber-400/80">Error</div>
                     </div>
-                    <div className="rounded-lg bg-slate-100 p-2">
-                        <div className="font-bold text-slate-600">{data.totalSkipped}</div>
-                        <div className="text-slate-500">Skipped</div>
+                    <div className="rounded-lg bg-muted p-2">
+                        <div className="font-bold text-foreground">{data.totalSkipped}</div>
+                        <div className="text-muted-foreground">Skipped</div>
                     </div>
                 </div>
 
-                <div className={`flex items-start gap-2 rounded-lg p-3 text-xs leading-relaxed ${isDeployReady ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'}`}>
+                <div className={`flex items-start gap-2 rounded-lg p-3 text-xs leading-relaxed ${isDeployReady ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300' : 'bg-red-50 text-red-800 dark:bg-red-500/10 dark:text-red-300'}`}>
                     {isDeployReady ? <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" /> : <XCircle className="h-4 w-4 shrink-0 mt-0.5" />}
                     {data.reason}
                 </div>

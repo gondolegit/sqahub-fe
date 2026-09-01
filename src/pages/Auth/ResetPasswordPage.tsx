@@ -52,8 +52,8 @@ const ResetPasswordPage: React.FC = () => {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 p-4">
-            <Card className="w-[400px] shadow-xl border-slate-200/70">
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-background dark:via-background dark:to-background p-4">
+            <Card className="w-[400px] shadow-xl border-slate-200/70 dark:border-border">
                 <CardHeader className="text-center space-y-2">
                     <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
                         <ShieldCheck className="h-6 w-6 text-primary" />
@@ -66,7 +66,7 @@ const ResetPasswordPage: React.FC = () => {
                 <CardContent>
                     {!token ? (
                         <div className="space-y-4 text-center">
-                            <div className="flex items-center gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-700">
+                            <div className="flex items-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
                                 <AlertTriangle className="h-4 w-4 shrink-0" />
                                 Tautan reset tidak lengkap. Silakan buka kembali tautan dari email Anda.
                             </div>
@@ -76,10 +76,10 @@ const ResetPasswordPage: React.FC = () => {
                         </div>
                     ) : success ? (
                         <div className="space-y-4 text-center">
-                            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-                                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+                            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-500/15">
+                                <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                             </div>
-                            <p className="text-sm text-slate-600">
+                            <p className="text-sm text-muted-foreground">
                                 Password berhasil diperbarui. Mengalihkan ke halaman login...
                             </p>
                         </div>
@@ -112,7 +112,7 @@ const ResetPasswordPage: React.FC = () => {
                             </div>
 
                             {error && (
-                                <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                                <div className="flex items-center gap-2 rounded-lg bg-red-50 dark:bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-400">
                                     <AlertTriangle className="h-4 w-4 shrink-0" /> {error}
                                 </div>
                             )}
@@ -122,7 +122,7 @@ const ResetPasswordPage: React.FC = () => {
                             </Button>
 
                             <Link to="/login" className="block">
-                                <Button type="button" variant="link" className="w-full text-slate-500 hover:text-primary">
+                                <Button type="button" variant="link" className="w-full text-muted-foreground hover:text-primary">
                                     <ArrowLeft className="mr-2 h-4 w-4" /> Kembali ke Login
                                 </Button>
                             </Link>

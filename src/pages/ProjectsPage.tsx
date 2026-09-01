@@ -84,8 +84,8 @@ const ProjectsPage: React.FC = () => {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Project Hub</h1>
-          <p className="text-slate-500">Kelola dan pantau seluruh sistem otomasi testing Anda.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Project Hub</h1>
+          <p className="text-muted-foreground">Kelola dan pantau seluruh sistem otomasi testing Anda.</p>
         </div>
         {canManageProjects && (
           <Button onClick={() => handleAction(null)} className="shadow-md hover:shadow-lg transition-all">
@@ -97,10 +97,10 @@ const ProjectsPage: React.FC = () => {
       {/* Toolbar */}
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Cari proyek di halaman ini..."
-            className="pl-10 bg-white"
+            className="pl-10 bg-background"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -195,11 +195,11 @@ const ProjectCard = ({ project, canManage, onEdit, onDelete, onView, onManageMem
       </DropdownMenu>
     </CardHeader>
     <CardContent className="flex-grow py-4">
-      <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">
+      <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
         {project.description || "Tidak ada deskripsi tersedia."}
       </p>
     </CardContent>
-    <CardFooter className="border-t bg-slate-50/50 p-4 flex justify-between items-center">
+    <CardFooter className="border-t bg-muted/50 p-4 flex justify-between items-center">
       <StatusBadge status={project.status} />
       <Button size="sm" variant="ghost" onClick={onView} className="text-primary hover:text-primary hover:bg-primary/10">
         Features <ExternalLink className="ml-2 h-3 w-3" />
@@ -210,11 +210,11 @@ const ProjectCard = ({ project, canManage, onEdit, onDelete, onView, onManageMem
 
 const StatusBadge = ({ status }: { status: ProjectStatus }) => {
   const variants: Record<ProjectStatus, string> = {
-    active: "bg-emerald-100 text-emerald-700 border-emerald-200",
-    completed: "bg-blue-100 text-blue-700 border-blue-200",
-    suspended: "bg-amber-100 text-amber-700 border-amber-200",
-    archived: "bg-slate-100 text-slate-700 border-slate-200",
-    maintenance: "bg-indigo-100 text-indigo-700 border-indigo-200",
+    active: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30",
+    completed: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30",
+    suspended: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/30",
+    archived: "bg-muted text-muted-foreground border-border",
+    maintenance: "bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-400 dark:border-indigo-500/30",
   };
   return (
     <Badge variant="outline" className={`${variants[status] || variants.archived} capitalize px-2 py-0`}>
@@ -230,10 +230,10 @@ const LoadingGrid = () => (
 );
 
 const EmptyState = ({ onAdd, isSearch }: { onAdd?: () => void; isSearch: boolean }) => (
-  <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-2xl bg-slate-50">
-    <FolderPlus className="h-12 w-12 text-slate-300 mb-4" />
+  <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed rounded-2xl bg-muted/30">
+    <FolderPlus className="h-12 w-12 text-muted-foreground/40 mb-4" />
     <h3 className="text-lg font-medium">{isSearch ? "Hasil tidak ditemukan" : "Belum ada proyek"}</h3>
-    <p className="text-slate-500 mb-6 text-center max-w-xs">
+    <p className="text-muted-foreground mb-6 text-center max-w-xs">
       {isSearch ? "Coba gunakan kata kunci lain." : "Mulai dengan membuat proyek pertama Anda sekarang."}
     </p>
     {!isSearch && onAdd && <Button onClick={onAdd}>Buat Proyek</Button>}
@@ -241,7 +241,7 @@ const EmptyState = ({ onAdd, isSearch }: { onAdd?: () => void; isSearch: boolean
 );
 
 const ErrorState = () => (
-  <div className="p-8 text-center text-red-500 bg-red-50 rounded-lg border border-red-100 mt-10">
+  <div className="p-8 text-center text-red-600 bg-red-50 dark:bg-red-500/10 dark:text-red-400 rounded-lg border border-red-100 dark:border-red-500/30 mt-10">
     Gagal memuat data. Periksa koneksi API Anda.
   </div>
 );

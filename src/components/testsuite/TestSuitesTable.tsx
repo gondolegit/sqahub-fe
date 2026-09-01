@@ -27,18 +27,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 // --- Helper Functions ---
 const getSuiteStatus = (suite: TestSuite) => {
     if (!suite.endDate) {
-        return { label: "IN PROGRESS", Icon: Clock, className: "bg-blue-100 text-blue-800 hover:bg-blue-100" };
+        return { label: "IN PROGRESS", Icon: Clock, className: "bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-500/15 dark:text-blue-400 dark:hover:bg-blue-500/15" };
     }
     if (suite.statusTotalFailed > 0 || suite.statusTotalError > 0) {
-        return { label: "FAILED", Icon: XCircle, className: "bg-red-100 text-red-800 hover:bg-red-100" };
+        return { label: "FAILED", Icon: XCircle, className: "bg-red-100 text-red-800 hover:bg-red-100 dark:bg-red-500/15 dark:text-red-400 dark:hover:bg-red-500/15" };
     }
     if (suite.statusTotalPassed > 0) {
-        return { label: "PASSED", Icon: CheckCircle, className: "bg-green-100 text-green-800 hover:bg-green-100" };
+        return { label: "PASSED", Icon: CheckCircle, className: "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-500/15 dark:text-green-400 dark:hover:bg-green-500/15" };
     }
     if (suite.statusTotalPassed === 0 && suite.statusTotalFailed === 0 && suite.statusTotalError === 0) {
-        return { label: "SKIPPED", Icon: Ban, className: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100" };
+        return { label: "SKIPPED", Icon: Ban, className: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-500/15 dark:text-yellow-400 dark:hover:bg-yellow-500/15" };
     }
-    return { label: "COMPLETED", Icon: CheckCircle, className: "bg-gray-100 text-gray-800 hover:bg-gray-100" };
+    return { label: "COMPLETED", Icon: CheckCircle, className: "bg-muted text-muted-foreground hover:bg-muted" };
 };
 
 
@@ -107,7 +107,7 @@ const TestSuitesTable: React.FC<TestSuitesTableProps> = ({ data, isLoading, proj
     // --- DATA KOSONG ---
     if (!data || data.length === 0) {
         return (
-            <div className="text-center py-10 text-gray-500 border rounded-lg bg-gray-50">
+            <div className="text-center py-10 text-muted-foreground border rounded-lg bg-muted">
                 <AlertTriangle className="h-8 w-8 mx-auto mb-3 text-yellow-500" />
                 <p className="font-semibold">Belum ada Test Run yang tereksekusi untuk proyek ini (ID: {projectId}).</p>
                 <p className="text-sm">Silahkan mulai eksekusi Test Suite Run yang baru.</p>
@@ -173,7 +173,7 @@ const TestSuitesTable: React.FC<TestSuitesTableProps> = ({ data, isLoading, proj
                                     </TableCell>
                                     
                                     {/* Durasi (elapsedTime dari backend dalam milidetik) */}
-                                    <TableCell className="text-center text-gray-600">
+                                    <TableCell className="text-center text-muted-foreground">
                                         {suite.endDate ? formatDurationID(suite.elapsedTime) : 'N/A'}
                                     </TableCell>
                                     
