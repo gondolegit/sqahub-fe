@@ -555,5 +555,133 @@ export default {
       "gap": "尚无测试用例（覆盖缺口）",
       "count": "{{count}} 个测试用例"
     }
+  },
+  "manualForm": {
+    "headerTitle": "测试执行器",
+    "runConfigTitle": "运行配置",
+    "config": {
+      "runNameLabel": "运行名称",
+      "typeLabel": "类型",
+      "stageLabel": "阶段",
+      "envLabel": "环境",
+      "versionLabel": "版本",
+      "tagsLabel": "标签",
+      "tagsPlaceholder": "冒烟测试、回归测试……",
+      "descriptionLabel": "描述"
+    },
+    "detailButton": "详情",
+    "detailHeaderPrefix": "测试用例详情：",
+    "descriptionLabel": "描述",
+    "tagsLabel": "标签",
+    "preConditionLabel": "前置条件",
+    "testStepsLabel": "测试步骤",
+    "expectedResultLabel": "预期结果",
+    "testDataLabel": "测试数据",
+    "postConditionLabel": "后置条件",
+    "statusLabel": "状态",
+    "actualResultLabel": "实际结果 / 证据",
+    "actualResultPlaceholder": "执行时发生了什么？",
+    "notesLabel": "备注",
+    "notesPlaceholder": "发现的缺陷……",
+    "searchPlaceholder": "搜索测试用例（名称或 ID）……",
+    "selectAll": "全选（{{count}}）",
+    "clear": "清除",
+    "noTestCasesSelected": "尚未选择任何测试用例。",
+    "readyToSubmit": "准备提交",
+    "tcSelected": "个用例已选",
+    "discard": "放弃",
+    "submitRun": "提交运行",
+    "successToast": "运行已保存！",
+    "validation": {
+      "required": "必填",
+      "nameMin": "名称至少需要 5 个字符",
+      "descriptionMin": "描述至少需要 5 个字符",
+      "tagRequired": "标签为必填项",
+      "minOneTestCase": "请至少选择 1 个测试用例"
+    }
+  },
+  "landing": {
+    "brand": "SQAHub.org",
+    "loginButton": "登录",
+    "registerButton": "免费注册",
+    "hero": {
+      "title": "统一的软件质量分析中心",
+      "subtitle": "SQA Hub 是一个集中管理您自动化测试结果的平台，将原始数据转化为可执行的质量洞察。",
+      "cta": "立即开始！"
+    },
+    "features": {
+      "title": "SQAHub 能为您做什么？",
+      "trend": {
+        "title": "质量趋势分析",
+        "description": "可视化通过率随时间的变化，及时发现质量下滑。"
+      },
+      "pdf": {
+        "title": "专业 PDF 报告",
+        "description": "导出完整的测试报告，随时可分享给管理团队。"
+      },
+      "centralize": {
+        "title": "测试数据集中管理",
+        "description": "将来自不同框架的结果汇集到统一的来源中。"
+      }
+    },
+    "ctaSection": {
+      "title": "准备好掌控您的质量了吗？",
+      "button": "注册免费测试员账号"
+    }
+  },
+  "testRunReport": {
+    "retrieving": "正在获取测试执行数据……",
+    "faultTitle": "发现故障",
+    "faultDescription": "无法找到请求的测试执行 ID，或该记录已从库中清除。",
+    "returnToRepository": "返回测试库",
+    "backToSummary": "返回概览",
+    "reportPrefix": "测试报告：",
+    "liveInProgress": "实时 — 进行中",
+    "finalized": "已完成",
+    "finalizeRun": "结束运行",
+    "excel": "EXCEL",
+    "generateDocument": "生成文档",
+    "defaultDescription": "该测试目标已按标准操作流程执行，未提供其他说明。",
+    "statisticalDistribution": "统计分布",
+    "statusLabels": {
+      "passed": "通过",
+      "failed": "失败",
+      "error": "错误",
+      "skipped": "已跳过"
+    },
+    "statusDesc": {
+      "passed": "满足成功标准",
+      "failed": "未满足需求",
+      "error": "系统故障",
+      "skipped": "超出范围"
+    },
+    "metadata": {
+      "testItemProject": "测试项目 / 项目",
+      "executionMode": "执行模式",
+      "testEnvironment": "测试环境",
+      "targetHostname": "目标主机名",
+      "infrastructureOs": "基础设施 / 操作系统",
+      "systemVersion": "系统版本",
+      "userAgentBrowser": "用户代理 / 浏览器",
+      "classificationTag": "分类标签",
+      "testCycleStage": "测试周期阶段",
+      "cumulativeDuration": "累计耗时",
+      "testingOfficer": "测试负责人",
+      "executionTimestamp": "执行时间戳",
+      "notAvailable": "不可用",
+      "contextTitle": "测试执行上下文与配置"
+    },
+    "resultsSection": {
+      "title": "测试规格结果",
+      "subtitle": "各测试用例的验证与确认",
+      "totalItems": "共 {{count}} 项"
+    },
+    "finalizeConfirm": {
+      "title": "结束此测试运行？",
+      "descriptionEmpty": "运行「{{name}}」尚未记录任何测试用例结果。仍可结束该运行，但如果尚未完成，建议先添加结果。",
+      "descriptionFilled": "运行「{{name}}」的结束时间和耗时将锁定为当前时间。之后您仍可添加或修改测试用例结果，但该运行将不再是「进行中」状态。",
+      "cancel": "取消",
+      "confirm": "是，结束运行"
+    }
   }
 } as const;

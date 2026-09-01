@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useForm, useFieldArray, useWatch, type UseFormReturn, type FieldArrayWithId } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import {
     Dialog, DialogContent
 } from '@/components/ui/dialog';
@@ -36,18 +38,22 @@ const ENVIRONMENT_OPTIONS = ["Local", "Dev", "Staging", "Production"] as const;
 const EXECUTION_TYPES = ["MANUAL", "AUTOMATED"] as const;
 
 // --- SCHEMA ---
-const RunDetailSchema = z.object({
+// Skema dibangun lewat fungsi (bukan konstanta statis) agar pesan validasinya mengikuti bahasa
+// yang sedang aktif — dipanggil ulang lewat useMemo(() => ..., [t]) di dalam komponen setiap kali
+// bahasa berganti. Bentuk skema sendiri selalu sama, jadi tipe datanya cukup diturunkan sekali
+// lewat ReturnType, tanpa perlu benar-benar memanggil fungsinya saat compile time.
+const createRunDetailSchema = (t: TFunction) => z.object({
     idTestCase: z.number().int().positive(),
     testCaseName: z.string(),
     status: z.enum(RUN_STATUSES),
-    actualResult: z.string().min(1, "Wajib diisi"),
+    actualResult: z.string().min(1, t('testSuites.manualForm.validation.required')),
     remarks: z.string().optional().nullable(),
 });
 
-const TestSuiteFormSchema = z.object({
-    name: z.string().min(5, "Nama minimal 5 karakter"),
-    description: z.string().min(5, "Deskripsi minimal 5 karakter"),
-    tag: z.string().min(1, "Tag wajib diisi"),
+const createTestSuiteFormSchema = (t: TFunction) => z.object({
+    name: z.string().min(5, t('testSuites.manualForm.validation.nameMin')),
+    description: z.string().min(5, t('testSuites.manualForm.validation.descriptionMin')),
+    tag: z.string().min(1, t('testSuites.manualForm.validation.tagRequired')),
     testStage: z.enum(TEST_STAGES),
     testEnvironment: z.enum(ENVIRONMENT_OPTIONS),
     executionType: z.enum(EXECUTION_TYPES),
@@ -55,41 +61,44 @@ const TestSuiteFormSchema = z.object({
     os: z.string().min(1),
     version: z.string().min(1),
     browser: z.string().min(1),
-    runDetails: z.array(RunDetailSchema).min(1, "Pilih minimal 1 Test Case"),
+    runDetails: z.array(createRunDetailSchema(t)).min(1, t('testSuites.manualForm.validation.minOneTestCase')),
 });
 
-type TestSuiteFormData = z.infer<typeof TestSuiteFormSchema>;
+type TestSuiteFormData = z.infer<ReturnType<typeof createTestSuiteFormSchema>>;
 
 // --- SUB-COMPONENTS ---
-const ConfigFields = ({ form }: { form: UseFormReturn<TestSuiteFormData> }) => (
-    <div className="space-y-4 pt-2">
-        <FormField control={form.control} name="name" render={({ field }) => (
-            <FormItem><FormLabel className="text-[11px] font-bold uppercase text-muted-foreground">Run Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-        )} />
-        <div className="grid grid-cols-2 gap-2">
-            <FormField control={form.control} name="executionType" render={({ field }) => (
-                <FormItem><FormLabel className="text-[11px] font-bold uppercase text-muted-foreground">Type</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent>{EXECUTION_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></FormItem>
+const ConfigFields = ({ form }: { form: UseFormReturn<TestSuiteFormData> }) => {
+    const { t } = useTranslation();
+    return (
+        <div className="space-y-4 pt-2">
+            <FormField control={form.control} name="name" render={({ field }) => (
+                <FormItem><FormLabel className="text-[11px] font-bold uppercase text-muted-foreground">{t('testSuites.manualForm.config.runNameLabel')}</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
             )} />
-            <FormField control={form.control} name="testStage" render={({ field }) => (
-                <FormItem><FormLabel className="text-[11px] font-bold uppercase text-muted-foreground">Stage</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent>{TEST_STAGES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></FormItem>
+            <div className="grid grid-cols-2 gap-2">
+                <FormField control={form.control} name="executionType" render={({ field }) => (
+                    <FormItem><FormLabel className="text-[11px] font-bold uppercase text-muted-foreground">{t('testSuites.manualForm.config.typeLabel')}</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent>{EXECUTION_TYPES.map(et => <SelectItem key={et} value={et}>{et}</SelectItem>)}</SelectContent></Select></FormItem>
+                )} />
+                <FormField control={form.control} name="testStage" render={({ field }) => (
+                    <FormItem><FormLabel className="text-[11px] font-bold uppercase text-muted-foreground">{t('testSuites.manualForm.config.stageLabel')}</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent>{TEST_STAGES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></FormItem>
+                )} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+                <FormField control={form.control} name="testEnvironment" render={({ field }) => (
+                    <FormItem><FormLabel className="text-[11px] font-bold uppercase text-muted-foreground">{t('testSuites.manualForm.config.envLabel')}</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent>{ENVIRONMENT_OPTIONS.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent></Select></FormItem>
+                )} />
+                <FormField control={form.control} name="version" render={({ field }) => (
+                    <FormItem><FormLabel className="text-[11px] font-bold uppercase text-muted-foreground">{t('testSuites.manualForm.config.versionLabel')}</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
+                )} />
+            </div>
+            <FormField control={form.control} name="tag" render={({ field }) => (
+                <FormItem><FormLabel className="text-[11px] font-bold uppercase text-muted-foreground">{t('testSuites.manualForm.config.tagsLabel')}</FormLabel><FormControl><Input placeholder={t('testSuites.manualForm.config.tagsPlaceholder')} {...field} /></FormControl></FormItem>
+            )} />
+            <FormField control={form.control} name="description" render={({ field }) => (
+                <FormItem><FormLabel className="text-[11px] font-bold uppercase text-muted-foreground">{t('testSuites.manualForm.config.descriptionLabel')}</FormLabel><FormControl><Textarea {...field} className="h-20 resize-none" /></FormControl></FormItem>
             )} />
         </div>
-        <div className="grid grid-cols-2 gap-2">
-            <FormField control={form.control} name="testEnvironment" render={({ field }) => (
-                <FormItem><FormLabel className="text-[11px] font-bold uppercase text-muted-foreground">Env</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent>{ENVIRONMENT_OPTIONS.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent></Select></FormItem>
-            )} />
-            <FormField control={form.control} name="version" render={({ field }) => (
-                <FormItem><FormLabel className="text-[11px] font-bold uppercase text-muted-foreground">Version</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>
-            )} />
-        </div>
-        <FormField control={form.control} name="tag" render={({ field }) => (
-            <FormItem><FormLabel className="text-[11px] font-bold uppercase text-muted-foreground">Tags</FormLabel><FormControl><Input placeholder="Smoke, Regression..." {...field} /></FormControl></FormItem>
-        )} />
-        <FormField control={form.control} name="description" render={({ field }) => (
-            <FormItem><FormLabel className="text-[11px] font-bold uppercase text-muted-foreground">Description</FormLabel><FormControl><Textarea {...field} className="h-20 resize-none" /></FormControl></FormItem>
-        )} />
-    </div>
-);
+    );
+};
 
 const DetailItem = ({ icon, label, value, isPre, className }: { icon: React.ReactNode, label: string, value: string | null | undefined, isPre?: boolean, className?: string }) => (
     <div className={`space-y-1.5 ${className}`}>
@@ -128,6 +137,7 @@ const RunDetailCard = ({
     tcFullData: TestCase | undefined;
     onRemove: () => void;
 }) => {
+    const { t } = useTranslation();
     const status = useWatch({ control: form.control, name: `runDetails.${index}.status` });
 
     return (
@@ -152,7 +162,7 @@ const RunDetailCard = ({
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button type="button" variant="outline" size="sm" className="h-9 gap-2">
-                                    <Info className="w-4 h-4 text-blue-500" /> Detail
+                                    <Info className="w-4 h-4 text-blue-500" /> {t('testSuites.manualForm.detailButton')}
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent
@@ -165,7 +175,7 @@ const RunDetailCard = ({
                                 <div className="bg-slate-900 text-white p-3 flex items-center justify-between shrink-0">
                                     <div className="flex items-center gap-2">
                                         <BookOpen className="w-4 h-4 text-blue-400" />
-                                        <h5 className="font-bold text-[12px]">Test Case Details : {tcFullData?.name}</h5>
+                                        <h5 className="font-bold text-[12px]">{t('testSuites.manualForm.detailHeaderPrefix')}{tcFullData?.name}</h5>
                                     </div>
                                     <Badge className="bg-slate-800 border-slate-700 text-[9px] h-5">{tcFullData?.type}</Badge>
                                 </div>
@@ -173,32 +183,32 @@ const RunDetailCard = ({
                                 {/* ScrollArea dengan Tinggi yang Dikunci agar Scroll Muncul */}
                                 <ScrollArea className="h-[350px] md:h-[450px] w-full bg-card">
                                     <div className="p-4 space-y-5">
-                                        <DetailItem icon={<FileText className="w-3 h-3" />} label="Description" value={tcFullData?.description} />
+                                        <DetailItem icon={<FileText className="w-3 h-3" />} label={t('testSuites.manualForm.descriptionLabel')} value={tcFullData?.description} />
 
                                         <div className="space-y-1">
                                             <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase">
-                                                <Tag className="w-3 h-3" /> Tags
+                                                <Tag className="w-3 h-3" /> {t('testSuites.manualForm.tagsLabel')}
                                             </div>
                                             <div className="flex flex-wrap gap-1">
-                                                {tcFullData?.tag?.split(',').map((t: string, i: number) => (
+                                                {tcFullData?.tag?.split(',').map((tag: string, i: number) => (
                                                     <Badge key={i} variant="secondary" className="text-[9px] px-1.5 py-0">
-                                                        {t.trim()}
+                                                        {tag.trim()}
                                                     </Badge>
                                                 )) || '-'}
                                             </div>
                                         </div>
 
-                                        <DetailItem icon={<Layers className="w-3 h-3" />} label="Pre-Condition" value={tcFullData?.preCondition} />
-                                        <DetailItem icon={<ClipboardList className="w-3 h-3" />} label="Test Steps" value={tcFullData?.testSteps} isPre />
+                                        <DetailItem icon={<Layers className="w-3 h-3" />} label={t('testSuites.manualForm.preConditionLabel')} value={tcFullData?.preCondition} />
+                                        <DetailItem icon={<ClipboardList className="w-3 h-3" />} label={t('testSuites.manualForm.testStepsLabel')} value={tcFullData?.testSteps} isPre />
 
                                         <div className="bg-amber-50/50 dark:bg-amber-500/10 p-3 rounded-lg border border-amber-100 dark:border-amber-500/30">
-                                            <DetailItem icon={<Zap className="w-3.5 h-3.5 text-amber-500" />} label="Expected Result" value={tcFullData?.expectedResult} className="text-amber-900 dark:text-amber-300" />
+                                            <DetailItem icon={<Zap className="w-3.5 h-3.5 text-amber-500" />} label={t('testSuites.manualForm.expectedResultLabel')} value={tcFullData?.expectedResult} className="text-amber-900 dark:text-amber-300" />
                                         </div>
 
-                                        <DetailItem icon={<Monitor className="w-3 h-3" />} label="Test Data" value={tcFullData?.testData} isPre />
+                                        <DetailItem icon={<Monitor className="w-3 h-3" />} label={t('testSuites.manualForm.testDataLabel')} value={tcFullData?.testData} isPre />
 
                                         {tcFullData?.postCondition && (
-                                            <DetailItem icon={<CheckSquare className="w-3 h-3" />} label="Post Condition" value={tcFullData.postCondition} />
+                                            <DetailItem icon={<CheckSquare className="w-3 h-3" />} label={t('testSuites.manualForm.postConditionLabel')} value={tcFullData.postCondition} />
                                         )}
                                     </div>
                                 </ScrollArea>
@@ -212,23 +222,23 @@ const RunDetailCard = ({
 
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                     <div className="md:col-span-3">
-                        <FormLabel className="text-[10px] font-black uppercase text-muted-foreground">Status</FormLabel>
+                        <FormLabel className="text-[10px] font-black uppercase text-muted-foreground">{t('testSuites.manualForm.statusLabel')}</FormLabel>
                         <FormField control={form.control} name={`runDetails.${index}.status`} render={({ field }) => (
                             <Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger className="mt-1 font-bold h-11"><SelectValue /></SelectTrigger></FormControl><SelectContent>{RUN_STATUSES.map(s => <SelectItem key={s} value={s} className="font-bold">{s}</SelectItem>)}</SelectContent></Select>
                         )} />
                     </div>
                     <div className="md:col-span-9">
-                        <FormLabel className="text-[10px] font-black uppercase text-muted-foreground">Actual Result / Evidence</FormLabel>
+                        <FormLabel className="text-[10px] font-black uppercase text-muted-foreground">{t('testSuites.manualForm.actualResultLabel')}</FormLabel>
                         <FormField control={form.control} name={`runDetails.${index}.actualResult`} render={({ field }) => (
-                            <FormControl><Input {...field} className="mt-1 h-11 bg-muted focus:bg-card" placeholder="What happened?" /></FormControl>
+                            <FormControl><Input {...field} className="mt-1 h-11 bg-muted focus:bg-card" placeholder={t('testSuites.manualForm.actualResultPlaceholder')} /></FormControl>
                         )} />
                     </div>
                 </div>
 
                 <FormField control={form.control} name={`runDetails.${index}.remarks`} render={({ field }) => (
                     <FormItem>
-                        <FormLabel className="text-[10px] font-black uppercase text-muted-foreground">Notes</FormLabel>
-                        <FormControl><Textarea {...field} value={field.value ?? ''} className="mt-1 min-h-[80px] bg-muted/30" placeholder="Bugs found..." /></FormControl>
+                        <FormLabel className="text-[10px] font-black uppercase text-muted-foreground">{t('testSuites.manualForm.notesLabel')}</FormLabel>
+                        <FormControl><Textarea {...field} value={field.value ?? ''} className="mt-1 min-h-[80px] bg-muted/30" placeholder={t('testSuites.manualForm.notesPlaceholder')} /></FormControl>
                     </FormItem>
                 )} />
             </div>
@@ -242,6 +252,8 @@ const TestSuiteFormDialog: React.FC<{
     onOpenChange: (open: boolean) => void;
     initialProjectId: number | undefined;
 }> = ({ open, onOpenChange, initialProjectId }) => {
+    const { t } = useTranslation();
+    const testSuiteFormSchema = useMemo(() => createTestSuiteFormSchema(t), [t]);
 
     const [searchTerm, setSearchTerm] = useState("");
     const [elapsedTime, setElapsedTime] = useState(0);
@@ -254,7 +266,7 @@ const TestSuiteFormDialog: React.FC<{
     const createMutation = useCreateTestSuiteRun();
 
     const form = useForm<TestSuiteFormData>({
-        resolver: zodResolver(TestSuiteFormSchema),
+        resolver: zodResolver(testSuiteFormSchema),
         defaultValues: {
             name: '', description: '', tag: '', version: 'v1.0.0',
             testStage: 'SIT', testEnvironment: 'Staging', executionType: 'MANUAL',
@@ -335,7 +347,7 @@ const TestSuiteFormDialog: React.FC<{
             }))
         };
         createMutation.mutate(finalPayload, {
-            onSuccess: () => { toast.success("Run saved!"); onOpenChange(false); }
+            onSuccess: () => { toast.success(t('testSuites.manualForm.successToast')); onOpenChange(false); }
         });
     };
 
@@ -357,7 +369,7 @@ const TestSuiteFormDialog: React.FC<{
                                         </SheetTrigger>
                                         <SheetContent side="left" className="w-[300px] p-0">
                                             <SheetHeader className="p-4 border-b">
-                                                <SheetTitle>Run Configuration</SheetTitle>
+                                                <SheetTitle>{t('testSuites.manualForm.runConfigTitle')}</SheetTitle>
                                             </SheetHeader>
                                             <ScrollArea className="h-[calc(100vh-80px)] p-6">
                                                 <ConfigFields form={form} />
@@ -367,7 +379,7 @@ const TestSuiteFormDialog: React.FC<{
                                 </div>
                                 <div>
                                     <h2 className="font-bold text-base md:text-xl flex items-center gap-2">
-                                        <Zap className="w-5 h-5 text-amber-500 fill-amber-500" /> Test Runner
+                                        <Zap className="w-5 h-5 text-amber-500 fill-amber-500" /> {t('testSuites.manualForm.headerTitle')}
                                     </h2>
                                     <div className="flex items-center gap-2 mt-0.5">
                                         <Badge variant="outline" className="text-[10px] font-bold border-primary/30 text-primary uppercase">
@@ -385,7 +397,7 @@ const TestSuiteFormDialog: React.FC<{
                         <div className="flex flex-1 overflow-hidden">
                             {/* ASIDE Desktop */}
                             <aside className="hidden lg:block w-[320px] border-r bg-card p-6 overflow-y-auto shrink-0 shadow-sm">
-                                <h3 className="text-[10px] font-bold uppercase text-muted-foreground tracking-[0.2em] mb-4">Run Configuration</h3>
+                                <h3 className="text-[10px] font-bold uppercase text-muted-foreground tracking-[0.2em] mb-4">{t('testSuites.manualForm.runConfigTitle')}</h3>
                                 <ConfigFields form={form} />
                             </aside>
 
@@ -396,14 +408,14 @@ const TestSuiteFormDialog: React.FC<{
                                         <div className="flex flex-col md:flex-row gap-2">
                                             <div className="relative flex-1">
                                                 <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                                                <Input placeholder="Search Test Case (Name or ID)..." className="pl-11 h-12 bg-muted" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                                                <Input placeholder={t('testSuites.manualForm.searchPlaceholder')} className="pl-11 h-12 bg-muted" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                                             </div>
                                             <div className="flex gap-2">
                                                 <Button type="button" variant="outline" className="h-12 px-4 border-dashed flex-1 md:flex-none" onClick={handleSelectAll} disabled={filteredTC.length === 0}>
-                                                    <Check className="w-4 h-4 mr-2" /> Select All ({filteredTC.length})
+                                                    <Check className="w-4 h-4 mr-2" /> {t('testSuites.manualForm.selectAll', { count: filteredTC.length })}
                                                 </Button>
                                                 <Button type="button" variant="ghost" className="h-12 px-4 text-muted-foreground flex-1 md:flex-none" onClick={handleClearAll} disabled={fields.length === 0}>
-                                                    <X className="w-4 h-4 mr-2" /> Clear
+                                                    <X className="w-4 h-4 mr-2" /> {t('testSuites.manualForm.clear')}
                                                 </Button>
                                             </div>
                                         </div>
@@ -435,7 +447,7 @@ const TestSuiteFormDialog: React.FC<{
                                         {fields.length === 0 && (
                                             <div className="flex flex-col items-center justify-center py-20 text-slate-300">
                                                 <ClipboardList className="w-16 h-16 mb-4 opacity-20" />
-                                                <p className="font-medium">No test cases selected yet.</p>
+                                                <p className="font-medium">{t('testSuites.manualForm.noTestCasesSelected')}</p>
                                             </div>
                                         )}
 
@@ -455,13 +467,13 @@ const TestSuiteFormDialog: React.FC<{
                                 {/* FOOTER */}
                                 <footer className="p-5 border-t bg-card flex flex-col md:flex-row gap-4 justify-between items-center shadow-2xl z-20">
                                     <div className="text-center md:text-left">
-                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Ready to submit</p>
-                                        <h4 className="font-black text-xl text-foreground">{fields.length} <span className="text-muted-foreground font-medium">TC Selected</span></h4>
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('testSuites.manualForm.readyToSubmit')}</p>
+                                        <h4 className="font-black text-xl text-foreground">{fields.length} <span className="text-muted-foreground font-medium">{t('testSuites.manualForm.tcSelected')}</span></h4>
                                     </div>
                                     <div className="flex w-full md:w-auto gap-3">
-                                        <Button variant="ghost" type="button" className="h-12 px-8 font-bold flex-1 md:flex-none" onClick={() => onOpenChange(false)}>Discard</Button>
+                                        <Button variant="ghost" type="button" className="h-12 px-8 font-bold flex-1 md:flex-none" onClick={() => onOpenChange(false)}>{t('testSuites.manualForm.discard')}</Button>
                                         <Button type="submit" className="h-12 px-10 font-black shadow-lg shadow-primary/25 min-w-[200px] flex-1 md:flex-none" disabled={createMutation.isPending || fields.length === 0}>
-                                            {createMutation.isPending ? <Loader2 className="animate-spin mr-2" /> : <Send className="w-5 h-5 mr-2" />} SUBMIT RUN
+                                            {createMutation.isPending ? <Loader2 className="animate-spin mr-2" /> : <Send className="w-5 h-5 mr-2" />} {t('testSuites.manualForm.submitRun')}
                                         </Button>
                                     </div>
                                 </footer>

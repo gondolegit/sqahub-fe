@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { toPng } from 'html-to-image';
 
 import {
@@ -49,6 +50,7 @@ const STATUS_CARD_COLOR_CLASSES = {
 } as const;
 
 const TestRunDetailPage: React.FC = () => {
+    const { t } = useTranslation();
     const { suiteId } = useParams<{ suiteId: string }>();
     const navigate = useNavigate();
     const testSuiteId = suiteId ? parseInt(suiteId) : undefined;
@@ -103,14 +105,14 @@ const TestRunDetailPage: React.FC = () => {
                             <div className="h-16 w-16 rounded-full border-4 border-slate-200 border-t-primary animate-spin" />
                             <Activity className="absolute inset-0 m-auto h-6 w-6 text-primary animate-pulse" />
                         </div>
-                        <p className="text-sm font-black uppercase tracking-widest text-slate-500">Retrieving Test Execution Data...</p>
+                        <p className="text-sm font-black uppercase tracking-widest text-slate-500">{t('testRunReport.retrieving')}</p>
                     </div>
                 ) : (
                     <Card className="max-w-md w-full p-8 text-center border-2 border-red-100 shadow-2xl">
                         <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-                        <h2 className="text-2xl font-black text-slate-900 uppercase italic">Fault Detected</h2>
-                        <p className="text-slate-500 my-4 leading-relaxed font-medium">The requested Test Execution ID could not be identified or has been purged from the repository.</p>
-                        <Button onClick={() => navigate(-1)} className="w-full bg-slate-900 font-bold">RETURN TO TEST REPOSITORY</Button>
+                        <h2 className="text-2xl font-black text-slate-900 uppercase italic">{t('testRunReport.faultTitle')}</h2>
+                        <p className="text-slate-500 my-4 leading-relaxed font-medium">{t('testRunReport.faultDescription')}</p>
+                        <Button onClick={() => navigate(-1)} className="w-full bg-slate-900 font-bold">{t('testRunReport.returnToRepository')}</Button>
                     </Card>
                 )}
             </div>
@@ -122,25 +124,25 @@ const TestRunDetailPage: React.FC = () => {
     const liveElapsedMs = isInProgress ? Math.max(0, liveNow - new Date(testRun.startDate).getTime()) : testRun.elapsedTime;
 
     const statusCards = [
-        { label: 'PASSED', count: testRun.statusTotalPassed, color: 'emerald', icon: CheckCircle, desc: 'Success Criteria Met' },
-        { label: 'FAILED', count: testRun.statusTotalFailed, color: 'red', icon: XCircle, desc: 'Requirement Not Met' },
-        { label: 'ERROR', count: testRun.statusTotalError, color: 'amber', icon: Bug, desc: 'System Fault' },
-        { label: 'SKIPPED', count: testRun.statusTotalSkipped, color: 'indigo', icon: FastForward, desc: 'Out of Scope' },
+        { statusKey: 'passed', count: testRun.statusTotalPassed, color: 'emerald', icon: CheckCircle },
+        { statusKey: 'failed', count: testRun.statusTotalFailed, color: 'red', icon: XCircle },
+        { statusKey: 'error', count: testRun.statusTotalError, color: 'amber', icon: Bug },
+        { statusKey: 'skipped', count: testRun.statusTotalSkipped, color: 'indigo', icon: FastForward },
     ] as const;
 
     const metadataItems = [
-        { label: 'Test Item / Project', value: testRun.projectName, icon: Layers },
-        { label: 'Execution Mode', value: testRun.executionType, icon: Terminal },
-        { label: 'Test Environment', value: testRun.testEnvironment, icon: Globe },
-        { label: 'Target Hostname', value: testRun.hostname, icon: Server },
-        { label: 'Infrastructure / OS', value: testRun.os, icon: Monitor },
-        { label: 'System Version', value: testRun.version, icon: Tag },
-        { label: 'User Agent / Browser', value: testRun.browser, icon: Globe },
-        { label: 'Classification Tag', value: testRun.tag, icon: Shield },
-        { label: 'Test Cycle Stage', value: testRun.testStage, icon: Info },
-        { label: 'Cumulative Duration', value: formatDuration(liveElapsedMs), icon: Clock },
-        { label: 'Testing Officer', value: testRun.executedByUsername, icon: User },
-        { label: 'Execution Timestamp', value: new Date(testRun.startDate).toLocaleString('id-ID'), icon: Calendar },
+        { label: t('testRunReport.metadata.testItemProject'), value: testRun.projectName, icon: Layers },
+        { label: t('testRunReport.metadata.executionMode'), value: testRun.executionType, icon: Terminal },
+        { label: t('testRunReport.metadata.testEnvironment'), value: testRun.testEnvironment, icon: Globe },
+        { label: t('testRunReport.metadata.targetHostname'), value: testRun.hostname, icon: Server },
+        { label: t('testRunReport.metadata.infrastructureOs'), value: testRun.os, icon: Monitor },
+        { label: t('testRunReport.metadata.systemVersion'), value: testRun.version, icon: Tag },
+        { label: t('testRunReport.metadata.userAgentBrowser'), value: testRun.browser, icon: Globe },
+        { label: t('testRunReport.metadata.classificationTag'), value: testRun.tag, icon: Shield },
+        { label: t('testRunReport.metadata.testCycleStage'), value: testRun.testStage, icon: Info },
+        { label: t('testRunReport.metadata.cumulativeDuration'), value: formatDuration(liveElapsedMs), icon: Clock },
+        { label: t('testRunReport.metadata.testingOfficer'), value: testRun.executedByUsername, icon: User },
+        { label: t('testRunReport.metadata.executionTimestamp'), value: new Date(testRun.startDate).toLocaleString('id-ID'), icon: Calendar },
     ];
 
     return (
@@ -155,25 +157,25 @@ const TestRunDetailPage: React.FC = () => {
                 <div className="relative z-10 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8">
                     <div className="space-y-4">
                         <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="border-slate-500 text-slate-300 hover:bg-slate-700 hover:text-white transition-all">
-                            <ChevronLeft className="h-4 w-4 mr-1" /> BACK TO SUMMARY
+                            <ChevronLeft className="h-4 w-4 mr-1" /> {t('testRunReport.backToSummary')}
                         </Button>
                         <div className="flex flex-col md:flex-row md:items-center gap-4">
                             <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none italic uppercase">
-                                TEST REPORT: {testRun.name}
+                                {t('testRunReport.reportPrefix')}{testRun.name}
                             </h1>
                             <Badge className="bg-primary text-primary-foreground font-mono px-4 py-1 text-lg shadow-lg">ID_{testRun.id}</Badge>
                             {isInProgress ? (
                                 <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-mono px-4 py-1 text-sm shadow-lg flex items-center gap-2 w-fit">
-                                    <Radio className="h-3.5 w-3.5 animate-pulse" /> LIVE — IN PROGRESS
+                                    <Radio className="h-3.5 w-3.5 animate-pulse" /> {t('testRunReport.liveInProgress')}
                                 </Badge>
                             ) : (
                                 <Badge className="bg-slate-700 text-slate-200 border border-slate-600 font-mono px-4 py-1 text-sm shadow-lg w-fit">
-                                    FINALIZED
+                                    {t('testRunReport.finalized')}
                                 </Badge>
                             )}
                         </div>
                         <p className="text-slate-300 text-lg max-w-4xl font-medium leading-relaxed opacity-90 border-l-2 border-primary/50 pl-4">
-                            {testRun.description || "The test objective was executed according to standard operating procedures. No additional notes provided."}
+                            {testRun.description || t('testRunReport.defaultDescription')}
                         </p>
                     </div>
 
@@ -184,7 +186,7 @@ const TestRunDetailPage: React.FC = () => {
                                 className="bg-emerald-600 hover:bg-emerald-700 font-black px-6 shadow-lg shadow-emerald-900/40"
                                 onClick={() => setShowFinalizeConfirm(true)}
                             >
-                                <FlagTriangleRight className="h-5 w-5 mr-2" /> SELESAIKAN RUN
+                                <FlagTriangleRight className="h-5 w-5 mr-2" /> {t('testRunReport.finalizeRun')}
                             </Button>
                         )}
                         <Button
@@ -195,7 +197,7 @@ const TestRunDetailPage: React.FC = () => {
                             disabled={exportExcelMutation.isPending}
                         >
                             {exportExcelMutation.isPending ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <FileSpreadsheet className="h-5 w-5 mr-2" />}
-                            EXCEL
+                            {t('testRunReport.excel')}
                         </Button>
                         <PdfExportButton
                             testSuite={testRun}
@@ -205,7 +207,7 @@ const TestRunDetailPage: React.FC = () => {
                             {({ loading }) => (
                                 <Button size="lg" className="bg-white text-slate-900 hover:bg-red-500 hover:text-white font-black text-md px-10 py-8 shadow-2xl transition-all" disabled={loading}>
                                     {loading ? <Loader2 className="h-6 w-6 mr-3 animate-spin" /> : <Download className="h-6 w-6 mr-3" />}
-                                    GENERATE DOCUMENT
+                                    {t('testRunReport.generateDocument')}
                                 </Button>
                             )}
                         </PdfExportButton>
@@ -220,12 +222,12 @@ const TestRunDetailPage: React.FC = () => {
                 <Card className="lg:col-span-5 xl:col-span-4 border-none shadow-xl bg-white overflow-hidden ring-1 ring-slate-200">
                     <CardHeader className="bg-slate-50 py-5 border-b">
                         <CardTitle className="text-xs font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-2">
-                            <Activity className="h-4 w-4 text-primary" /> Statistical Distribution
+                            <Activity className="h-4 w-4 text-primary" /> {t('testRunReport.statisticalDistribution')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="pt-10 flex justify-center items-center h-[360px]" ref={chartRef}>
                         <StatusPieChart data={statusCards.map(s => ({
-                            name: s.label,
+                            name: t(`testRunReport.statusLabels.${s.statusKey}`),
                             value: s.count,
                             color: s.color === 'emerald' ? '#10B981' : s.color === 'red' ? '#EF4444' : s.color === 'amber' ? '#F59E0B' : '#6366F1',
                             percent: s.count / total
@@ -238,17 +240,17 @@ const TestRunDetailPage: React.FC = () => {
                     {statusCards.map((stat) => {
                         const colorClasses = STATUS_CARD_COLOR_CLASSES[stat.color];
                         return (
-                            <Card key={stat.label} className="border-none shadow-lg bg-white overflow-hidden relative group hover:-translate-y-1 transition-all duration-300">
+                            <Card key={stat.statusKey} className="border-none shadow-lg bg-white overflow-hidden relative group hover:-translate-y-1 transition-all duration-300">
                                 <div className={`h-2 w-full ${colorClasses.bar}`} />
                                 <CardContent className="p-6">
                                     <div className="flex justify-between items-center mb-2">
-                                        <span className={`text-[10px] font-black tracking-widest ${colorClasses.label} uppercase`}>{stat.label}</span>
+                                        <span className={`text-[10px] font-black tracking-widest ${colorClasses.label} uppercase`}>{t(`testRunReport.statusLabels.${stat.statusKey}`)}</span>
                                         <stat.icon className={`h-5 w-5 ${colorClasses.icon} opacity-30 group-hover:opacity-100 transition-opacity`} />
                                     </div>
                                     <div className={`text-6xl font-black tracking-tighter ${colorClasses.count}`}>
                                         {stat.count}
                                     </div>
-                                    <p className="text-[10px] mt-2 font-bold text-slate-400 uppercase tracking-tight">{stat.desc}</p>
+                                    <p className="text-[10px] mt-2 font-bold text-slate-400 uppercase tracking-tight">{t(`testRunReport.statusDesc.${stat.statusKey}`)}</p>
                                 </CardContent>
                             </Card>
                         );
@@ -263,7 +265,7 @@ const TestRunDetailPage: React.FC = () => {
                     <Card className="col-span-2 xl:col-span-4 border-none shadow-2xl ring-2 ring-primary/10 bg-white">
                         <CardHeader className="bg-slate-100/50 py-4 border-b">
                             <CardTitle className="text-[10px] font-black uppercase tracking-widest text-slate-600 flex items-center gap-2">
-                                <Terminal className="h-4 w-4 text-primary" /> Test Execution Context & Configuration
+                                <Terminal className="h-4 w-4 text-primary" /> {t('testRunReport.metadata.contextTitle')}
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-x-12 gap-y-8">
@@ -273,7 +275,7 @@ const TestRunDetailPage: React.FC = () => {
                                         <item.icon className="h-3 w-3" /> {item.label}
                                     </p>
                                     <p className="text-[13px] font-black text-slate-900 leading-tight uppercase tracking-tight">
-                                        {item.value || 'NOT_AVAILABLE'}
+                                        {item.value || t('testRunReport.metadata.notAvailable')}
                                     </p>
                                 </div>
                             ))}
@@ -287,9 +289,9 @@ const TestRunDetailPage: React.FC = () => {
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b-4 border-slate-900 pb-4 px-2">
                     <div>
                         <h2 className="text-3xl font-black tracking-tighter uppercase italic flex items-center gap-3">
-                            <div className="h-8 w-2 bg-primary" /> Test Specification Results
+                            <div className="h-8 w-2 bg-primary" /> {t('testRunReport.resultsSection.title')}
                         </h2>
-                        <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.2em] mt-1">Verification and Validation of Individual Test Cases</p>
+                        <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[0.2em] mt-1">{t('testRunReport.resultsSection.subtitle')}</p>
                     </div>
                     <div className="flex items-center gap-3">
                         {canAddRunDetail && (
@@ -300,7 +302,7 @@ const TestRunDetailPage: React.FC = () => {
                             />
                         )}
                         <Badge className="bg-slate-900 text-white px-6 py-2 text-md font-black italic">
-                            TOTAL ITEMS: {testRun.runDetails.length}
+                            {t('testRunReport.resultsSection.totalItems', { count: testRun.runDetails.length })}
                         </Badge>
                     </div>
                 </div>
@@ -316,22 +318,22 @@ const TestRunDetailPage: React.FC = () => {
             <AlertDialog open={showFinalizeConfirm} onOpenChange={setShowFinalizeConfirm}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Selesaikan Test Run Ini?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('testRunReport.finalizeConfirm.title')}</AlertDialogTitle>
                         <AlertDialogDescription>
                             {testRun.runDetails.length === 0
-                                ? `Belum ada satu pun hasil test case yang dicatat pada run "${testRun.name}". Run tetap bisa difinalisasi, tapi pertimbangkan untuk menambah hasil dulu jika belum selesai.`
-                                : `Waktu selesai dan durasi run "${testRun.name}" akan dikunci sesuai waktu saat ini. Anda tetap bisa menambah atau mengubah hasil test case setelahnya, tapi run tidak lagi berstatus IN PROGRESS.`}
+                                ? t('testRunReport.finalizeConfirm.descriptionEmpty', { name: testRun.name })
+                                : t('testRunReport.finalizeConfirm.descriptionFilled', { name: testRun.name })}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={finalizeMutation.isPending}>Batal</AlertDialogCancel>
+                        <AlertDialogCancel disabled={finalizeMutation.isPending}>{t('testRunReport.finalizeConfirm.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             className="bg-emerald-600 hover:bg-emerald-700"
                             onClick={handleFinalize}
                             disabled={finalizeMutation.isPending}
                         >
                             {finalizeMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FlagTriangleRight className="h-4 w-4 mr-2" />}
-                            Ya, Selesaikan Run
+                            {t('testRunReport.finalizeConfirm.confirm')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

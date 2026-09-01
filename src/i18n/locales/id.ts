@@ -555,5 +555,133 @@ export default {
       "gap": "Belum ada test case (gap cakupan)",
       "count": "{{count}} test case"
     }
+  },
+  "manualForm": {
+    "headerTitle": "Test Runner",
+    "runConfigTitle": "Run Configuration",
+    "config": {
+      "runNameLabel": "Run Name",
+      "typeLabel": "Type",
+      "stageLabel": "Stage",
+      "envLabel": "Env",
+      "versionLabel": "Version",
+      "tagsLabel": "Tags",
+      "tagsPlaceholder": "Smoke, Regression...",
+      "descriptionLabel": "Description"
+    },
+    "detailButton": "Detail",
+    "detailHeaderPrefix": "Test Case Details : ",
+    "descriptionLabel": "Description",
+    "tagsLabel": "Tags",
+    "preConditionLabel": "Pre-Condition",
+    "testStepsLabel": "Test Steps",
+    "expectedResultLabel": "Expected Result",
+    "testDataLabel": "Test Data",
+    "postConditionLabel": "Post Condition",
+    "statusLabel": "Status",
+    "actualResultLabel": "Actual Result / Evidence",
+    "actualResultPlaceholder": "What happened?",
+    "notesLabel": "Notes",
+    "notesPlaceholder": "Bugs found...",
+    "searchPlaceholder": "Search Test Case (Name or ID)...",
+    "selectAll": "Select All ({{count}})",
+    "clear": "Clear",
+    "noTestCasesSelected": "No test cases selected yet.",
+    "readyToSubmit": "Ready to submit",
+    "tcSelected": "TC Selected",
+    "discard": "Discard",
+    "submitRun": "SUBMIT RUN",
+    "successToast": "Run saved!",
+    "validation": {
+      "required": "Wajib diisi",
+      "nameMin": "Nama minimal 5 karakter",
+      "descriptionMin": "Deskripsi minimal 5 karakter",
+      "tagRequired": "Tag wajib diisi",
+      "minOneTestCase": "Pilih minimal 1 Test Case"
+    }
+  },
+  "landing": {
+    "brand": "SQAHub.org",
+    "loginButton": "Login",
+    "registerButton": "Daftar Gratis",
+    "hero": {
+      "title": "Pusat Analisis Kualitas Perangkat Lunak Terpadu",
+      "subtitle": "SQA Hub adalah platform sentralisasi hasil pengujian otomatis Anda. Ubah data mentah menjadi wawasan kualitas yang dapat ditindaklanjuti.",
+      "cta": "Mulai Sekarang!"
+    },
+    "features": {
+      "title": "Apa yang Bisa Anda Lakukan dengan SQAHub?",
+      "trend": {
+        "title": "Analisis Tren Kualitas",
+        "description": "Visualisasikan tingkat kelulusan (pass rate) dari waktu ke waktu untuk mengidentifikasi degradasi kualitas."
+      },
+      "pdf": {
+        "title": "Laporan PDF Profesional",
+        "description": "Ekspor laporan pengujian lengkap yang siap dibagikan kepada tim manajemen."
+      },
+      "centralize": {
+        "title": "Sentralisasi Data Uji",
+        "description": "Kumpulkan hasil dari berbagai framework ke dalam satu sumber terpadu."
+      }
+    },
+    "ctaSection": {
+      "title": "Siap Mengambil Kendali Kualitas Anda?",
+      "button": "Daftar Akun Tester Gratis"
+    }
+  },
+  "testRunReport": {
+    "retrieving": "Retrieving Test Execution Data...",
+    "faultTitle": "Fault Detected",
+    "faultDescription": "The requested Test Execution ID could not be identified or has been purged from the repository.",
+    "returnToRepository": "RETURN TO TEST REPOSITORY",
+    "backToSummary": "BACK TO SUMMARY",
+    "reportPrefix": "TEST REPORT: ",
+    "liveInProgress": "LIVE — IN PROGRESS",
+    "finalized": "FINALIZED",
+    "finalizeRun": "SELESAIKAN RUN",
+    "excel": "EXCEL",
+    "generateDocument": "GENERATE DOCUMENT",
+    "defaultDescription": "The test objective was executed according to standard operating procedures. No additional notes provided.",
+    "statisticalDistribution": "Statistical Distribution",
+    "statusLabels": {
+      "passed": "PASSED",
+      "failed": "FAILED",
+      "error": "ERROR",
+      "skipped": "SKIPPED"
+    },
+    "statusDesc": {
+      "passed": "Success Criteria Met",
+      "failed": "Requirement Not Met",
+      "error": "System Fault",
+      "skipped": "Out of Scope"
+    },
+    "metadata": {
+      "testItemProject": "Test Item / Project",
+      "executionMode": "Execution Mode",
+      "testEnvironment": "Test Environment",
+      "targetHostname": "Target Hostname",
+      "infrastructureOs": "Infrastructure / OS",
+      "systemVersion": "System Version",
+      "userAgentBrowser": "User Agent / Browser",
+      "classificationTag": "Classification Tag",
+      "testCycleStage": "Test Cycle Stage",
+      "cumulativeDuration": "Cumulative Duration",
+      "testingOfficer": "Testing Officer",
+      "executionTimestamp": "Execution Timestamp",
+      "notAvailable": "NOT_AVAILABLE",
+      "contextTitle": "Test Execution Context & Configuration"
+    },
+    "resultsSection": {
+      "title": "Test Specification Results",
+      "subtitle": "Verification and Validation of Individual Test Cases",
+      "totalItems": "TOTAL ITEMS: {{count}}"
+    },
+    "finalizeConfirm": {
+      "title": "Selesaikan Test Run Ini?",
+      "descriptionEmpty": "Belum ada satu pun hasil test case yang dicatat pada run \"{{name}}\". Run tetap bisa difinalisasi, tapi pertimbangkan untuk menambah hasil dulu jika belum selesai.",
+      "descriptionFilled": "Waktu selesai dan durasi run \"{{name}}\" akan dikunci sesuai waktu saat ini. Anda tetap bisa menambah atau mengubah hasil test case setelahnya, tapi run tidak lagi berstatus IN PROGRESS.",
+      "cancel": "Batal",
+      "confirm": "Ya, Selesaikan Run"
+    }
   }
 } as const;

@@ -555,5 +555,133 @@ export default {
       "gap": "No test cases yet (coverage gap)",
       "count": "{{count}} test cases"
     }
+  },
+  "manualForm": {
+    "headerTitle": "Test Runner",
+    "runConfigTitle": "Run Configuration",
+    "config": {
+      "runNameLabel": "Run Name",
+      "typeLabel": "Type",
+      "stageLabel": "Stage",
+      "envLabel": "Env",
+      "versionLabel": "Version",
+      "tagsLabel": "Tags",
+      "tagsPlaceholder": "Smoke, Regression...",
+      "descriptionLabel": "Description"
+    },
+    "detailButton": "Detail",
+    "detailHeaderPrefix": "Test Case Details : ",
+    "descriptionLabel": "Description",
+    "tagsLabel": "Tags",
+    "preConditionLabel": "Pre-Condition",
+    "testStepsLabel": "Test Steps",
+    "expectedResultLabel": "Expected Result",
+    "testDataLabel": "Test Data",
+    "postConditionLabel": "Post Condition",
+    "statusLabel": "Status",
+    "actualResultLabel": "Actual Result / Evidence",
+    "actualResultPlaceholder": "What happened?",
+    "notesLabel": "Notes",
+    "notesPlaceholder": "Bugs found...",
+    "searchPlaceholder": "Search Test Case (Name or ID)...",
+    "selectAll": "Select All ({{count}})",
+    "clear": "Clear",
+    "noTestCasesSelected": "No test cases selected yet.",
+    "readyToSubmit": "Ready to submit",
+    "tcSelected": "TC Selected",
+    "discard": "Discard",
+    "submitRun": "SUBMIT RUN",
+    "successToast": "Run saved!",
+    "validation": {
+      "required": "Required",
+      "nameMin": "Name must be at least 5 characters",
+      "descriptionMin": "Description must be at least 5 characters",
+      "tagRequired": "Tag is required",
+      "minOneTestCase": "Select at least 1 Test Case"
+    }
+  },
+  "landing": {
+    "brand": "SQAHub.org",
+    "loginButton": "Login",
+    "registerButton": "Sign Up Free",
+    "hero": {
+      "title": "Unified Software Quality Analysis Hub",
+      "subtitle": "SQA Hub is a platform that centralizes your automated test results. Turn raw data into actionable quality insights.",
+      "cta": "Get Started Now!"
+    },
+    "features": {
+      "title": "What Can You Do With SQAHub?",
+      "trend": {
+        "title": "Quality Trend Analysis",
+        "description": "Visualize pass rates over time to identify quality degradation."
+      },
+      "pdf": {
+        "title": "Professional PDF Reports",
+        "description": "Export complete test reports ready to share with your management team."
+      },
+      "centralize": {
+        "title": "Centralized Test Data",
+        "description": "Gather results from multiple frameworks into a single unified source."
+      }
+    },
+    "ctaSection": {
+      "title": "Ready to Take Control of Your Quality?",
+      "button": "Sign Up for a Free Tester Account"
+    }
+  },
+  "testRunReport": {
+    "retrieving": "Retrieving Test Execution Data...",
+    "faultTitle": "Fault Detected",
+    "faultDescription": "The requested Test Execution ID could not be identified or has been purged from the repository.",
+    "returnToRepository": "RETURN TO TEST REPOSITORY",
+    "backToSummary": "BACK TO SUMMARY",
+    "reportPrefix": "TEST REPORT: ",
+    "liveInProgress": "LIVE — IN PROGRESS",
+    "finalized": "FINALIZED",
+    "finalizeRun": "FINALIZE RUN",
+    "excel": "EXCEL",
+    "generateDocument": "GENERATE DOCUMENT",
+    "defaultDescription": "The test objective was executed according to standard operating procedures. No additional notes provided.",
+    "statisticalDistribution": "Statistical Distribution",
+    "statusLabels": {
+      "passed": "PASSED",
+      "failed": "FAILED",
+      "error": "ERROR",
+      "skipped": "SKIPPED"
+    },
+    "statusDesc": {
+      "passed": "Success Criteria Met",
+      "failed": "Requirement Not Met",
+      "error": "System Fault",
+      "skipped": "Out of Scope"
+    },
+    "metadata": {
+      "testItemProject": "Test Item / Project",
+      "executionMode": "Execution Mode",
+      "testEnvironment": "Test Environment",
+      "targetHostname": "Target Hostname",
+      "infrastructureOs": "Infrastructure / OS",
+      "systemVersion": "System Version",
+      "userAgentBrowser": "User Agent / Browser",
+      "classificationTag": "Classification Tag",
+      "testCycleStage": "Test Cycle Stage",
+      "cumulativeDuration": "Cumulative Duration",
+      "testingOfficer": "Testing Officer",
+      "executionTimestamp": "Execution Timestamp",
+      "notAvailable": "NOT_AVAILABLE",
+      "contextTitle": "Test Execution Context & Configuration"
+    },
+    "resultsSection": {
+      "title": "Test Specification Results",
+      "subtitle": "Verification and Validation of Individual Test Cases",
+      "totalItems": "TOTAL ITEMS: {{count}}"
+    },
+    "finalizeConfirm": {
+      "title": "Finalize This Test Run?",
+      "descriptionEmpty": "No test case results have been recorded yet on run \"{{name}}\". The run can still be finalized, but consider adding results first if it isn't done yet.",
+      "descriptionFilled": "The end time and duration of run \"{{name}}\" will be locked to the current time. You can still add or change test case results afterward, but the run will no longer be IN PROGRESS.",
+      "cancel": "Cancel",
+      "confirm": "Yes, Finalize Run"
+    }
   }
 } as const;
