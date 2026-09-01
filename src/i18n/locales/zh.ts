@@ -162,6 +162,7 @@ export default {
     "manageTeam": "管理团队",
     "noDescription": "暂无描述。",
     "features": "功能",
+    "bugs": "缺陷",
     "emptySearchTitle": "未找到结果",
     "emptySearchHint": "请尝试其他关键词。",
     "emptyTitle": "暂无项目",
@@ -279,6 +280,45 @@ export default {
       "cancel": "取消",
       "submitCreate": "创建功能",
       "submitEdit": "保存更改"
+    }
+  },
+  "bugs": {
+    "invalidProjectId": "项目 ID 无效",
+    "loading": "正在加载缺陷...",
+    "loadError": "加载缺陷失败，请确认您有权访问该项目。",
+    "titlePrefix": "缺陷：",
+    "subtitle": "共 {{count}} 个已报告的缺陷",
+    "reportBug": "报告缺陷",
+    "reportFirst": "报告第一个缺陷",
+    "emptyNoData": "该项目尚未报告任何缺陷。",
+    "table": {
+      "title": "标题",
+      "severity": "严重程度",
+      "status": "状态",
+      "assignee": "负责人",
+      "reportedBy": "报告人",
+      "createdAt": "报告时间",
+      "actions": "操作"
+    },
+    "deleteConfirmTitle": "删除缺陷？",
+    "deleteConfirmDescription": "您将删除缺陷\"{{title}}\"，此操作无法撤销。",
+    "form": {
+      "createTitle": "报告新缺陷",
+      "editTitle": "编辑缺陷",
+      "description": "请尽可能完整地描述问题，以便快速处理。",
+      "titleLabel": "缺陷标题",
+      "titlePlaceholder": "例如：登录页面的提交按钮无响应",
+      "descriptionLabel": "描述",
+      "descriptionPlaceholder": "复现步骤、实际结果与预期结果...",
+      "severityLabel": "严重程度",
+      "severityPlaceholder": "选择严重程度",
+      "assigneeLabel": "负责人",
+      "assigneePlaceholder": "选择团队成员",
+      "unassigned": "未分配",
+      "testCaseLabel": "关联测试用例（可选）",
+      "testCasePlaceholder": "选择测试用例",
+      "noTestCase": "无",
+      "submitCreate": "报告缺陷"
     }
   },
   "testCases": {

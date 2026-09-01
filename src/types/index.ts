@@ -127,7 +127,7 @@ export interface ApiKeyRequest {
 }
 
 // --- NOTIFICATIONS ---
-export type NotificationType = 'PROJECT_MEMBER_ADDED' | 'TEST_RUN_FINALIZED' | 'DEPLOY_NOT_READY';
+export type NotificationType = 'PROJECT_MEMBER_ADDED' | 'TEST_RUN_FINALIZED' | 'DEPLOY_NOT_READY' | 'BUG_ASSIGNED';
 
 export interface Notification {
   id: number;

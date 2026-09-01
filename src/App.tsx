@@ -23,6 +23,7 @@ const OAuth2RedirectPage = lazy(() => import('./pages/Auth/OAuth2RedirectPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const ProjectsPage = lazy(() => import('./pages/ProjectsPage'));
 const FeaturesPage = lazy(() => import('./pages/FeaturesPage'));
+const BugsPage = lazy(() => import('./pages/BugsPage'));
 const TestCasesPage = lazy(() => import('./pages/TestCasesPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 const UserManagementPage = lazy(() => import('./pages/UserManagementPage'));
@@ -79,6 +80,9 @@ const App: React.FC = () => {
 
                             {/* Rute Project Detail: Feature Management */}
                             <Route path="/projects/:projectId/features" element={<FeaturesPage />} />
+
+                            {/* Rute Bug/Issue Tracking per Project. */}
+                            <Route path="/projects/:projectId/bugs" element={<BugsPage />} />
 
                             {/* Rute Feature Detail: TEST CASE MANAGEMENT */}
                             <Route

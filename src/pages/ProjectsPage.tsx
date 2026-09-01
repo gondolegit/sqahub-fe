@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Plus, Search, MoreVertical,
-  ExternalLink, Pencil, Trash2, FolderPlus, Users
+  ExternalLink, Pencil, Trash2, FolderPlus, Users, Bug as BugIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -123,6 +123,7 @@ const ProjectsPage: React.FC = () => {
                 onEdit={() => handleAction(project)}
                 onDelete={() => confirmDelete(project)}
                 onView={() => navigate(`/projects/${project.id}/features`)}
+                onViewBugs={() => navigate(`/projects/${project.id}/bugs`)}
                 onManageMembers={() => setMembersProject(project)}
               />
             ))}
@@ -165,10 +166,11 @@ interface ProjectCardProps {
   onEdit: () => void;
   onDelete: () => void;
   onView: () => void;
+  onViewBugs: () => void;
   onManageMembers: () => void;
 }
 
-const ProjectCard = ({ project, canManage, onEdit, onDelete, onView, onManageMembers }: ProjectCardProps) => {
+const ProjectCard = ({ project, canManage, onEdit, onDelete, onView, onViewBugs, onManageMembers }: ProjectCardProps) => {
   const { t } = useTranslation();
   return (
     <Card className="group hover:border-primary/50 transition-all duration-300 flex flex-col overflow-hidden">
@@ -205,9 +207,14 @@ const ProjectCard = ({ project, canManage, onEdit, onDelete, onView, onManageMem
       </CardContent>
       <CardFooter className="border-t bg-muted/50 p-4 flex justify-between items-center">
         <StatusBadge status={project.status} />
-        <Button size="sm" variant="ghost" onClick={onView} className="text-primary hover:text-primary hover:bg-primary/10">
-          {t('projects.features')} <ExternalLink className="ml-2 h-3 w-3" />
-        </Button>
+        <div className="flex items-center">
+          <Button size="sm" variant="ghost" onClick={onViewBugs} className="text-muted-foreground hover:text-foreground">
+            <BugIcon className="mr-1.5 h-3.5 w-3.5" /> {t('projects.bugs')}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onView} className="text-primary hover:text-primary hover:bg-primary/10">
+            {t('projects.features')} <ExternalLink className="ml-2 h-3 w-3" />
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

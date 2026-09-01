@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Bell, CheckCheck, UserPlus, CheckCircle2, AlertTriangle, Inbox } from 'lucide-react';
+import { Bell, CheckCheck, UserPlus, CheckCircle2, AlertTriangle, Inbox, Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -20,12 +20,14 @@ const ICONS_BY_TYPE: Record<NotificationType, React.ElementType> = {
     PROJECT_MEMBER_ADDED: UserPlus,
     TEST_RUN_FINALIZED: CheckCircle2,
     DEPLOY_NOT_READY: AlertTriangle,
+    BUG_ASSIGNED: Bug,
 };
 
 const ICON_COLOR_BY_TYPE: Record<NotificationType, string> = {
     PROJECT_MEMBER_ADDED: 'text-blue-500',
     TEST_RUN_FINALIZED: 'text-emerald-500',
     DEPLOY_NOT_READY: 'text-destructive',
+    BUG_ASSIGNED: 'text-orange-500',
 };
 
 const NotificationBell: React.FC = () => {

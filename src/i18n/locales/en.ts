@@ -162,6 +162,7 @@ export default {
     "manageTeam": "Manage Team",
     "noDescription": "No description available.",
     "features": "Features",
+    "bugs": "Bugs",
     "emptySearchTitle": "No results found",
     "emptySearchHint": "Try a different keyword.",
     "emptyTitle": "No projects yet",
@@ -279,6 +280,45 @@ export default {
       "cancel": "Cancel",
       "submitCreate": "Create Feature",
       "submitEdit": "Save Changes"
+    }
+  },
+  "bugs": {
+    "invalidProjectId": "Invalid Project ID",
+    "loading": "Loading bugs...",
+    "loadError": "Failed to load bugs. Make sure you have access to this project.",
+    "titlePrefix": "Bugs: ",
+    "subtitle": "Total: {{count}} bugs reported",
+    "reportBug": "Report Bug",
+    "reportFirst": "Report Your First Bug",
+    "emptyNoData": "No bugs reported in this project yet.",
+    "table": {
+      "title": "Title",
+      "severity": "Severity",
+      "status": "Status",
+      "assignee": "Assignee",
+      "reportedBy": "Reported By",
+      "createdAt": "Reported",
+      "actions": "Actions"
+    },
+    "deleteConfirmTitle": "Delete Bug?",
+    "deleteConfirmDescription": "You are about to delete the bug \"{{title}}\". This cannot be undone.",
+    "form": {
+      "createTitle": "Report a New Bug",
+      "editTitle": "Edit Bug",
+      "description": "Describe the issue as completely as possible so it can be actioned quickly.",
+      "titleLabel": "Bug Title",
+      "titlePlaceholder": "e.g. Submit button unresponsive on the login page",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Steps to reproduce, actual vs expected result...",
+      "severityLabel": "Severity",
+      "severityPlaceholder": "Select severity",
+      "assigneeLabel": "Assignee",
+      "assigneePlaceholder": "Select a team member",
+      "unassigned": "Unassigned",
+      "testCaseLabel": "Link to Test Case (optional)",
+      "testCasePlaceholder": "Select a test case",
+      "noTestCase": "None",
+      "submitCreate": "Report Bug"
     }
   },
   "testCases": {

@@ -162,6 +162,7 @@ export default {
     "manageTeam": "Kelola Tim",
     "noDescription": "Tidak ada deskripsi tersedia.",
     "features": "Features",
+    "bugs": "Bugs",
     "emptySearchTitle": "Hasil tidak ditemukan",
     "emptySearchHint": "Coba gunakan kata kunci lain.",
     "emptyTitle": "Belum ada proyek",
@@ -279,6 +280,45 @@ export default {
       "cancel": "Batal",
       "submitCreate": "Buat Fitur",
       "submitEdit": "Simpan Perubahan"
+    }
+  },
+  "bugs": {
+    "invalidProjectId": "ID Proyek Tidak Valid",
+    "loading": "Memuat data bug...",
+    "loadError": "Gagal memuat data bug. Pastikan Anda memiliki akses ke proyek ini.",
+    "titlePrefix": "Bug: ",
+    "subtitle": "Total: {{count}} bug dilaporkan",
+    "reportBug": "Laporkan Bug",
+    "reportFirst": "Laporkan Bug Pertama",
+    "emptyNoData": "Belum ada bug dilaporkan di proyek ini.",
+    "table": {
+      "title": "Judul",
+      "severity": "Severity",
+      "status": "Status",
+      "assignee": "Assignee",
+      "reportedBy": "Pelapor",
+      "createdAt": "Dilaporkan",
+      "actions": "Aksi"
+    },
+    "deleteConfirmTitle": "Hapus Bug?",
+    "deleteConfirmDescription": "Anda akan menghapus bug \"{{title}}\". Tindakan ini tidak dapat dibatalkan.",
+    "form": {
+      "createTitle": "Laporkan Bug Baru",
+      "editTitle": "Edit Bug",
+      "description": "Jelaskan masalah yang ditemukan selengkap mungkin agar mudah ditindaklanjuti.",
+      "titleLabel": "Judul Bug",
+      "titlePlaceholder": "Contoh: Tombol submit tidak responsif di halaman login",
+      "descriptionLabel": "Deskripsi",
+      "descriptionPlaceholder": "Langkah reproduksi, hasil aktual vs yang diharapkan...",
+      "severityLabel": "Severity",
+      "severityPlaceholder": "Pilih severity",
+      "assigneeLabel": "Assignee",
+      "assigneePlaceholder": "Pilih anggota tim",
+      "unassigned": "Belum ditugaskan",
+      "testCaseLabel": "Kaitkan ke Test Case (opsional)",
+      "testCasePlaceholder": "Pilih test case",
+      "noTestCase": "Tidak ada",
+      "submitCreate": "Laporkan Bug"
     }
   },
   "testCases": {
