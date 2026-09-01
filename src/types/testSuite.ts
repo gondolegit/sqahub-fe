@@ -94,6 +94,20 @@ export interface TestSuiteFinalizeRequest {
     elapsedTime: number;
 }
 
+// --- IMPORT JUNIT XML (CI/CD) ---
+export interface JUnitImportResponse {
+    testSuiteId: number;
+    testSuiteName: string;
+    totalTestCases: number;
+    matchedExistingCount: number;
+    autoCreatedCount: number;
+    totalPassed: number;
+    totalFailed: number;
+    totalError: number;
+    totalSkipped: number;
+    warnings: string[];
+}
+
 // --- DEPLOY DECISION ---
 export interface DeployDecisionResponse {
     testSuiteId: number;

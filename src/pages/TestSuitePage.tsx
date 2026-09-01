@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Loader2, Zap, AlertTriangle, ListFilter, Search, Radio, ClipboardEdit } from 'lucide-react';
+import { Loader2, Zap, AlertTriangle, ListFilter, Search, Radio, ClipboardEdit, FileCode2 } from 'lucide-react';
 
 // Import Hooks & Types
 import { useProjects } from '@/hooks/useProjects';
@@ -18,6 +18,7 @@ import { Pagination } from '@/components/ui/pagination';
 import TestSuiteFormDialog from '@/components/testsuite/TestSuiteFormDialog';
 import StartTestRunDialog from '@/components/testsuite/StartTestRunDialog';
 import TestSuitesTable from '@/components/testsuite/TestSuitesTable';
+import ImportJUnitDialog from '@/components/testsuite/ImportJUnitDialog';
 
 const PAGE_SIZE = 10;
 // Sesuai matriks izin backend: create/update TestSuite run butuh role global ADMIN, TESTER, atau DEVELOPER.
@@ -33,6 +34,7 @@ const TestSuitesPage: React.FC = () => {
     const [page, setPage] = useState(0);
     const [isStartRunOpen, setIsStartRunOpen] = useState(false);
     const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
+    const [isJUnitImportOpen, setIsJUnitImportOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
     // 2. Data Fetching
@@ -140,6 +142,15 @@ const TestSuitesPage: React.FC = () => {
                                 >
                                     <ClipboardEdit className="h-4 w-4 mr-2" /> {t('testSuites.manualInput')}
                                 </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsJUnitImportOpen(true)}
+                                    disabled={!selectedProjectId}
+                                    className="w-full md:w-auto"
+                                    title={t('testSuites.junitImport.buttonTitle')}
+                                >
+                                    <FileCode2 className="h-4 w-4 mr-2" /> {t('testSuites.junitImport.button')}
+                                </Button>
                             </div>
                         )}
                     </div>
@@ -201,6 +212,13 @@ const TestSuitesPage: React.FC = () => {
                 open={isFormDialogOpen}
                 onOpenChange={setIsFormDialogOpen}
                 initialProjectId={selectedProjectId}
+            />
+
+            {/* Dialog Import Laporan JUnit XML dari CI/CD — dibuat & langsung difinalisasi */}
+            <ImportJUnitDialog
+                open={isJUnitImportOpen}
+                onOpenChange={setIsJUnitImportOpen}
+                projectId={selectedProjectId}
             />
         </div>
     );

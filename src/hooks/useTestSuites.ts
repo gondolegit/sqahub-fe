@@ -10,6 +10,7 @@ import type {
     RunDetail, // Tipe untuk detail per Test Case dalam sebuah Run
     RunDetailRequest,
     DeployDecisionResponse,
+    JUnitImportResponse,
 } from '@/types/testSuite';
 import type { Page } from '@/types/index';
 
@@ -137,6 +138,53 @@ export const useCreateTestSuiteRun = () => {
         },
         onError: (error) => {
             toast.error("Gagal Mencatat Test Suite Run", { description: getTestSuiteErrorMessage(error, "Terjadi kesalahan saat membuat Test Suite Run.") });
+        },
+    });
+};
+
+/**
+ * 4b. IMPORT laporan JUnit XML dari CI/CD — dibuat DAN langsung difinalisasi di backend, jadi
+ * hasilnya sekaligus memicu notifikasi/email deploy-readiness yang sama seperti finalize manual.
+ */
+interface ImportJUnitParams {
+    projectId: number;
+    defaultFeatureId: number;
+    testSuiteName?: string;
+    testStage: string;
+    testEnvironment: string;
+    tag?: string;
+    file: File;
+}
+
+export const useImportJUnitReport = () => {
+    const queryClient = useQueryClient();
+    return useMutation<JUnitImportResponse, ApiError, ImportJUnitParams>({
+        mutationFn: async ({ projectId, defaultFeatureId, testSuiteName, testStage, testEnvironment, tag, file }) => {
+            const formData = new FormData();
+            formData.append('projectId', String(projectId));
+            formData.append('defaultFeatureId', String(defaultFeatureId));
+            if (testSuiteName) formData.append('testSuiteName', testSuiteName);
+            formData.append('testStage', testStage);
+            formData.append('testEnvironment', testEnvironment);
+            if (tag) formData.append('tag', tag);
+            formData.append('file', file);
+
+            // ENDPOINT: POST /api/v1/testsuite/import/junit
+            const { data } = await API.post('/testsuite/import/junit', formData);
+            return data;
+        },
+        onSuccess: (result, variables) => {
+            queryClient.invalidateQueries({ queryKey: [TEST_SUITE_QUERY_KEY, 'project', variables.projectId] });
+            if (result.autoCreatedCount === 0) {
+                toast.success("Import Selesai", { description: `${result.totalTestCases} test case berhasil diimpor.` });
+            } else {
+                toast.warning("Import Selesai (Sebagian Test Case Baru)", {
+                    description: `${result.matchedExistingCount} cocok, ${result.autoCreatedCount} dibuat otomatis.`,
+                });
+            }
+        },
+        onError: (error) => {
+            toast.error("Gagal Mengimpor Laporan JUnit", { description: getTestSuiteErrorMessage(error, "Terjadi kesalahan saat memproses file.") });
         },
     });
 };
