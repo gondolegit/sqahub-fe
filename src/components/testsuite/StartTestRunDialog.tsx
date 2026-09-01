@@ -8,6 +8,7 @@
 // dan run baru dianggap selesai saat difinalisasi secara eksplisit di sana.
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -48,6 +49,7 @@ interface StartTestRunDialogProps {
 }
 
 const StartTestRunDialog: React.FC<StartTestRunDialogProps> = ({ open, onOpenChange, projectId }) => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const createMutation = useCreateTestSuiteRun();
 
@@ -90,11 +92,10 @@ const StartTestRunDialog: React.FC<StartTestRunDialogProps> = ({ open, onOpenCha
             <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden outline-none border-none shadow-2xl">
                 <div className="bg-slate-900 p-6 text-white">
                     <DialogTitle className="text-2xl font-bold italic tracking-tighter flex items-center gap-2">
-                        <Radio className="h-6 w-6 text-emerald-400 animate-pulse" /> MULAI LIVE RUN
+                        <Radio className="h-6 w-6 text-emerald-400 animate-pulse" /> {t('testSuites.startDialog.title')}
                     </DialogTitle>
                     <DialogDescription className="text-slate-400">
-                        Run akan langsung tersimpan sebagai "IN PROGRESS". Tambahkan hasil per test case
-                        secara bertahap di halaman berikutnya, lalu finalisasi kapan saja Anda selesai.
+                        {t('testSuites.startDialog.description')}
                     </DialogDescription>
                 </div>
 
@@ -102,8 +103,8 @@ const StartTestRunDialog: React.FC<StartTestRunDialogProps> = ({ open, onOpenCha
                     <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-5">
                         <FormField control={form.control} name="name" render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="font-semibold text-foreground">Nama Run</FormLabel>
-                                <FormControl><Input placeholder="Contoh: Regression Sprint 24" {...field} /></FormControl>
+                                <FormLabel className="font-semibold text-foreground">{t('testSuites.startDialog.nameLabel')}</FormLabel>
+                                <FormControl><Input placeholder={t('testSuites.startDialog.namePlaceholder')} {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
@@ -111,16 +112,16 @@ const StartTestRunDialog: React.FC<StartTestRunDialogProps> = ({ open, onOpenCha
                         <div className="grid grid-cols-3 gap-4">
                             <FormField control={form.control} name="executionType" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-semibold text-foreground">Tipe</FormLabel>
+                                    <FormLabel className="font-semibold text-foreground">{t('testSuites.startDialog.typeLabel')}</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                        <SelectContent>{EXECUTION_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                                        <SelectContent>{EXECUTION_TYPES.map(et => <SelectItem key={et} value={et}>{et}</SelectItem>)}</SelectContent>
                                     </Select>
                                 </FormItem>
                             )} />
                             <FormField control={form.control} name="testStage" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-semibold text-foreground">Stage</FormLabel>
+                                    <FormLabel className="font-semibold text-foreground">{t('testSuites.startDialog.stageLabel')}</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                         <SelectContent>{TEST_STAGES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
@@ -129,7 +130,7 @@ const StartTestRunDialog: React.FC<StartTestRunDialogProps> = ({ open, onOpenCha
                             )} />
                             <FormField control={form.control} name="testEnvironment" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-semibold text-foreground">Env</FormLabel>
+                                    <FormLabel className="font-semibold text-foreground">{t('testSuites.startDialog.envLabel')}</FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                         <SelectContent>{ENVIRONMENT_OPTIONS.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
@@ -141,30 +142,30 @@ const StartTestRunDialog: React.FC<StartTestRunDialogProps> = ({ open, onOpenCha
                         <div className="grid grid-cols-2 gap-4">
                             <FormField control={form.control} name="version" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-semibold text-foreground">Versi</FormLabel>
+                                    <FormLabel className="font-semibold text-foreground">{t('testSuites.startDialog.versionLabel')}</FormLabel>
                                     <FormControl><Input placeholder="v1.0.0" {...field} /></FormControl>
                                 </FormItem>
                             )} />
                             <FormField control={form.control} name="tag" render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-semibold text-foreground">Tag</FormLabel>
-                                    <FormControl><Input placeholder="Smoke, Regression..." {...field} /></FormControl>
+                                    <FormLabel className="font-semibold text-foreground">{t('testSuites.startDialog.tagLabel')}</FormLabel>
+                                    <FormControl><Input placeholder={t('testSuites.startDialog.tagPlaceholder')} {...field} /></FormControl>
                                 </FormItem>
                             )} />
                         </div>
 
                         <FormField control={form.control} name="description" render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="font-semibold text-foreground">Deskripsi</FormLabel>
-                                <FormControl><Textarea placeholder="Opsional — tujuan/cakupan run ini..." className="resize-none min-h-[80px]" {...field} /></FormControl>
+                                <FormLabel className="font-semibold text-foreground">{t('testSuites.startDialog.descriptionLabel')}</FormLabel>
+                                <FormControl><Textarea placeholder={t('testSuites.startDialog.descriptionPlaceholder')} className="resize-none min-h-[80px]" {...field} /></FormControl>
                             </FormItem>
                         )} />
 
                         <DialogFooter className="mt-8 gap-2">
-                            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Batal</Button>
+                            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>{t('testSuites.startDialog.cancel')}</Button>
                             <Button type="submit" disabled={createMutation.isPending || !projectId} className="bg-emerald-600 hover:bg-emerald-700 px-8">
                                 {createMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Radio className="mr-2 h-4 w-4" />}
-                                Mulai Run
+                                {t('testSuites.startDialog.submit')}
                             </Button>
                         </DialogFooter>
                     </form>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Loader2, Zap, AlertTriangle, ListFilter, Search, Radio, ClipboardEdit } from 'lucide-react';
 
 // Import Hooks & Types
@@ -23,6 +24,7 @@ const PAGE_SIZE = 10;
 const RUN_CREATE_ROLES = ['ADMIN', 'TESTER', 'DEVELOPER'] as const;
 
 const TestSuitesPage: React.FC = () => {
+    const { t } = useTranslation();
     const { hasRole } = useAuth();
     const canCreateRun = hasRole([...RUN_CREATE_ROLES]);
 
@@ -72,27 +74,27 @@ const TestSuitesPage: React.FC = () => {
     return (
         <div className="p-4 md:p-8 space-y-6">
             <h1 className="text-3xl font-bold flex items-center">
-                <Zap className="h-7 w-7 mr-3 text-primary" /> Riwayat Test Suites
+                <Zap className="h-7 w-7 mr-3 text-primary" /> {t('testSuites.pageTitle')}
             </h1>
 
             <Card className="shadow-lg border-none">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-xl font-semibold flex items-center">
-                        <ListFilter className="h-5 w-5 mr-2 text-muted-foreground" /> Filter & Aksi
+                        <ListFilter className="h-5 w-5 mr-2 text-muted-foreground" /> {t('testSuites.filterCardTitle')}
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col md:flex-row items-end gap-4">
                         {/* Pilih Project */}
                         <div className="w-full md:w-1/4 space-y-1.5">
-                            <label className="text-xs font-bold uppercase text-muted-foreground">Proyek</label>
+                            <label className="text-xs font-bold uppercase text-muted-foreground">{t('testSuites.projectLabel')}</label>
                             <Select
                                 onValueChange={handleProjectChange}
                                 value={selectedProjectId ? String(selectedProjectId) : undefined}
                                 disabled={isLoadingProjects}
                             >
                                 <SelectTrigger className="bg-background">
-                                    <SelectValue placeholder={isLoadingProjects ? "Memuat..." : "Pilih Proyek"} />
+                                    <SelectValue placeholder={isLoadingProjects ? t('testSuites.projectLoading') : t('testSuites.projectPlaceholder')} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {projects?.map((project) => (
@@ -106,11 +108,11 @@ const TestSuitesPage: React.FC = () => {
 
                         {/* Search Input */}
                         <div className="w-full md:flex-1 space-y-1.5">
-                            <label className="text-xs font-bold uppercase text-muted-foreground">Cari Nama Run</label>
+                            <label className="text-xs font-bold uppercase text-muted-foreground">{t('testSuites.searchLabel')}</label>
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
-                                    placeholder="Ketik nama test suite..."
+                                    placeholder={t('testSuites.searchPlaceholder')}
                                     className="pl-10 bg-background"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -125,18 +127,18 @@ const TestSuitesPage: React.FC = () => {
                                     onClick={() => setIsStartRunOpen(true)}
                                     disabled={!selectedProjectId}
                                     className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 shadow-md"
-                                    title="Mulai run baru, isi hasil test case satu per satu secara real-time"
+                                    title={t('testSuites.startLiveRunTitle')}
                                 >
-                                    <Radio className="h-4 w-4 mr-2" /> Mulai Live Run
+                                    <Radio className="h-4 w-4 mr-2" /> {t('testSuites.startLiveRun')}
                                 </Button>
                                 <Button
                                     variant="outline"
                                     onClick={() => setIsFormDialogOpen(true)}
                                     disabled={!selectedProjectId}
                                     className="w-full md:w-auto"
-                                    title="Catat run yang sudah selesai dieksekusi sekaligus (retroaktif)"
+                                    title={t('testSuites.manualInputTitle')}
                                 >
-                                    <ClipboardEdit className="h-4 w-4 mr-2" /> Input Manual
+                                    <ClipboardEdit className="h-4 w-4 mr-2" /> {t('testSuites.manualInput')}
                                 </Button>
                             </div>
                         )}
@@ -148,21 +150,21 @@ const TestSuitesPage: React.FC = () => {
             <Card className="shadow-md border-none overflow-hidden">
                 <CardHeader className="bg-muted/50 border-b">
                     <CardTitle className="text-lg">
-                        Test Runs: <span className="text-primary">{projects?.find(p => p.id === selectedProjectId)?.name || "Pilih Proyek"}</span>
+                        {t('testSuites.testRunsTitle')}<span className="text-primary">{projects?.find(p => p.id === selectedProjectId)?.name || t('testSuites.selectProjectFallback')}</span>
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0"> {/* P-0 agar tabel menempel ke pinggir card */}
                     {isErrorSuites && (
                         <div className="p-8 text-destructive flex items-center justify-center">
                             <AlertTriangle className="h-5 w-5 mr-2" />
-                            Gagal memuat data Test Suites.
+                            {t('testSuites.loadError')}
                         </div>
                     )}
 
                     {isLoadingSuites ? (
                         <div className="flex flex-col items-center justify-center p-20 space-y-4">
                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                            <p className="text-muted-foreground animate-pulse">Memuat riwayat pengujian...</p>
+                            <p className="text-muted-foreground animate-pulse">{t('testSuites.loadingHistory')}</p>
                         </div>
                     ) : (
                         <>

@@ -1,5 +1,6 @@
 // src/pages/ActivityLogPage.tsx
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollText, Loader2, AlertTriangle } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -22,6 +23,7 @@ const actionBadgeClass = (action: string): string => {
 };
 
 const ActivityLogPage: React.FC = () => {
+    const { t } = useTranslation();
     const [page, setPage] = useState(0);
     const { data, isLoading, isError } = useActivityLog({ page, size: PAGE_SIZE });
 
@@ -29,40 +31,40 @@ const ActivityLogPage: React.FC = () => {
         <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-500">
             <div className="border-b pb-6">
                 <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                    <ScrollText className="h-7 w-7 text-primary" /> Activity Log
+                    <ScrollText className="h-7 w-7 text-primary" /> {t('nav.activityLog')}
                 </h1>
-                <p className="text-muted-foreground mt-1">Riwayat aktivitas seluruh sistem (khusus Admin).</p>
+                <p className="text-muted-foreground mt-1">{t('activityLog.subtitle')}</p>
             </div>
 
             <Card className="shadow-md border-none overflow-hidden">
                 <CardHeader className="bg-muted/40 border-b">
-                    <CardTitle className="text-lg">Log Aktivitas</CardTitle>
-                    <CardDescription>{data ? `${data.totalElements} entri tercatat` : 'Memuat...'}</CardDescription>
+                    <CardTitle className="text-lg">{t('activityLog.listTitle')}</CardTitle>
+                    <CardDescription>{data ? t('activityLog.entriesRecorded', { count: data.totalElements }) : t('activityLog.loading')}</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
                     {isError ? (
                         <div className="p-10 text-center text-destructive flex flex-col items-center gap-2">
                             <AlertTriangle className="h-8 w-8" />
-                            Gagal memuat log aktivitas. Pastikan Anda memiliki akses Admin.
+                            {t('activityLog.loadError')}
                         </div>
                     ) : isLoading ? (
                         <div className="flex items-center justify-center p-20 text-muted-foreground">
-                            <Loader2 className="h-6 w-6 animate-spin mr-2" /> Memuat log...
+                            <Loader2 className="h-6 w-6 animate-spin mr-2" /> {t('activityLog.loadingLog')}
                         </div>
                     ) : !data || data.content.length === 0 ? (
-                        <div className="p-16 text-center text-muted-foreground">Belum ada aktivitas tercatat.</div>
+                        <div className="p-16 text-center text-muted-foreground">{t('activityLog.empty')}</div>
                     ) : (
                         <>
                             <div className="overflow-x-auto">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
-                                            <TableHead className="w-[170px]">Waktu</TableHead>
-                                            <TableHead className="w-[90px]">User ID</TableHead>
-                                            <TableHead className="w-[150px]">Aksi</TableHead>
-                                            <TableHead>Entitas</TableHead>
-                                            <TableHead>Detail</TableHead>
-                                            <TableHead className="w-[130px]">IP</TableHead>
+                                            <TableHead className="w-[170px]">{t('activityLog.table.time')}</TableHead>
+                                            <TableHead className="w-[90px]">{t('activityLog.table.userId')}</TableHead>
+                                            <TableHead className="w-[150px]">{t('activityLog.table.action')}</TableHead>
+                                            <TableHead>{t('activityLog.table.entity')}</TableHead>
+                                            <TableHead>{t('activityLog.table.detail')}</TableHead>
+                                            <TableHead className="w-[130px]">{t('activityLog.table.ip')}</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>

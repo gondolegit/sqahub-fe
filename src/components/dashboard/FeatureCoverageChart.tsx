@@ -4,6 +4,7 @@
 // paling sedikit (backend sudah mengurutkan ascending) — feature dengan 0 test case
 // ditandai sebagai "gap" cakupan yang perlu diperhatikan.
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell,
 } from 'recharts';
@@ -25,13 +26,14 @@ interface CustomTooltipProps {
 }
 
 const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
+    const { t } = useTranslation();
     if (!active || !payload || !payload.length) return null;
     const item = payload[0].payload;
     return (
         <div className="bg-card border border-border shadow-lg text-sm rounded-md p-3">
             <p className="font-bold text-foreground">{item.featureName}</p>
             <p className="text-muted-foreground text-xs">
-                {item.testCaseCount === 0 ? 'Belum ada test case (gap cakupan)' : `${item.testCaseCount} test case`}
+                {item.testCaseCount === 0 ? t('qualityDashboard.coverageChart.gap') : t('qualityDashboard.coverageChart.count', { count: item.testCaseCount })}
             </p>
         </div>
     );

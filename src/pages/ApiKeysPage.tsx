@@ -1,5 +1,6 @@
 // src/pages/ApiKeysPage.tsx
 import React, { useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import {
     KeyRound, Plus, Trash2, Loader2, Copy, Check, ShieldAlert, Clock, CalendarClock,
 } from 'lucide-react';
@@ -34,6 +35,7 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 const ApiKeysPage: React.FC = () => {
+    const { t } = useTranslation();
     const { hasRole } = useAuth();
     const canManage = hasRole([...API_KEY_MANAGE_ROLES]);
 
@@ -76,23 +78,23 @@ const ApiKeysPage: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b pb-6">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                        <KeyRound className="h-7 w-7 text-primary" /> API Keys
+                        <KeyRound className="h-7 w-7 text-primary" /> {t('common.apiKeys')}
                     </h1>
                     <p className="text-muted-foreground mt-1">
-                        Kelola kredensial untuk integrasi eksternal (Katalon, Jenkins, dsb).
+                        {t('apiKeys.subtitle')}
                     </p>
                 </div>
                 {canManage && (
                     <Button onClick={() => setIsCreateOpen(true)} className="shadow-md">
-                        <Plus className="mr-2 h-4 w-4" /> Buat API Key
+                        <Plus className="mr-2 h-4 w-4" /> {t('apiKeys.createButton')}
                     </Button>
                 )}
             </div>
 
             <Card className="shadow-md border-none">
                 <CardHeader>
-                    <CardTitle className="text-lg">Daftar API Key Anda</CardTitle>
-                    <CardDescription>Hanya kunci milik akun Anda sendiri yang ditampilkan.</CardDescription>
+                    <CardTitle className="text-lg">{t('apiKeys.listTitle')}</CardTitle>
+                    <CardDescription>{t('apiKeys.listSubtitle')}</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
                     {isLoading ? (
@@ -102,18 +104,18 @@ const ApiKeysPage: React.FC = () => {
                     ) : !apiKeys || apiKeys.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 text-center">
                             <KeyRound className="h-10 w-10 text-muted-foreground/30 mb-3" />
-                            <p className="text-muted-foreground">Belum ada API Key.</p>
+                            <p className="text-muted-foreground">{t('apiKeys.empty')}</p>
                         </div>
                     ) : (
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Nama</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Kedaluwarsa</TableHead>
-                                    <TableHead>Terakhir Dipakai</TableHead>
-                                    <TableHead>Dibuat</TableHead>
-                                    {canManage && <TableHead className="text-right">Aksi</TableHead>}
+                                    <TableHead>{t('apiKeys.table.name')}</TableHead>
+                                    <TableHead>{t('apiKeys.table.status')}</TableHead>
+                                    <TableHead>{t('apiKeys.table.expires')}</TableHead>
+                                    <TableHead>{t('apiKeys.table.lastUsed')}</TableHead>
+                                    <TableHead>{t('apiKeys.table.created')}</TableHead>
+                                    {canManage && <TableHead className="text-right">{t('apiKeys.table.actions')}</TableHead>}
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -126,10 +128,10 @@ const ApiKeysPage: React.FC = () => {
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-sm text-muted-foreground">
-                                            {key.expiresAt ? formatDate(key.expiresAt) : 'Tidak pernah'}
+                                            {key.expiresAt ? formatDate(key.expiresAt) : t('apiKeys.neverExpires')}
                                         </TableCell>
                                         <TableCell className="text-sm text-muted-foreground">
-                                            {key.lastUsedAt ? formatDate(key.lastUsedAt, true) : 'Belum pernah'}
+                                            {key.lastUsedAt ? formatDate(key.lastUsedAt, true) : t('apiKeys.neverUsed')}
                                         </TableCell>
                                         <TableCell className="text-sm text-muted-foreground">{formatDate(key.createdAt)}</TableCell>
                                         {canManage && (
@@ -140,7 +142,7 @@ const ApiKeysPage: React.FC = () => {
                                                     className="text-muted-foreground hover:text-destructive"
                                                     onClick={() => setKeyToRevoke(key)}
                                                     disabled={key.status === 'REVOKED'}
-                                                    aria-label={`Cabut kunci ${key.name}`}
+                                                    aria-label={t('apiKeys.revokeAria', { name: key.name })}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
@@ -158,25 +160,25 @@ const ApiKeysPage: React.FC = () => {
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                 <DialogContent className="sm:max-w-[420px]">
                     <DialogHeader>
-                        <DialogTitle>Buat API Key Baru</DialogTitle>
-                        <DialogDescription>Beri nama yang jelas agar mudah dikenali nanti.</DialogDescription>
+                        <DialogTitle>{t('apiKeys.createDialog.title')}</DialogTitle>
+                        <DialogDescription>{t('apiKeys.createDialog.description')}</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleCreate} className="space-y-4">
                         <div className="space-y-1.5">
-                            <Label htmlFor="keyName">Nama</Label>
-                            <Input id="keyName" placeholder="Mis. Jenkins CI Pipeline" value={name} onChange={(e) => setName(e.target.value)} required />
+                            <Label htmlFor="keyName">{t('apiKeys.createDialog.nameLabel')}</Label>
+                            <Input id="keyName" placeholder={t('apiKeys.createDialog.namePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} required />
                         </div>
                         <div className="space-y-1.5">
                             <Label htmlFor="keyExpiry" className="flex items-center gap-1.5">
-                                <CalendarClock className="h-3.5 w-3.5" /> Kedaluwarsa (opsional)
+                                <CalendarClock className="h-3.5 w-3.5" /> {t('apiKeys.createDialog.expiryLabel')}
                             </Label>
                             <Input id="keyExpiry" type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
                         </div>
                         <DialogFooter>
-                            <Button type="button" variant="ghost" onClick={() => setIsCreateOpen(false)}>Batal</Button>
+                            <Button type="button" variant="ghost" onClick={() => setIsCreateOpen(false)}>{t('apiKeys.createDialog.cancel')}</Button>
                             <Button type="submit" disabled={createMutation.isPending}>
                                 {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                                Buat
+                                {t('apiKeys.createDialog.submit')}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -188,20 +190,20 @@ const ApiKeysPage: React.FC = () => {
                 <DialogContent className="sm:max-w-[480px]">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-emerald-600">
-                            <ShieldAlert className="h-5 w-5" /> API Key Berhasil Dibuat
+                            <ShieldAlert className="h-5 w-5" /> {t('apiKeys.revealDialog.title')}
                         </DialogTitle>
                         <DialogDescription>
-                            Salin kunci ini sekarang — demi keamanan, kunci lengkap <span className="font-semibold">tidak akan ditampilkan lagi</span> setelah dialog ini ditutup.
+                            <Trans i18nKey="apiKeys.revealDialog.description" components={{ bold: <span className="font-semibold" /> }} />
                         </DialogDescription>
                     </DialogHeader>
                     <div className="flex items-center gap-2 rounded-lg border bg-muted p-3">
                         <code className="flex-1 break-all text-sm font-mono text-foreground">{revealedKey?.rawKey}</code>
-                        <Button type="button" size="icon" variant="outline" className="shrink-0" onClick={handleCopy} aria-label="Salin API key">
+                        <Button type="button" size="icon" variant="outline" className="shrink-0" onClick={handleCopy} aria-label={t('apiKeys.revealDialog.copyAria')}>
                             {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
                         </Button>
                     </div>
                     <DialogFooter>
-                        <Button onClick={() => setRevealedKey(null)}>Saya Sudah Menyimpannya</Button>
+                        <Button onClick={() => setRevealedKey(null)}>{t('apiKeys.revealDialog.confirmSaved')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -210,13 +212,13 @@ const ApiKeysPage: React.FC = () => {
             <AlertDialog open={!!keyToRevoke} onOpenChange={(open) => !open && setKeyToRevoke(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="flex items-center gap-2"><Clock className="h-5 w-5 text-destructive" /> Cabut API Key?</AlertDialogTitle>
+                        <AlertDialogTitle className="flex items-center gap-2"><Clock className="h-5 w-5 text-destructive" /> {t('apiKeys.revokeConfirm.title')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            "{keyToRevoke?.name}" akan langsung berhenti berfungsi untuk semua integrasi yang memakainya. Tindakan ini tidak dapat dibatalkan.
+                            {t('apiKeys.revokeConfirm.description', { name: keyToRevoke?.name })}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogCancel>{t('apiKeys.revokeConfirm.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             className="bg-destructive hover:bg-destructive/90"
                             onClick={() => {
@@ -224,7 +226,7 @@ const ApiKeysPage: React.FC = () => {
                                 setKeyToRevoke(null);
                             }}
                         >
-                            Cabut
+                            {t('apiKeys.revokeConfirm.action')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

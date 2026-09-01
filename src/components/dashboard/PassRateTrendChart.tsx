@@ -1,5 +1,6 @@
 // src/components/dashboard/PassRateTrendChart.tsx
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine,
 } from 'recharts';
@@ -16,6 +17,7 @@ interface CustomTooltipProps {
 }
 
 const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
+    const { t } = useTranslation();
     if (!active || !payload || !payload.length) return null;
     const point = payload[0].payload;
     return (
@@ -23,16 +25,19 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
             <p className="font-bold text-foreground">{point.testSuiteName}</p>
             <p className="text-muted-foreground text-xs">{new Date(point.startDate).toLocaleDateString('id-ID')}</p>
             <p className="font-semibold" style={{ color: point.passRatePercent >= 95 ? '#10B981' : point.passRatePercent >= 70 ? '#F59E0B' : '#EF4444' }}>
-                Pass Rate: {point.passRatePercent.toFixed(1)}%
+                {t('qualityDashboard.trendChart.passRateLabel', { value: point.passRatePercent.toFixed(1) })}
             </p>
             <p className="text-xs text-muted-foreground">
-                {point.totalPassed} passed · {point.totalFailed} failed · {point.totalError} error · {point.totalSkipped} skipped
+                {t('qualityDashboard.trendChart.breakdown', {
+                    passed: point.totalPassed, failed: point.totalFailed, error: point.totalError, skipped: point.totalSkipped,
+                })}
             </p>
         </div>
     );
 };
 
 const PassRateTrendChart: React.FC<PassRateTrendChartProps> = ({ data, thresholdPercent = 95 }) => {
+    const { t } = useTranslation();
     const chartData = data.map((d, i) => ({
         ...d,
         label: `#${i + 1}`,
@@ -45,7 +50,7 @@ const PassRateTrendChart: React.FC<PassRateTrendChartProps> = ({ data, threshold
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'currentColor' }} className="text-muted-foreground" />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: 'currentColor' }} className="text-muted-foreground" unit="%" />
                 <Tooltip content={<CustomTooltip />} />
-                <ReferenceLine y={thresholdPercent} stroke="#94a3b8" strokeDasharray="4 4" label={{ value: `Ambang ${thresholdPercent}%`, fontSize: 10, fill: '#94a3b8', position: 'insideTopRight' }} />
+                <ReferenceLine y={thresholdPercent} stroke="#94a3b8" strokeDasharray="4 4" label={{ value: t('qualityDashboard.trendChart.thresholdLabel', { value: thresholdPercent }), fontSize: 10, fill: '#94a3b8', position: 'insideTopRight' }} />
                 <Line
                     type="monotone"
                     dataKey="passRatePercent"

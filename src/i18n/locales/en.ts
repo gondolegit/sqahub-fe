@@ -335,5 +335,225 @@ export default {
       "importAnother": "Import Another File",
       "done": "Done"
     }
+  },
+  "testSuites": {
+    "pageTitle": "Test Suite History",
+    "filterCardTitle": "Filter & Actions",
+    "projectLabel": "Project",
+    "projectLoading": "Loading...",
+    "projectPlaceholder": "Choose a Project",
+    "searchLabel": "Search Run Name",
+    "searchPlaceholder": "Type a test suite name...",
+    "startLiveRun": "Start Live Run",
+    "startLiveRunTitle": "Start a new run, filling in test case results one by one in real time",
+    "manualInput": "Manual Input",
+    "manualInputTitle": "Log an already-completed run all at once (retroactively)",
+    "testRunsTitle": "Test Runs: ",
+    "selectProjectFallback": "Choose a Project",
+    "loadError": "Failed to load Test Suite data.",
+    "loadingHistory": "Loading test history...",
+    "table": {
+      "status": "Status",
+      "runName": "Run Name",
+      "startTime": "Start Time",
+      "passed": "Passed",
+      "failedError": "Failed/Error",
+      "duration": "Duration",
+      "actions": "Actions"
+    },
+    "emptyTitle": "No Test Run has been executed for this project yet (ID: {{projectId}}).",
+    "emptyHint": "Please start a new Test Suite Run execution.",
+    "viewDetail": "View Run Detail",
+    "deleteRun": "Delete Run",
+    "deleteConfirmTitle": "Delete Test Suite Run",
+    "deleteConfirmDescription": "Are you sure you want to delete Test Suite Run '{{name}}'? This action cannot be undone. Run ID: {{id}}",
+    "deleteConfirmAction": "Yes, Delete Run",
+    "status": {
+      "inProgress": "IN PROGRESS",
+      "failed": "FAILED",
+      "passed": "PASSED",
+      "skipped": "SKIPPED",
+      "completed": "COMPLETED"
+    },
+    "startDialog": {
+      "title": "START LIVE RUN",
+      "description": "The run will be saved immediately as \"IN PROGRESS\". Add results per test case gradually on the next page, then finalize whenever you're done.",
+      "nameLabel": "Run Name",
+      "namePlaceholder": "e.g. Regression Sprint 24",
+      "typeLabel": "Type",
+      "stageLabel": "Stage",
+      "envLabel": "Env",
+      "versionLabel": "Version",
+      "tagLabel": "Tag",
+      "tagPlaceholder": "Smoke, Regression...",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Optional — the goal/scope of this run...",
+      "cancel": "Cancel",
+      "submit": "Start Run"
+    },
+    "runDetail": {
+      "idColumn": "TC ID",
+      "statusColumn": "Status",
+      "nameColumn": "Test Case Name",
+      "actualResultColumn": "Actual Result",
+      "remarksColumn": "Remarks",
+      "actionsColumn": "Actions",
+      "evidenceTitle": "Execution Evidence",
+      "evidenceAria": "View evidence for TC-{{id}}",
+      "editTitle": "Edit Result",
+      "editAria": "Edit result for TC-{{id}}",
+      "deleteTitle": "Delete Result",
+      "deleteAria": "Delete result for TC-{{id}}",
+      "deleteConfirmTitle": "Delete Execution Result?",
+      "deleteConfirmDescription": "The result for TC-{{id}} ({{name}}) will be permanently deleted from this run.",
+      "deleteConfirmAction": "Yes, Delete"
+    },
+    "evidenceDialog": {
+      "title": "Execution Evidence",
+      "runDetailFallback": "Run Detail #{{id}}",
+      "loading": "Loading evidence...",
+      "empty": "No evidence has been attached yet.",
+      "uploadNewLabel": "Upload New Evidence",
+      "descriptionPlaceholder": "Description (optional)",
+      "uploadButton": "Upload",
+      "downloadAria": "Download {{name}}"
+    },
+    "deployDecision": {
+      "computing": "Calculating deploy readiness...",
+      "title": "Deploy Decision",
+      "ready": "READY TO DEPLOY",
+      "notReady": "NOT READY TO DEPLOY",
+      "passRate": "Pass Rate",
+      "threshold": "/ threshold {{value}}%",
+      "passed": "Passed",
+      "failed": "Failed",
+      "error": "Error",
+      "skipped": "Skipped"
+    },
+    "addRunDetail": {
+      "trigger": "Add Test Case Result",
+      "title": "Add Test Case Result",
+      "description": "Log execution results one at a time — the dialog stays open after saving so you can move straight on to the next test case.",
+      "savedLabel": "Saved: {{name}}",
+      "testCaseLabel": "Test Case",
+      "remainingLabel": "{{count}} remaining",
+      "testCasePlaceholder": "Choose a test case...",
+      "allUsed": "Every test case in this project is already in the run.",
+      "statusLabel": "Status",
+      "actualResultLabel": "Actual Result",
+      "actualResultPlaceholder": "What happened during execution?",
+      "remarksLabel": "Remarks",
+      "remarksPlaceholder": "Optional",
+      "done": "Done",
+      "submit": "Save & Continue"
+    },
+    "editRunDetail": {
+      "title": "Edit Execution Result",
+      "statusLabel": "Status",
+      "actualResultLabel": "Actual Result",
+      "remarksLabel": "Remarks",
+      "remarksPlaceholder": "Optional",
+      "cancel": "Cancel",
+      "submit": "Save"
+    }
+  },
+  "apiKeys": {
+    "subtitle": "Manage credentials for external integrations (Katalon, Jenkins, etc).",
+    "createButton": "Create API Key",
+    "listTitle": "Your API Keys",
+    "listSubtitle": "Only keys belonging to your own account are shown.",
+    "empty": "No API Keys yet.",
+    "table": {
+      "name": "Name",
+      "status": "Status",
+      "expires": "Expires",
+      "lastUsed": "Last Used",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "neverExpires": "Never",
+    "neverUsed": "Never used",
+    "revokeAria": "Revoke key {{name}}",
+    "createDialog": {
+      "title": "Create New API Key",
+      "description": "Give it a clear name so it's easy to recognize later.",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. Jenkins CI Pipeline",
+      "expiryLabel": "Expiry (optional)",
+      "cancel": "Cancel",
+      "submit": "Create"
+    },
+    "revealDialog": {
+      "title": "API Key Created Successfully",
+      "description": "Copy this key now — for security, the full key <bold>will not be shown again</bold> once this dialog is closed.",
+      "copyAria": "Copy API key",
+      "confirmSaved": "I've Saved It"
+    },
+    "revokeConfirm": {
+      "title": "Revoke API Key?",
+      "description": "\"{{name}}\" will immediately stop working for every integration that uses it. This action cannot be undone.",
+      "cancel": "Cancel",
+      "action": "Revoke"
+    }
+  },
+  "activityLog": {
+    "subtitle": "Activity history across the whole system (Admin only).",
+    "listTitle": "Activity Log",
+    "entriesRecorded": "{{count}} entries recorded",
+    "loading": "Loading...",
+    "loadError": "Failed to load the activity log. Make sure you have Admin access.",
+    "loadingLog": "Loading log...",
+    "empty": "No activity recorded yet.",
+    "table": {
+      "time": "Time",
+      "userId": "User ID",
+      "action": "Action",
+      "entity": "Entity",
+      "detail": "Detail",
+      "ip": "IP"
+    }
+  },
+  "qualityDashboard": {
+    "subtitle": "Testing quality trends and test case coverage per project.",
+    "projectLabel": "Project",
+    "projectLoading": "Loading...",
+    "projectPlaceholder": "Choose a Project",
+    "composing": "Building the quality dashboard...",
+    "loadError": "Failed to load the dashboard. Make sure you have access to this project.",
+    "selectProjectPrompt": "Choose a project to view its dashboard.",
+    "stats": {
+      "totalFeatures": "Total Features",
+      "gapCount": "{{count}} without test cases",
+      "allCovered": "All features covered",
+      "totalTestCases": "Total Test Cases",
+      "testSuiteRun": "Test Suite Runs",
+      "totalRunsSubtitle": "{{count}} total (including in-progress)",
+      "overallPassRate": "Overall Pass Rate",
+      "passRateSubtitle": "{{passed}} / {{total}} test cases"
+    },
+    "trend": {
+      "title": "Pass Rate Trend",
+      "subtitleWithData": "Last {{count}} finalized runs",
+      "subtitleEmpty": "No finalized runs yet",
+      "emptyHint": "Finalize at least 1 Test Suite Run to see the pass rate trend."
+    },
+    "deployDecision": {
+      "empty": "No deploy decision yet — finalize a run first."
+    },
+    "coverage": {
+      "title": "Test Case Coverage per Feature",
+      "subtitleWithData": "Sorted from the thinnest coverage — red means there are no test cases at all yet.",
+      "subtitleEmpty": "There are no features in this project yet.",
+      "emptyHint": "Add features and test cases to see the coverage map here."
+    },
+    "trendChart": {
+      "passRateLabel": "Pass Rate: {{value}}%",
+      "breakdown": "{{passed}} passed · {{failed}} failed · {{error}} error · {{skipped}} skipped",
+      "thresholdLabel": "Threshold {{value}}%"
+    },
+    "coverageChart": {
+      "gap": "No test cases yet (coverage gap)",
+      "count": "{{count}} test cases"
+    }
   }
 } as const;

@@ -4,6 +4,7 @@
 // (bukan langsung tertutup) sehingga tester bisa lanjut ke test case berikutnya tanpa membuka
 // ulang dialog — cocok untuk mencatat hasil satu per satu selagi run masih berjalan.
 import React, { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Loader2, PlusCircle, CheckCircle2 } from 'lucide-react';
 
 import {
@@ -27,6 +28,7 @@ interface AddRunDetailDialogProps {
 }
 
 const AddRunDetailDialog: React.FC<AddRunDetailDialogProps> = ({ testSuiteId, projectId, existingTestCaseIds }) => {
+    const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [testCaseId, setTestCaseId] = useState<string>('');
     const [status, setStatus] = useState<RunDetailStatus>('PASSED');
@@ -85,36 +87,35 @@ const AddRunDetailDialog: React.FC<AddRunDetailDialogProps> = ({ testSuiteId, pr
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
-                    <PlusCircle className="h-4 w-4 mr-2" /> Tambah Hasil Test Case
+                    <PlusCircle className="h-4 w-4 mr-2" /> {t('testSuites.addRunDetail.trigger')}
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[480px]">
                 <DialogHeader>
-                    <DialogTitle>Tambah Hasil Test Case</DialogTitle>
+                    <DialogTitle>{t('testSuites.addRunDetail.title')}</DialogTitle>
                     <DialogDescription>
-                        Catat hasil eksekusi satu per satu — dialog tetap terbuka setelah disimpan
-                        agar Anda bisa langsung lanjut ke test case berikutnya.
+                        {t('testSuites.addRunDetail.description')}
                     </DialogDescription>
                 </DialogHeader>
 
                 {justSavedName && (
                     <div className="flex items-center gap-2 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
-                        <CheckCircle2 className="h-4 w-4 shrink-0" /> Tersimpan: {justSavedName}
+                        <CheckCircle2 className="h-4 w-4 shrink-0" /> {t('testSuites.addRunDetail.savedLabel', { name: justSavedName })}
                     </div>
                 )}
 
                 <div className="space-y-4 py-2">
                     <div className="space-y-1.5">
                         <div className="flex items-center justify-between">
-                            <Label>Test Case</Label>
-                            <span className="text-xs text-muted-foreground">{availableTestCases.length} tersisa</span>
+                            <Label>{t('testSuites.addRunDetail.testCaseLabel')}</Label>
+                            <span className="text-xs text-muted-foreground">{t('testSuites.addRunDetail.remainingLabel', { count: availableTestCases.length })}</span>
                         </div>
                         <Select value={testCaseId} onValueChange={setTestCaseId}>
-                            <SelectTrigger><SelectValue placeholder="Pilih test case..." /></SelectTrigger>
+                            <SelectTrigger><SelectValue placeholder={t('testSuites.addRunDetail.testCasePlaceholder')} /></SelectTrigger>
                             <SelectContent>
                                 {availableTestCases.length === 0 ? (
                                     <div className="p-3 text-xs text-muted-foreground text-center">
-                                        Semua test case di proyek ini sudah ada di run.
+                                        {t('testSuites.addRunDetail.allUsed')}
                                     </div>
                                 ) : (
                                     availableTestCases.map((tc) => (
@@ -125,7 +126,7 @@ const AddRunDetailDialog: React.FC<AddRunDetailDialogProps> = ({ testSuiteId, pr
                         </Select>
                     </div>
                     <div className="space-y-1.5">
-                        <Label>Status</Label>
+                        <Label>{t('testSuites.addRunDetail.statusLabel')}</Label>
                         <Select value={status} onValueChange={(v) => setStatus(v as RunDetailStatus)}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
@@ -134,20 +135,20 @@ const AddRunDetailDialog: React.FC<AddRunDetailDialogProps> = ({ testSuiteId, pr
                         </Select>
                     </div>
                     <div className="space-y-1.5">
-                        <Label>Hasil Aktual</Label>
-                        <Textarea value={actualResult} onChange={(e) => setActualResult(e.target.value)} className="min-h-[80px]" placeholder="Apa yang terjadi saat eksekusi?" />
+                        <Label>{t('testSuites.addRunDetail.actualResultLabel')}</Label>
+                        <Textarea value={actualResult} onChange={(e) => setActualResult(e.target.value)} className="min-h-[80px]" placeholder={t('testSuites.addRunDetail.actualResultPlaceholder')} />
                     </div>
                     <div className="space-y-1.5">
-                        <Label>Catatan (Remarks)</Label>
-                        <Textarea value={remarks} onChange={(e) => setRemarks(e.target.value)} className="min-h-[60px]" placeholder="Opsional" />
+                        <Label>{t('testSuites.addRunDetail.remarksLabel')}</Label>
+                        <Textarea value={remarks} onChange={(e) => setRemarks(e.target.value)} className="min-h-[60px]" placeholder={t('testSuites.addRunDetail.remarksPlaceholder')} />
                     </div>
                 </div>
 
                 <DialogFooter>
-                    <Button variant="ghost" onClick={() => handleOpenChange(false)}>Selesai</Button>
+                    <Button variant="ghost" onClick={() => handleOpenChange(false)}>{t('testSuites.addRunDetail.done')}</Button>
                     <Button onClick={handleSubmit} disabled={!testCaseId || addMutation.isPending}>
                         {addMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                        Simpan &amp; Lanjut
+                        {t('testSuites.addRunDetail.submit')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

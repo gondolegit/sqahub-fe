@@ -4,6 +4,7 @@
 // tren pass rate dari histori run yang sudah difinalisasi, dan keputusan kelayakan deploy
 // dari run terakhir — semuanya dari satu panggilan agregat (useProjectDashboard).
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Gauge, Loader2, AlertTriangle, Layers, ClipboardList, ListChecks, TrendingUp,
     LineChart as LineChartIcon, BarChart3, ShieldAlert,
@@ -50,6 +51,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, subtitle, icon, color
 };
 
 const QualityDashboardPage: React.FC = () => {
+    const { t } = useTranslation();
     const [selectedProjectId, setSelectedProjectId] = useState<number | undefined>(undefined);
 
     const { data: projectsPage, isLoading: isLoadingProjects } = useProjects({ size: 100 });
@@ -73,19 +75,19 @@ const QualityDashboardPage: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold flex items-center">
-                        <Gauge className="h-7 w-7 mr-3 text-primary" /> Quality Dashboard
+                        <Gauge className="h-7 w-7 mr-3 text-primary" /> {t('nav.qualityDashboard')}
                     </h1>
-                    <p className="text-muted-foreground mt-1">Tren kualitas pengujian dan cakupan test case per proyek.</p>
+                    <p className="text-muted-foreground mt-1">{t('qualityDashboard.subtitle')}</p>
                 </div>
                 <div className="w-full md:w-64 space-y-1.5">
-                    <label className="text-xs font-bold uppercase text-muted-foreground">Proyek</label>
+                    <label className="text-xs font-bold uppercase text-muted-foreground">{t('qualityDashboard.projectLabel')}</label>
                     <Select
                         onValueChange={(v) => setSelectedProjectId(parseInt(v))}
                         value={selectedProjectId ? String(selectedProjectId) : undefined}
                         disabled={isLoadingProjects}
                     >
                         <SelectTrigger className="bg-background">
-                            <SelectValue placeholder={isLoadingProjects ? "Memuat..." : "Pilih Proyek"} />
+                            <SelectValue placeholder={isLoadingProjects ? t('qualityDashboard.projectLoading') : t('qualityDashboard.projectPlaceholder')} />
                         </SelectTrigger>
                         <SelectContent>
                             {projects?.map((project) => (
@@ -99,43 +101,43 @@ const QualityDashboardPage: React.FC = () => {
             {isLoadingDashboard ? (
                 <div className="flex flex-col items-center justify-center p-20 space-y-4">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-muted-foreground animate-pulse">Menyusun dashboard kualitas...</p>
+                    <p className="text-muted-foreground animate-pulse">{t('qualityDashboard.composing')}</p>
                 </div>
             ) : isError ? (
                 <div className="p-8 text-center text-red-600 bg-red-50 dark:bg-red-500/10 dark:text-red-400 rounded-lg border border-red-100 dark:border-red-500/30">
                     <AlertTriangle className="h-8 w-8 mx-auto mb-3" />
-                    Gagal memuat dashboard. Pastikan Anda memiliki akses ke proyek ini.
+                    {t('qualityDashboard.loadError')}
                 </div>
             ) : !dashboard ? (
-                <div className="p-16 text-center text-muted-foreground">Pilih proyek untuk melihat dashboard.</div>
+                <div className="p-16 text-center text-muted-foreground">{t('qualityDashboard.selectProjectPrompt')}</div>
             ) : (
                 <>
                     {/* Stat Cards */}
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                         <StatCard
-                            title="Total Fitur"
+                            title={t('qualityDashboard.stats.totalFeatures')}
                             value={dashboard.totalFeatures}
-                            subtitle={gapCount > 0 ? `${gapCount} belum ada test case` : 'Semua fitur tercakup'}
+                            subtitle={gapCount > 0 ? t('qualityDashboard.stats.gapCount', { count: gapCount }) : t('qualityDashboard.stats.allCovered')}
                             icon={<Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
                             color="blue"
                         />
                         <StatCard
-                            title="Total Test Case"
+                            title={t('qualityDashboard.stats.totalTestCases')}
                             value={dashboard.totalTestCases}
                             icon={<ClipboardList className="h-5 w-5 text-purple-600 dark:text-purple-400" />}
                             color="purple"
                         />
                         <StatCard
-                            title="Test Suite Run"
+                            title={t('qualityDashboard.stats.testSuiteRun')}
                             value={dashboard.totalFinalizedRuns}
-                            subtitle={`${dashboard.totalTestSuiteRuns} total (termasuk in-progress)`}
+                            subtitle={t('qualityDashboard.stats.totalRunsSubtitle', { count: dashboard.totalTestSuiteRuns })}
                             icon={<ListChecks className="h-5 w-5 text-amber-600 dark:text-amber-400" />}
                             color="amber"
                         />
                         <StatCard
-                            title="Pass Rate Keseluruhan"
+                            title={t('qualityDashboard.stats.overallPassRate')}
                             value={`${dashboard.statusBreakdown.passRatePercent.toFixed(1)}%`}
-                            subtitle={`${dashboard.statusBreakdown.totalPassed} / ${dashboard.statusBreakdown.totalTests} test case`}
+                            subtitle={t('qualityDashboard.stats.passRateSubtitle', { passed: dashboard.statusBreakdown.totalPassed, total: dashboard.statusBreakdown.totalTests })}
                             icon={<TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />}
                             color="emerald"
                         />
@@ -146,12 +148,12 @@ const QualityDashboardPage: React.FC = () => {
                         <Card className="lg:col-span-3 shadow-lg border-none">
                             <CardHeader>
                                 <CardTitle className="flex items-center text-lg">
-                                    <LineChartIcon className="h-5 w-5 mr-2 text-primary" /> Tren Pass Rate
+                                    <LineChartIcon className="h-5 w-5 mr-2 text-primary" /> {t('qualityDashboard.trend.title')}
                                 </CardTitle>
                                 <CardDescription>
                                     {hasTrend
-                                        ? `${dashboard.passRateTrend.length} run terakhir yang sudah difinalisasi`
-                                        : 'Belum ada run yang difinalisasi'}
+                                        ? t('qualityDashboard.trend.subtitleWithData', { count: dashboard.passRateTrend.length })
+                                        : t('qualityDashboard.trend.subtitleEmpty')}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="h-[300px]">
@@ -163,7 +165,7 @@ const QualityDashboardPage: React.FC = () => {
                                 ) : (
                                     <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-sm gap-2">
                                         <LineChartIcon className="h-10 w-10 opacity-20" />
-                                        Selesaikan minimal 1 Test Suite Run untuk melihat tren pass rate.
+                                        {t('qualityDashboard.trend.emptyHint')}
                                     </div>
                                 )}
                             </CardContent>
@@ -177,7 +179,7 @@ const QualityDashboardPage: React.FC = () => {
                                 <Card className="h-full shadow-lg border-none flex items-center justify-center">
                                     <CardContent className="text-center text-muted-foreground text-sm p-8 space-y-2">
                                         <ShieldAlert className="h-10 w-10 mx-auto opacity-20" />
-                                        Belum ada keputusan deploy — selesaikan sebuah run terlebih dahulu.
+                                        {t('qualityDashboard.deployDecision.empty')}
                                     </CardContent>
                                 </Card>
                             )}
@@ -188,12 +190,12 @@ const QualityDashboardPage: React.FC = () => {
                     <Card className="shadow-lg border-none">
                         <CardHeader>
                             <CardTitle className="flex items-center text-lg">
-                                <BarChart3 className="h-5 w-5 mr-2 text-primary" /> Cakupan Test Case per Fitur
+                                <BarChart3 className="h-5 w-5 mr-2 text-primary" /> {t('qualityDashboard.coverage.title')}
                             </CardTitle>
                             <CardDescription>
                                 {hasFeatures
-                                    ? 'Diurutkan dari cakupan paling tipis — merah berarti belum ada test case sama sekali.'
-                                    : 'Belum ada fitur di proyek ini.'}
+                                    ? t('qualityDashboard.coverage.subtitleWithData')
+                                    : t('qualityDashboard.coverage.subtitleEmpty')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -201,7 +203,7 @@ const QualityDashboardPage: React.FC = () => {
                                 <FeatureCoverageChart data={dashboard.featureCoverage} />
                             ) : (
                                 <div className="py-12 text-center text-muted-foreground text-sm">
-                                    Tambahkan fitur dan test case untuk melihat peta cakupan di sini.
+                                    {t('qualityDashboard.coverage.emptyHint')}
                                 </div>
                             )}
                         </CardContent>

@@ -1,5 +1,6 @@
 // src/components/reports/DeployDecisionCard.tsx
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Rocket, ShieldAlert, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -12,13 +13,14 @@ interface DeployDecisionCardProps {
 }
 
 const DeployDecisionCard: React.FC<DeployDecisionCardProps> = ({ testSuiteId, className }) => {
+    const { t } = useTranslation();
     const { data, isLoading, isError } = useDeployDecision(testSuiteId);
 
     if (isLoading) {
         return (
             <Card className={className}>
                 <CardContent className="flex items-center justify-center p-8 text-muted-foreground">
-                    <Loader2 className="h-5 w-5 animate-spin mr-2" /> Menghitung kelayakan deploy...
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" /> {t('testSuites.deployDecision.computing')}
                 </CardContent>
             </Card>
         );
@@ -40,20 +42,20 @@ const DeployDecisionCard: React.FC<DeployDecisionCardProps> = ({ testSuiteId, cl
                         ) : (
                             <ShieldAlert className="h-5 w-5 text-red-600 dark:text-red-400" />
                         )}
-                        Keputusan Deploy
+                        {t('testSuites.deployDecision.title')}
                     </span>
                     <Badge className={isDeployReady ? 'bg-emerald-600' : 'bg-red-600'}>
-                        {isDeployReady ? 'LAYAK DEPLOY' : 'TIDAK LAYAK DEPLOY'}
+                        {isDeployReady ? t('testSuites.deployDecision.ready') : t('testSuites.deployDecision.notReady')}
                     </Badge>
                 </CardTitle>
             </CardHeader>
             <CardContent className="pt-4 space-y-4">
                 <div className="space-y-1.5">
                     <div className="flex justify-between items-baseline text-sm">
-                        <span className="text-muted-foreground">Pass Rate</span>
+                        <span className="text-muted-foreground">{t('testSuites.deployDecision.passRate')}</span>
                         <span className="font-bold text-lg">
                             {data.passRatePercent.toFixed(1)}%
-                            <span className="text-xs font-normal text-muted-foreground ml-1">/ ambang {data.thresholdPercent}%</span>
+                            <span className="text-xs font-normal text-muted-foreground ml-1">{t('testSuites.deployDecision.threshold', { value: data.thresholdPercent })}</span>
                         </span>
                     </div>
                     <Progress
@@ -65,19 +67,19 @@ const DeployDecisionCard: React.FC<DeployDecisionCardProps> = ({ testSuiteId, cl
                 <div className="grid grid-cols-4 gap-2 text-center text-xs">
                     <div className="rounded-lg bg-emerald-50 dark:bg-emerald-500/10 p-2">
                         <div className="font-bold text-emerald-700 dark:text-emerald-400">{data.totalPassed}</div>
-                        <div className="text-emerald-600 dark:text-emerald-400/80">Passed</div>
+                        <div className="text-emerald-600 dark:text-emerald-400/80">{t('testSuites.deployDecision.passed')}</div>
                     </div>
                     <div className="rounded-lg bg-red-50 dark:bg-red-500/10 p-2">
                         <div className="font-bold text-red-700 dark:text-red-400">{data.totalFailed}</div>
-                        <div className="text-red-600 dark:text-red-400/80">Failed</div>
+                        <div className="text-red-600 dark:text-red-400/80">{t('testSuites.deployDecision.failed')}</div>
                     </div>
                     <div className="rounded-lg bg-amber-50 dark:bg-amber-500/10 p-2">
                         <div className="font-bold text-amber-700 dark:text-amber-400">{data.totalError}</div>
-                        <div className="text-amber-600 dark:text-amber-400/80">Error</div>
+                        <div className="text-amber-600 dark:text-amber-400/80">{t('testSuites.deployDecision.error')}</div>
                     </div>
                     <div className="rounded-lg bg-muted p-2">
                         <div className="font-bold text-foreground">{data.totalSkipped}</div>
-                        <div className="text-muted-foreground">Skipped</div>
+                        <div className="text-muted-foreground">{t('testSuites.deployDecision.skipped')}</div>
                     </div>
                 </div>
 

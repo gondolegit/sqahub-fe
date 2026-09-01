@@ -1,6 +1,7 @@
 // src/components/reports/RunDetailList.tsx
 
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Paperclip, Pencil, Trash2, Loader2 } from 'lucide-react';
 // 🚨 PERBAIKAN IMPOR: Gunakan tipe RunDetail yang sudah diselaraskan
 import { type RunDetail } from '@/types/testSuite';
@@ -29,6 +30,7 @@ interface RunDetailListProps {
 }
 
 const RunDetailList: React.FC<RunDetailListProps> = ({ runDetails, testSuiteId }) => {
+    const { t } = useTranslation();
     const { hasRole } = useAuth();
     const canEdit = hasRole([...RUN_DETAIL_EDIT_ROLES]);
     const canDelete = hasRole([...RUN_DETAIL_DELETE_ROLES]);
@@ -52,12 +54,12 @@ const RunDetailList: React.FC<RunDetailListProps> = ({ runDetails, testSuiteId }
             <Table>
                 <TableHeader>
                     <TableRow className="bg-muted">
-                        <TableHead className="w-[100px]">ID TC</TableHead>
-                        <TableHead className="w-[150px]">Status</TableHead>
-                        <TableHead>Nama Test Case</TableHead>
-                        <TableHead>Hasil Aktual</TableHead>
-                        <TableHead className="w-[200px]">Catatan (Remarks)</TableHead>
-                        <TableHead className="w-[140px] text-right">Aksi</TableHead>
+                        <TableHead className="w-[100px]">{t('testSuites.runDetail.idColumn')}</TableHead>
+                        <TableHead className="w-[150px]">{t('testSuites.runDetail.statusColumn')}</TableHead>
+                        <TableHead>{t('testSuites.runDetail.nameColumn')}</TableHead>
+                        <TableHead>{t('testSuites.runDetail.actualResultColumn')}</TableHead>
+                        <TableHead className="w-[200px]">{t('testSuites.runDetail.remarksColumn')}</TableHead>
+                        <TableHead className="w-[140px] text-right">{t('testSuites.runDetail.actionsColumn')}</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -83,8 +85,8 @@ const RunDetailList: React.FC<RunDetailListProps> = ({ runDetails, testSuiteId }
                                         <Button
                                             variant="ghost" size="icon" className="h-8 w-8"
                                             onClick={() => setEvidenceFor(detail)}
-                                            title="Bukti Eksekusi"
-                                            aria-label={`Lihat bukti untuk TC-${detail.idTestCase}`}
+                                            title={t('testSuites.runDetail.evidenceTitle')}
+                                            aria-label={t('testSuites.runDetail.evidenceAria', { id: detail.idTestCase })}
                                         >
                                             <Paperclip className="h-4 w-4 text-muted-foreground" />
                                         </Button>
@@ -92,8 +94,8 @@ const RunDetailList: React.FC<RunDetailListProps> = ({ runDetails, testSuiteId }
                                             <Button
                                                 variant="ghost" size="icon" className="h-8 w-8"
                                                 onClick={() => setEditing(detail)}
-                                                title="Edit Hasil"
-                                                aria-label={`Edit hasil TC-${detail.idTestCase}`}
+                                                title={t('testSuites.runDetail.editTitle')}
+                                                aria-label={t('testSuites.runDetail.editAria', { id: detail.idTestCase })}
                                             >
                                                 <Pencil className="h-4 w-4 text-muted-foreground" />
                                             </Button>
@@ -102,8 +104,8 @@ const RunDetailList: React.FC<RunDetailListProps> = ({ runDetails, testSuiteId }
                                             <Button
                                                 variant="ghost" size="icon" className="h-8 w-8"
                                                 onClick={() => setDeleting(detail)}
-                                                title="Hapus Hasil"
-                                                aria-label={`Hapus hasil TC-${detail.idTestCase}`}
+                                                title={t('testSuites.runDetail.deleteTitle')}
+                                                aria-label={t('testSuites.runDetail.deleteAria', { id: detail.idTestCase })}
                                             >
                                                 <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
@@ -131,19 +133,19 @@ const RunDetailList: React.FC<RunDetailListProps> = ({ runDetails, testSuiteId }
             <AlertDialog open={!!deleting} onOpenChange={(open) => !open && setDeleting(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Hapus Hasil Eksekusi?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('testSuites.runDetail.deleteConfirmTitle')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Hasil untuk TC-{deleting?.idTestCase} ({deleting?.testCaseName}) akan dihapus permanen dari run ini.
+                            {t('testSuites.runDetail.deleteConfirmDescription', { id: deleting?.idTestCase, name: deleting?.testCaseName })}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={deleteMutation.isPending}>Batal</AlertDialogCancel>
+                        <AlertDialogCancel disabled={deleteMutation.isPending}>{t('common.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             className="bg-destructive hover:bg-destructive/90"
                             onClick={handleConfirmDelete}
                             disabled={deleteMutation.isPending}
                         >
-                            {deleteMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : 'Ya, Hapus'}
+                            {deleteMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : t('testSuites.runDetail.deleteConfirmAction')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

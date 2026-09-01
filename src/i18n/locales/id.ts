@@ -335,5 +335,225 @@ export default {
       "importAnother": "Import File Lain",
       "done": "Selesai"
     }
+  },
+  "testSuites": {
+    "pageTitle": "Riwayat Test Suites",
+    "filterCardTitle": "Filter & Aksi",
+    "projectLabel": "Proyek",
+    "projectLoading": "Memuat...",
+    "projectPlaceholder": "Pilih Proyek",
+    "searchLabel": "Cari Nama Run",
+    "searchPlaceholder": "Ketik nama test suite...",
+    "startLiveRun": "Mulai Live Run",
+    "startLiveRunTitle": "Mulai run baru, isi hasil test case satu per satu secara real-time",
+    "manualInput": "Input Manual",
+    "manualInputTitle": "Catat run yang sudah selesai dieksekusi sekaligus (retroaktif)",
+    "testRunsTitle": "Test Runs: ",
+    "selectProjectFallback": "Pilih Proyek",
+    "loadError": "Gagal memuat data Test Suites.",
+    "loadingHistory": "Memuat riwayat pengujian...",
+    "table": {
+      "status": "Status",
+      "runName": "Nama Run",
+      "startTime": "Waktu Mulai",
+      "passed": "Passed",
+      "failedError": "Failed/Error",
+      "duration": "Durasi",
+      "actions": "Aksi"
+    },
+    "emptyTitle": "Belum ada Test Run yang tereksekusi untuk proyek ini (ID: {{projectId}}).",
+    "emptyHint": "Silahkan mulai eksekusi Test Suite Run yang baru.",
+    "viewDetail": "Lihat Detail Run",
+    "deleteRun": "Hapus Run",
+    "deleteConfirmTitle": "Hapus Test Suite Run",
+    "deleteConfirmDescription": "Apakah Anda yakin ingin menghapus Test Suite Run '{{name}}'? Tindakan ini tidak dapat dibatalkan. ID Run: {{id}}",
+    "deleteConfirmAction": "Ya, Hapus Run",
+    "status": {
+      "inProgress": "IN PROGRESS",
+      "failed": "FAILED",
+      "passed": "PASSED",
+      "skipped": "SKIPPED",
+      "completed": "COMPLETED"
+    },
+    "startDialog": {
+      "title": "MULAI LIVE RUN",
+      "description": "Run akan langsung tersimpan sebagai \"IN PROGRESS\". Tambahkan hasil per test case secara bertahap di halaman berikutnya, lalu finalisasi kapan saja Anda selesai.",
+      "nameLabel": "Nama Run",
+      "namePlaceholder": "Contoh: Regression Sprint 24",
+      "typeLabel": "Tipe",
+      "stageLabel": "Stage",
+      "envLabel": "Env",
+      "versionLabel": "Versi",
+      "tagLabel": "Tag",
+      "tagPlaceholder": "Smoke, Regression...",
+      "descriptionLabel": "Deskripsi",
+      "descriptionPlaceholder": "Opsional — tujuan/cakupan run ini...",
+      "cancel": "Batal",
+      "submit": "Mulai Run"
+    },
+    "runDetail": {
+      "idColumn": "ID TC",
+      "statusColumn": "Status",
+      "nameColumn": "Nama Test Case",
+      "actualResultColumn": "Hasil Aktual",
+      "remarksColumn": "Catatan (Remarks)",
+      "actionsColumn": "Aksi",
+      "evidenceTitle": "Bukti Eksekusi",
+      "evidenceAria": "Lihat bukti untuk TC-{{id}}",
+      "editTitle": "Edit Hasil",
+      "editAria": "Edit hasil TC-{{id}}",
+      "deleteTitle": "Hapus Hasil",
+      "deleteAria": "Hapus hasil TC-{{id}}",
+      "deleteConfirmTitle": "Hapus Hasil Eksekusi?",
+      "deleteConfirmDescription": "Hasil untuk TC-{{id}} ({{name}}) akan dihapus permanen dari run ini.",
+      "deleteConfirmAction": "Ya, Hapus"
+    },
+    "evidenceDialog": {
+      "title": "Bukti Eksekusi",
+      "runDetailFallback": "Run Detail #{{id}}",
+      "loading": "Memuat bukti...",
+      "empty": "Belum ada bukti yang dilampirkan.",
+      "uploadNewLabel": "Unggah Bukti Baru",
+      "descriptionPlaceholder": "Deskripsi (opsional)",
+      "uploadButton": "Unggah",
+      "downloadAria": "Unduh {{name}}"
+    },
+    "deployDecision": {
+      "computing": "Menghitung kelayakan deploy...",
+      "title": "Keputusan Deploy",
+      "ready": "LAYAK DEPLOY",
+      "notReady": "TIDAK LAYAK DEPLOY",
+      "passRate": "Pass Rate",
+      "threshold": "/ ambang {{value}}%",
+      "passed": "Passed",
+      "failed": "Failed",
+      "error": "Error",
+      "skipped": "Skipped"
+    },
+    "addRunDetail": {
+      "trigger": "Tambah Hasil Test Case",
+      "title": "Tambah Hasil Test Case",
+      "description": "Catat hasil eksekusi satu per satu — dialog tetap terbuka setelah disimpan agar Anda bisa langsung lanjut ke test case berikutnya.",
+      "savedLabel": "Tersimpan: {{name}}",
+      "testCaseLabel": "Test Case",
+      "remainingLabel": "{{count}} tersisa",
+      "testCasePlaceholder": "Pilih test case...",
+      "allUsed": "Semua test case di proyek ini sudah ada di run.",
+      "statusLabel": "Status",
+      "actualResultLabel": "Hasil Aktual",
+      "actualResultPlaceholder": "Apa yang terjadi saat eksekusi?",
+      "remarksLabel": "Catatan (Remarks)",
+      "remarksPlaceholder": "Opsional",
+      "done": "Selesai",
+      "submit": "Simpan & Lanjut"
+    },
+    "editRunDetail": {
+      "title": "Edit Hasil Eksekusi",
+      "statusLabel": "Status",
+      "actualResultLabel": "Hasil Aktual",
+      "remarksLabel": "Catatan (Remarks)",
+      "remarksPlaceholder": "Opsional",
+      "cancel": "Batal",
+      "submit": "Simpan"
+    }
+  },
+  "apiKeys": {
+    "subtitle": "Kelola kredensial untuk integrasi eksternal (Katalon, Jenkins, dsb).",
+    "createButton": "Buat API Key",
+    "listTitle": "Daftar API Key Anda",
+    "listSubtitle": "Hanya kunci milik akun Anda sendiri yang ditampilkan.",
+    "empty": "Belum ada API Key.",
+    "table": {
+      "name": "Nama",
+      "status": "Status",
+      "expires": "Kedaluwarsa",
+      "lastUsed": "Terakhir Dipakai",
+      "created": "Dibuat",
+      "actions": "Aksi"
+    },
+    "neverExpires": "Tidak pernah",
+    "neverUsed": "Belum pernah",
+    "revokeAria": "Cabut kunci {{name}}",
+    "createDialog": {
+      "title": "Buat API Key Baru",
+      "description": "Beri nama yang jelas agar mudah dikenali nanti.",
+      "nameLabel": "Nama",
+      "namePlaceholder": "Mis. Jenkins CI Pipeline",
+      "expiryLabel": "Kedaluwarsa (opsional)",
+      "cancel": "Batal",
+      "submit": "Buat"
+    },
+    "revealDialog": {
+      "title": "API Key Berhasil Dibuat",
+      "description": "Salin kunci ini sekarang — demi keamanan, kunci lengkap <bold>tidak akan ditampilkan lagi</bold> setelah dialog ini ditutup.",
+      "copyAria": "Salin API key",
+      "confirmSaved": "Saya Sudah Menyimpannya"
+    },
+    "revokeConfirm": {
+      "title": "Cabut API Key?",
+      "description": "\"{{name}}\" akan langsung berhenti berfungsi untuk semua integrasi yang memakainya. Tindakan ini tidak dapat dibatalkan.",
+      "cancel": "Batal",
+      "action": "Cabut"
+    }
+  },
+  "activityLog": {
+    "subtitle": "Riwayat aktivitas seluruh sistem (khusus Admin).",
+    "listTitle": "Log Aktivitas",
+    "entriesRecorded": "{{count}} entri tercatat",
+    "loading": "Memuat...",
+    "loadError": "Gagal memuat log aktivitas. Pastikan Anda memiliki akses Admin.",
+    "loadingLog": "Memuat log...",
+    "empty": "Belum ada aktivitas tercatat.",
+    "table": {
+      "time": "Waktu",
+      "userId": "User ID",
+      "action": "Aksi",
+      "entity": "Entitas",
+      "detail": "Detail",
+      "ip": "IP"
+    }
+  },
+  "qualityDashboard": {
+    "subtitle": "Tren kualitas pengujian dan cakupan test case per proyek.",
+    "projectLabel": "Proyek",
+    "projectLoading": "Memuat...",
+    "projectPlaceholder": "Pilih Proyek",
+    "composing": "Menyusun dashboard kualitas...",
+    "loadError": "Gagal memuat dashboard. Pastikan Anda memiliki akses ke proyek ini.",
+    "selectProjectPrompt": "Pilih proyek untuk melihat dashboard.",
+    "stats": {
+      "totalFeatures": "Total Fitur",
+      "gapCount": "{{count}} belum ada test case",
+      "allCovered": "Semua fitur tercakup",
+      "totalTestCases": "Total Test Case",
+      "testSuiteRun": "Test Suite Run",
+      "totalRunsSubtitle": "{{count}} total (termasuk in-progress)",
+      "overallPassRate": "Pass Rate Keseluruhan",
+      "passRateSubtitle": "{{passed}} / {{total}} test case"
+    },
+    "trend": {
+      "title": "Tren Pass Rate",
+      "subtitleWithData": "{{count}} run terakhir yang sudah difinalisasi",
+      "subtitleEmpty": "Belum ada run yang difinalisasi",
+      "emptyHint": "Selesaikan minimal 1 Test Suite Run untuk melihat tren pass rate."
+    },
+    "deployDecision": {
+      "empty": "Belum ada keputusan deploy — selesaikan sebuah run terlebih dahulu."
+    },
+    "coverage": {
+      "title": "Cakupan Test Case per Fitur",
+      "subtitleWithData": "Diurutkan dari cakupan paling tipis — merah berarti belum ada test case sama sekali.",
+      "subtitleEmpty": "Belum ada fitur di proyek ini.",
+      "emptyHint": "Tambahkan fitur dan test case untuk melihat peta cakupan di sini."
+    },
+    "trendChart": {
+      "passRateLabel": "Pass Rate: {{value}}%",
+      "breakdown": "{{passed}} passed · {{failed}} failed · {{error}} error · {{skipped}} skipped",
+      "thresholdLabel": "Ambang {{value}}%"
+    },
+    "coverageChart": {
+      "gap": "Belum ada test case (gap cakupan)",
+      "count": "{{count}} test case"
+    }
   }
 } as const;

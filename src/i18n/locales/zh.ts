@@ -335,5 +335,225 @@ export default {
       "importAnother": "导入其他文件",
       "done": "完成"
     }
+  },
+  "testSuites": {
+    "pageTitle": "测试套件历史",
+    "filterCardTitle": "筛选与操作",
+    "projectLabel": "项目",
+    "projectLoading": "加载中……",
+    "projectPlaceholder": "选择项目",
+    "searchLabel": "搜索运行名称",
+    "searchPlaceholder": "输入测试套件名称……",
+    "startLiveRun": "开始实时运行",
+    "startLiveRunTitle": "开始新的运行，实时逐条填写测试用例结果",
+    "manualInput": "手动录入",
+    "manualInputTitle": "一次性记录已经执行完成的运行（补录）",
+    "testRunsTitle": "测试运行：",
+    "selectProjectFallback": "选择项目",
+    "loadError": "加载测试套件数据失败。",
+    "loadingHistory": "正在加载测试历史……",
+    "table": {
+      "status": "状态",
+      "runName": "运行名称",
+      "startTime": "开始时间",
+      "passed": "通过",
+      "failedError": "失败/错误",
+      "duration": "耗时",
+      "actions": "操作"
+    },
+    "emptyTitle": "该项目（ID：{{projectId}}）尚无已执行的测试运行。",
+    "emptyHint": "请开始一次新的测试套件运行。",
+    "viewDetail": "查看运行详情",
+    "deleteRun": "删除运行",
+    "deleteConfirmTitle": "删除测试套件运行",
+    "deleteConfirmDescription": "确定要删除测试套件运行「{{name}}」吗？此操作无法撤销。运行 ID：{{id}}",
+    "deleteConfirmAction": "是，删除运行",
+    "status": {
+      "inProgress": "进行中",
+      "failed": "失败",
+      "passed": "通过",
+      "skipped": "已跳过",
+      "completed": "已完成"
+    },
+    "startDialog": {
+      "title": "开始实时运行",
+      "description": "运行将立即保存为「进行中」状态。请在下一页逐条添加测试用例结果，完成后随时可以结束运行。",
+      "nameLabel": "运行名称",
+      "namePlaceholder": "例如：Sprint 24 回归测试",
+      "typeLabel": "类型",
+      "stageLabel": "阶段",
+      "envLabel": "环境",
+      "versionLabel": "版本",
+      "tagLabel": "标签",
+      "tagPlaceholder": "冒烟测试、回归测试……",
+      "descriptionLabel": "描述",
+      "descriptionPlaceholder": "可选——此次运行的目标/范围……",
+      "cancel": "取消",
+      "submit": "开始运行"
+    },
+    "runDetail": {
+      "idColumn": "用例 ID",
+      "statusColumn": "状态",
+      "nameColumn": "测试用例名称",
+      "actualResultColumn": "实际结果",
+      "remarksColumn": "备注",
+      "actionsColumn": "操作",
+      "evidenceTitle": "执行证据",
+      "evidenceAria": "查看 TC-{{id}} 的证据",
+      "editTitle": "编辑结果",
+      "editAria": "编辑 TC-{{id}} 的结果",
+      "deleteTitle": "删除结果",
+      "deleteAria": "删除 TC-{{id}} 的结果",
+      "deleteConfirmTitle": "删除执行结果？",
+      "deleteConfirmDescription": "TC-{{id}}（{{name}}）的结果将从此次运行中永久删除。",
+      "deleteConfirmAction": "是，删除"
+    },
+    "evidenceDialog": {
+      "title": "执行证据",
+      "runDetailFallback": "运行详情 #{{id}}",
+      "loading": "正在加载证据……",
+      "empty": "尚未附加任何证据。",
+      "uploadNewLabel": "上传新证据",
+      "descriptionPlaceholder": "描述（可选）",
+      "uploadButton": "上传",
+      "downloadAria": "下载 {{name}}"
+    },
+    "deployDecision": {
+      "computing": "正在计算部署可行性……",
+      "title": "部署决策",
+      "ready": "适合部署",
+      "notReady": "不适合部署",
+      "passRate": "通过率",
+      "threshold": "/ 阈值 {{value}}%",
+      "passed": "通过",
+      "failed": "失败",
+      "error": "错误",
+      "skipped": "已跳过"
+    },
+    "addRunDetail": {
+      "trigger": "添加测试用例结果",
+      "title": "添加测试用例结果",
+      "description": "逐条记录执行结果——保存后对话框会保持打开，方便您直接继续下一个测试用例。",
+      "savedLabel": "已保存：{{name}}",
+      "testCaseLabel": "测试用例",
+      "remainingLabel": "剩余 {{count}} 个",
+      "testCasePlaceholder": "选择测试用例……",
+      "allUsed": "该项目的所有测试用例都已在此运行中。",
+      "statusLabel": "状态",
+      "actualResultLabel": "实际结果",
+      "actualResultPlaceholder": "执行时发生了什么？",
+      "remarksLabel": "备注",
+      "remarksPlaceholder": "可选",
+      "done": "完成",
+      "submit": "保存并继续"
+    },
+    "editRunDetail": {
+      "title": "编辑执行结果",
+      "statusLabel": "状态",
+      "actualResultLabel": "实际结果",
+      "remarksLabel": "备注",
+      "remarksPlaceholder": "可选",
+      "cancel": "取消",
+      "submit": "保存"
+    }
+  },
+  "apiKeys": {
+    "subtitle": "管理用于外部集成的凭证（Katalon、Jenkins 等）。",
+    "createButton": "创建 API 密钥",
+    "listTitle": "您的 API 密钥",
+    "listSubtitle": "仅显示您自己账户下的密钥。",
+    "empty": "暂无 API 密钥。",
+    "table": {
+      "name": "名称",
+      "status": "状态",
+      "expires": "过期时间",
+      "lastUsed": "最后使用",
+      "created": "创建时间",
+      "actions": "操作"
+    },
+    "neverExpires": "永不过期",
+    "neverUsed": "从未使用",
+    "revokeAria": "吊销密钥 {{name}}",
+    "createDialog": {
+      "title": "创建新 API 密钥",
+      "description": "取一个清晰的名称，方便日后识别。",
+      "nameLabel": "名称",
+      "namePlaceholder": "例如：Jenkins CI 流水线",
+      "expiryLabel": "过期时间（可选）",
+      "cancel": "取消",
+      "submit": "创建"
+    },
+    "revealDialog": {
+      "title": "API 密钥创建成功",
+      "description": "请立即复制此密钥——出于安全考虑，关闭此对话框后完整密钥<bold>将不再显示</bold>。",
+      "copyAria": "复制 API 密钥",
+      "confirmSaved": "我已保存"
+    },
+    "revokeConfirm": {
+      "title": "吊销 API 密钥？",
+      "description": "「{{name}}」将立即停止对所有使用它的集成生效。此操作无法撤销。",
+      "cancel": "取消",
+      "action": "吊销"
+    }
+  },
+  "activityLog": {
+    "subtitle": "整个系统的活动记录（仅限管理员）。",
+    "listTitle": "活动日志",
+    "entriesRecorded": "已记录 {{count}} 条",
+    "loading": "加载中……",
+    "loadError": "加载活动日志失败，请确认您拥有管理员权限。",
+    "loadingLog": "正在加载日志……",
+    "empty": "暂无活动记录。",
+    "table": {
+      "time": "时间",
+      "userId": "用户 ID",
+      "action": "操作",
+      "entity": "实体",
+      "detail": "详情",
+      "ip": "IP"
+    }
+  },
+  "qualityDashboard": {
+    "subtitle": "各项目的测试质量趋势与测试用例覆盖情况。",
+    "projectLabel": "项目",
+    "projectLoading": "加载中……",
+    "projectPlaceholder": "选择项目",
+    "composing": "正在生成质量仪表盘……",
+    "loadError": "加载仪表盘失败，请确认您有权访问该项目。",
+    "selectProjectPrompt": "请选择一个项目以查看仪表盘。",
+    "stats": {
+      "totalFeatures": "功能总数",
+      "gapCount": "{{count}} 个尚无测试用例",
+      "allCovered": "所有功能均已覆盖",
+      "totalTestCases": "测试用例总数",
+      "testSuiteRun": "测试套件运行",
+      "totalRunsSubtitle": "共 {{count}} 次（含进行中）",
+      "overallPassRate": "总体通过率",
+      "passRateSubtitle": "{{passed}} / {{total}} 个测试用例"
+    },
+    "trend": {
+      "title": "通过率趋势",
+      "subtitleWithData": "最近 {{count}} 次已完成的运行",
+      "subtitleEmpty": "暂无已完成的运行",
+      "emptyHint": "完成至少 1 次测试套件运行即可查看通过率趋势。"
+    },
+    "deployDecision": {
+      "empty": "暂无部署决策——请先完成一次运行。"
+    },
+    "coverage": {
+      "title": "各功能的测试用例覆盖情况",
+      "subtitleWithData": "按覆盖率从低到高排序——红色表示尚无任何测试用例。",
+      "subtitleEmpty": "该项目尚无功能。",
+      "emptyHint": "添加功能和测试用例后即可在此查看覆盖地图。"
+    },
+    "trendChart": {
+      "passRateLabel": "通过率：{{value}}%",
+      "breakdown": "通过 {{passed}} · 失败 {{failed}} · 错误 {{error}} · 跳过 {{skipped}}",
+      "thresholdLabel": "阈值 {{value}}%"
+    },
+    "coverageChart": {
+      "gap": "尚无测试用例（覆盖缺口）",
+      "count": "{{count}} 个测试用例"
+    }
   }
 } as const;

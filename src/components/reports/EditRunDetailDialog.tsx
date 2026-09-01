@@ -1,5 +1,6 @@
 // src/components/reports/EditRunDetailDialog.tsx
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 
 import {
@@ -29,6 +30,7 @@ const EditRunDetailForm: React.FC<{
     testSuiteId: number;
     onDone: () => void;
 }> = ({ detail, testSuiteId, onDone }) => {
+    const { t } = useTranslation();
     const [status, setStatus] = useState<RunDetailStatus>(detail.status);
     const [actualResult, setActualResult] = useState(detail.actualResult || '');
     const [remarks, setRemarks] = useState(detail.remarks || '');
@@ -57,7 +59,7 @@ const EditRunDetailForm: React.FC<{
         <>
             <div className="space-y-4 py-2">
                 <div className="space-y-1.5">
-                    <Label>Status</Label>
+                    <Label>{t('testSuites.editRunDetail.statusLabel')}</Label>
                     <Select value={status} onValueChange={(v) => setStatus(v as RunDetailStatus)}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
@@ -66,20 +68,20 @@ const EditRunDetailForm: React.FC<{
                     </Select>
                 </div>
                 <div className="space-y-1.5">
-                    <Label>Hasil Aktual</Label>
+                    <Label>{t('testSuites.editRunDetail.actualResultLabel')}</Label>
                     <Textarea value={actualResult} onChange={(e) => setActualResult(e.target.value)} className="min-h-[80px]" />
                 </div>
                 <div className="space-y-1.5">
-                    <Label>Catatan (Remarks)</Label>
-                    <Textarea value={remarks} onChange={(e) => setRemarks(e.target.value)} className="min-h-[60px]" placeholder="Opsional" />
+                    <Label>{t('testSuites.editRunDetail.remarksLabel')}</Label>
+                    <Textarea value={remarks} onChange={(e) => setRemarks(e.target.value)} className="min-h-[60px]" placeholder={t('testSuites.editRunDetail.remarksPlaceholder')} />
                 </div>
             </div>
 
             <DialogFooter>
-                <Button variant="ghost" onClick={onDone}>Batal</Button>
+                <Button variant="ghost" onClick={onDone}>{t('testSuites.editRunDetail.cancel')}</Button>
                 <Button onClick={handleSave} disabled={updateMutation.isPending}>
                     {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Simpan
+                    {t('testSuites.editRunDetail.submit')}
                 </Button>
             </DialogFooter>
         </>
@@ -87,11 +89,12 @@ const EditRunDetailForm: React.FC<{
 };
 
 const EditRunDetailDialog: React.FC<EditRunDetailDialogProps> = ({ detail, testSuiteId, onOpenChange }) => {
+    const { t } = useTranslation();
     return (
         <Dialog open={!!detail} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[480px]">
                 <DialogHeader>
-                    <DialogTitle>Edit Hasil Eksekusi</DialogTitle>
+                    <DialogTitle>{t('testSuites.editRunDetail.title')}</DialogTitle>
                     <DialogDescription>TC-{detail?.idTestCase}: {detail?.testCaseName}</DialogDescription>
                 </DialogHeader>
 

@@ -1,5 +1,6 @@
 // src/components/reports/EvidenceDialog.tsx
 import React, { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Paperclip, Download, Loader2, UploadCloud, FileText, Image as ImageIcon, File as FileIcon } from 'lucide-react';
 
 import {
@@ -38,6 +39,7 @@ const FileTypeIcon = ({ fileType }: { fileType: string }) => {
 };
 
 const EvidenceDialog: React.FC<EvidenceDialogProps> = ({ runDetailId, testCaseName, onOpenChange }) => {
+    const { t } = useTranslation();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [description, setDescription] = useState('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -65,21 +67,21 @@ const EvidenceDialog: React.FC<EvidenceDialogProps> = ({ runDetailId, testCaseNa
             <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden">
                 <DialogHeader className="p-6 pb-4 border-b bg-muted/60">
                     <DialogTitle className="flex items-center gap-2 text-lg">
-                        <Paperclip className="h-5 w-5 text-primary" /> Bukti Eksekusi
+                        <Paperclip className="h-5 w-5 text-primary" /> {t('testSuites.evidenceDialog.title')}
                     </DialogTitle>
-                    <DialogDescription>{testCaseName || `Run Detail #${runDetailId}`}</DialogDescription>
+                    <DialogDescription>{testCaseName || t('testSuites.evidenceDialog.runDetailFallback', { id: runDetailId })}</DialogDescription>
                 </DialogHeader>
 
                 <div className="p-6 space-y-5">
                     <ScrollArea className="h-[220px] rounded-lg border">
                         {isLoading ? (
                             <div className="flex items-center justify-center h-full text-muted-foreground">
-                                <Loader2 className="h-5 w-5 animate-spin mr-2" /> Memuat bukti...
+                                <Loader2 className="h-5 w-5 animate-spin mr-2" /> {t('testSuites.evidenceDialog.loading')}
                             </div>
                         ) : !evidenceList || evidenceList.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm gap-1">
                                 <Paperclip className="h-6 w-6 opacity-30" />
-                                Belum ada bukti yang dilampirkan.
+                                {t('testSuites.evidenceDialog.empty')}
                             </div>
                         ) : (
                             <div className="divide-y">
@@ -99,7 +101,7 @@ const EvidenceDialog: React.FC<EvidenceDialogProps> = ({ runDetailId, testCaseNa
                                                 className="h-8 w-8 shrink-0"
                                                 onClick={() => downloadMutation.mutate(ev)}
                                                 disabled={downloadMutation.isPending}
-                                                aria-label={`Unduh ${ev.fileName}`}
+                                                aria-label={t('testSuites.evidenceDialog.downloadAria', { name: ev.fileName })}
                                             >
                                                 <Download className="h-4 w-4" />
                                             </Button>
@@ -111,14 +113,14 @@ const EvidenceDialog: React.FC<EvidenceDialogProps> = ({ runDetailId, testCaseNa
                     </ScrollArea>
 
                     <div className="space-y-3 rounded-xl border border-dashed p-4 bg-muted/40">
-                        <Label className="text-xs font-bold uppercase text-muted-foreground">Unggah Bukti Baru</Label>
+                        <Label className="text-xs font-bold uppercase text-muted-foreground">{t('testSuites.evidenceDialog.uploadNewLabel')}</Label>
                         <Input
                             ref={fileInputRef}
                             type="file"
                             onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
                         />
                         <Input
-                            placeholder="Deskripsi (opsional)"
+                            placeholder={t('testSuites.evidenceDialog.descriptionPlaceholder')}
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                         />
@@ -132,7 +134,7 @@ const EvidenceDialog: React.FC<EvidenceDialogProps> = ({ runDetailId, testCaseNa
                             ) : (
                                 <UploadCloud className="h-4 w-4 mr-2" />
                             )}
-                            Unggah
+                            {t('testSuites.evidenceDialog.uploadButton')}
                         </Button>
                     </div>
                 </div>

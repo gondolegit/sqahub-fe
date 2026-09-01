@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-    Eye, Trash, CheckCircle, XCircle, AlertTriangle, Clock, Ban, Loader2 
+import { useTranslation } from 'react-i18next';
+import {
+    Eye, Trash, CheckCircle, XCircle, AlertTriangle, Clock, Ban, Loader2
 } from 'lucide-react';
 
 // Import Types
@@ -25,20 +26,22 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton'; 
 
 // --- Helper Functions ---
+// statusKey dipetakan ke label via t('testSuites.status.<key>') saat render, karena fungsi ini
+// murni (dipanggil di luar komponen) dan tidak punya akses ke hook useTranslation().
 const getSuiteStatus = (suite: TestSuite) => {
     if (!suite.endDate) {
-        return { label: "IN PROGRESS", Icon: Clock, className: "bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-500/15 dark:text-blue-400 dark:hover:bg-blue-500/15" };
+        return { statusKey: "inProgress", Icon: Clock, className: "bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-500/15 dark:text-blue-400 dark:hover:bg-blue-500/15" };
     }
     if (suite.statusTotalFailed > 0 || suite.statusTotalError > 0) {
-        return { label: "FAILED", Icon: XCircle, className: "bg-red-100 text-red-800 hover:bg-red-100 dark:bg-red-500/15 dark:text-red-400 dark:hover:bg-red-500/15" };
+        return { statusKey: "failed", Icon: XCircle, className: "bg-red-100 text-red-800 hover:bg-red-100 dark:bg-red-500/15 dark:text-red-400 dark:hover:bg-red-500/15" };
     }
     if (suite.statusTotalPassed > 0) {
-        return { label: "PASSED", Icon: CheckCircle, className: "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-500/15 dark:text-green-400 dark:hover:bg-green-500/15" };
+        return { statusKey: "passed", Icon: CheckCircle, className: "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-500/15 dark:text-green-400 dark:hover:bg-green-500/15" };
     }
     if (suite.statusTotalPassed === 0 && suite.statusTotalFailed === 0 && suite.statusTotalError === 0) {
-        return { label: "SKIPPED", Icon: Ban, className: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-500/15 dark:text-yellow-400 dark:hover:bg-yellow-500/15" };
+        return { statusKey: "skipped", Icon: Ban, className: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 dark:bg-yellow-500/15 dark:text-yellow-400 dark:hover:bg-yellow-500/15" };
     }
-    return { label: "COMPLETED", Icon: CheckCircle, className: "bg-muted text-muted-foreground hover:bg-muted" };
+    return { statusKey: "completed", Icon: CheckCircle, className: "bg-muted text-muted-foreground hover:bg-muted" };
 };
 
 
@@ -49,6 +52,7 @@ interface TestSuitesTableProps {
 }
 
 const TestSuitesTable: React.FC<TestSuitesTableProps> = ({ data, isLoading, projectId }) => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const { hasRole } = useAuth();
     const canDeleteRun = hasRole([...RUN_DELETE_ROLES]);
@@ -109,8 +113,8 @@ const TestSuitesTable: React.FC<TestSuitesTableProps> = ({ data, isLoading, proj
         return (
             <div className="text-center py-10 text-muted-foreground border rounded-lg bg-muted">
                 <AlertTriangle className="h-8 w-8 mx-auto mb-3 text-yellow-500" />
-                <p className="font-semibold">Belum ada Test Run yang tereksekusi untuk proyek ini (ID: {projectId}).</p>
-                <p className="text-sm">Silahkan mulai eksekusi Test Suite Run yang baru.</p>
+                <p className="font-semibold">{t('testSuites.emptyTitle', { projectId })}</p>
+                <p className="text-sm">{t('testSuites.emptyHint')}</p>
             </div>
         );
     }
@@ -121,13 +125,13 @@ const TestSuitesTable: React.FC<TestSuitesTableProps> = ({ data, isLoading, proj
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead className="w-[150px]">Status</TableHead>
-                            <TableHead>Nama Run</TableHead>
-                            <TableHead>Waktu Mulai</TableHead>
-                            <TableHead className="text-center">Passed</TableHead>
-                            <TableHead className="text-center">Failed/Error</TableHead>
-                            <TableHead className="text-center">Durasi</TableHead>
-                            <TableHead className="text-right">Aksi</TableHead>
+                            <TableHead className="w-[150px]">{t('testSuites.table.status')}</TableHead>
+                            <TableHead>{t('testSuites.table.runName')}</TableHead>
+                            <TableHead>{t('testSuites.table.startTime')}</TableHead>
+                            <TableHead className="text-center">{t('testSuites.table.passed')}</TableHead>
+                            <TableHead className="text-center">{t('testSuites.table.failedError')}</TableHead>
+                            <TableHead className="text-center">{t('testSuites.table.duration')}</TableHead>
+                            <TableHead className="text-right">{t('testSuites.table.actions')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -144,7 +148,7 @@ const TestSuitesTable: React.FC<TestSuitesTableProps> = ({ data, isLoading, proj
                                     <TableCell>
                                         <Badge className={`font-semibold ${status.className}`}>
                                             <status.Icon className="h-4 w-4 mr-1.5" />
-                                            {status.label}
+                                            {t(`testSuites.status.${status.statusKey}`)}
                                         </Badge>
                                     </TableCell>
                                     
@@ -183,7 +187,7 @@ const TestSuitesTable: React.FC<TestSuitesTableProps> = ({ data, isLoading, proj
                                             variant="outline" 
                                             size="icon" 
                                             onClick={() => handleViewDetail(suite.id)} // ✅ Menggunakan handleViewDetail yang sudah diperbaiki
-                                            title="Lihat Detail Run"
+                                            title={t('testSuites.viewDetail')}
                                             disabled={deleteMutation.isPending}
                                         >
                                             <Eye className="h-4 w-4 text-blue-600" />
@@ -193,7 +197,7 @@ const TestSuitesTable: React.FC<TestSuitesTableProps> = ({ data, isLoading, proj
                                                 variant="destructive"
                                                 size="icon"
                                                 onClick={() => setSuiteToDelete(suite)}
-                                                title="Hapus Run"
+                                                title={t('testSuites.deleteRun')}
                                                 disabled={deleteMutation.isPending}
                                             >
                                                 {isDeletingThisSuite ? (
@@ -217,9 +221,9 @@ const TestSuitesTable: React.FC<TestSuitesTableProps> = ({ data, isLoading, proj
                     open={!!suiteToDelete}
                     onOpenChange={() => setSuiteToDelete(null)}
                     onConfirm={handleDeleteSuite}
-                    title="Hapus Test Suite Run"
-                    description={`Apakah Anda yakin ingin menghapus Test Suite Run '${suiteToDelete.name}'? Tindakan ini tidak dapat dibatalkan. ID Run: ${suiteToDelete.id}`}
-                    confirmText="Ya, Hapus Run"
+                    title={t('testSuites.deleteConfirmTitle')}
+                    description={t('testSuites.deleteConfirmDescription', { name: suiteToDelete.name, id: suiteToDelete.id })}
+                    confirmText={t('testSuites.deleteConfirmAction')}
                     isDeleting={deleteMutation.isPending}
                 />
             )}
