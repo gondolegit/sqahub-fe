@@ -85,24 +85,13 @@ export interface TestSuiteRunRequest {
 
 // --- TIPE REQUEST (UPDATE/FINALIZE) ---
 
+// PENTING: endpoint PUT /testsuite/{id}/finalize di backend (TestSuiteService.finalizeTestSuiteRun)
+// hanya benar-benar membaca dua field ini dari body — statusTotal* dihitung ULANG dari runDetails
+// yang sudah ada di DB, dan field metadata lain (name/testStage/dst.) diabaikan sepenuhnya. Endpoint
+// ini juga tidak ber-@Valid di controller, jadi mengirim hanya dua field ini valid dan cukup.
 export interface TestSuiteFinalizeRequest {
-    idProject: number;
-    name: string;
-    description: string;
-    tag: string | null;
-    testStage: string;
-    testEnvironment: string;
-    executionType: string;
-    hostname: string;
-    os: string;
-    version: string;
-    browser: string;
-    statusTotalPassed: number;
-    statusTotalFailed: number;
-    statusTotalError: number;
-    statusTotalSkipped: number;
-    elapsedTime: number;
     endDate: string;
+    elapsedTime: number;
 }
 
 // --- DEPLOY DECISION ---

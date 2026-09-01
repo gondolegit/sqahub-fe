@@ -54,7 +54,7 @@ export function formatElapsedTime(ms: number): string {
 
 // Varian berbahasa Indonesia dari formatElapsedTime (dtk/min/jam), dari MILIDETIK.
 // Sumber tunggal — menggantikan reimplementasi ad hoc yang sebelumnya ada di
-// TestSuitesTable.tsx dan TestSuiteDetailPage.tsx (dan salah asumsi input sudah dalam detik).
+// TestSuitesTable.tsx dan TestRunDetailPage.tsx (dan salah asumsi input sudah dalam detik).
 export function formatDurationID(ms: number): string {
     if (typeof ms !== 'number' || ms < 0) return '0 dtk';
 

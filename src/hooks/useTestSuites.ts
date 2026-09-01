@@ -59,8 +59,12 @@ export const useTestSuitesByProject = (projectId: number | undefined, { page = 0
 
 /**
  * 2. Mengambil detail satu Test Suite (Data Statis Suite)
+ *
+ * `liveRefetch`: aktifkan polling ringan (dipakai halaman detail run selagi status masih
+ * IN PROGRESS/endDate null) agar hasil yang ditambahkan dari tab/perangkat lain ikut terlihat
+ * tanpa perlu refresh manual. Otomatis nonaktif begitu run difinalisasi.
  */
-export const useTestSuiteById = (testSuiteId: number | undefined) => {
+export const useTestSuiteById = (testSuiteId: number | undefined, { liveRefetch = false }: { liveRefetch?: boolean } = {}) => {
     return useQuery<TestSuite, Error>({
         queryKey: [TEST_SUITE_QUERY_KEY, 'detail', testSuiteId],
         queryFn: async () => {
@@ -72,6 +76,9 @@ export const useTestSuiteById = (testSuiteId: number | undefined) => {
             return data;
         },
         enabled: !!testSuiteId && testSuiteId > 0,
+        // Poll hanya selagi run masih IN PROGRESS (endDate null) — begitu difinalisasi, berhenti
+        // otomatis tanpa perlu caller tahu status run itu sendiri sebelumnya.
+        refetchInterval: liveRefetch ? (query) => (query.state.data?.endDate ? false : 8000) : false,
     });
 };
 

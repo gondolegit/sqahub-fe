@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, Zap, AlertTriangle, ListFilter, Search } from 'lucide-react';
+import { Loader2, Zap, AlertTriangle, ListFilter, Search, Radio, ClipboardEdit } from 'lucide-react';
 
 // Import Hooks & Types
 import { useProjects } from '@/hooks/useProjects';
@@ -15,6 +15,7 @@ import { Pagination } from '@/components/ui/pagination';
 
 // Import Komponen
 import TestSuiteFormDialog from '@/components/testsuite/TestSuiteFormDialog';
+import StartTestRunDialog from '@/components/testsuite/StartTestRunDialog';
 import TestSuitesTable from '@/components/testsuite/TestSuitesTable';
 
 const PAGE_SIZE = 10;
@@ -28,6 +29,7 @@ const TestSuitesPage: React.FC = () => {
     // 1. States
     const [selectedProjectId, setSelectedProjectId] = useState<number | undefined>(undefined);
     const [page, setPage] = useState(0);
+    const [isStartRunOpen, setIsStartRunOpen] = useState(false);
     const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -118,13 +120,23 @@ const TestSuitesPage: React.FC = () => {
 
                         {/* Tombol New Run */}
                         {canCreateRun && (
-                            <div className="w-full md:w-auto">
+                            <div className="w-full md:w-auto flex gap-2">
                                 <Button
+                                    onClick={() => setIsStartRunOpen(true)}
+                                    disabled={!selectedProjectId}
+                                    className="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 shadow-md"
+                                    title="Mulai run baru, isi hasil test case satu per satu secara real-time"
+                                >
+                                    <Radio className="h-4 w-4 mr-2" /> Mulai Live Run
+                                </Button>
+                                <Button
+                                    variant="outline"
                                     onClick={() => setIsFormDialogOpen(true)}
                                     disabled={!selectedProjectId}
-                                    className="w-full md:w-auto bg-primary hover:bg-primary/90 shadow-md"
+                                    className="w-full md:w-auto"
+                                    title="Catat run yang sudah selesai dieksekusi sekaligus (retroaktif)"
                                 >
-                                    <Zap className="h-4 w-4 mr-2 fill-current" /> New Run Test
+                                    <ClipboardEdit className="h-4 w-4 mr-2" /> Input Manual
                                 </Button>
                             </div>
                         )}
@@ -175,7 +187,14 @@ const TestSuitesPage: React.FC = () => {
                 </CardContent>
             </Card>
 
-            {/* Dialog Run Baru */}
+            {/* Dialog Mulai Live Run — membuat suite kosong (IN PROGRESS), lalu arahkan ke halaman detail */}
+            <StartTestRunDialog
+                open={isStartRunOpen}
+                onOpenChange={setIsStartRunOpen}
+                projectId={selectedProjectId}
+            />
+
+            {/* Dialog Input Manual — logging run yang sudah selesai dieksekusi, sekaligus */}
             <TestSuiteFormDialog
                 open={isFormDialogOpen}
                 onOpenChange={setIsFormDialogOpen}

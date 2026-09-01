@@ -11,7 +11,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 // Halaman di-lazy-load per rute agar bundle awal tetap kecil (penting untuk koneksi lambat) —
-// library berat seperti @react-pdf/renderer/recharts (dipakai TestRunDetailPage/TestSuiteDetailPage)
+// library berat seperti @react-pdf/renderer/recharts (dipakai TestRunDetailPage)
 // baru diunduh saat rute tersebut benar-benar dibuka.
 const LoginPage = lazy(() => import('./pages/Auth/LoginPage'));
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -31,7 +31,6 @@ const ActivityLogPage = lazy(() => import('./pages/ActivityLogPage'));
 
 // Halaman Test Suites
 const TestSuitesPage = lazy(() => import('./pages/TestSuitePage'));
-const TestSuiteDetailPage = lazy(() => import('./pages/TestSuiteDetailPage'));
 const TestRunDetailPage = lazy(() => import('./pages/TestRunDetailPage'));
 
 const ReportsPage = () => <div className="p-4"><h1>Quality Reports (QAM/TESTER Only)</h1></div>;
@@ -90,16 +89,12 @@ const App: React.FC = () => {
                             {/* 🛠️ RUTE TEST SUITES & TEST RUNS */}
                             <Route path="/test-suites" element={<TestSuitesPage />} />
 
-                            {/* 2. Halaman Detail Test SUITE (STATIS/Template) */}
+                            {/* Halaman Detail/Live Test Suite Run — dipakai baik untuk run yang masih
+                                IN PROGRESS (endDate null, bisa ditambah hasil/difinalisasi) maupun run
+                                yang sudah selesai (laporan lengkap + export PDF/Excel). */}
                             <Route
                                 path="/test-suites/detail/:suiteId"
                                 element={<TestRunDetailPage />}
-                            />
-
-                            {/* 3. Halaman Detail Test RUN (DINAMIS - Hasil Eksekusi, untuk Export PDF) */}
-                            <Route
-                                path="/test-runs/:runId"
-                                element={<TestSuiteDetailPage />}
                             />
 
                             {/* Rute Khusus Peran: User Management (ADMIN) */}

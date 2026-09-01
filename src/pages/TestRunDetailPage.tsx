@@ -5,14 +5,19 @@ import { toPng } from 'html-to-image';
 import {
     AlertTriangle, Loader2, CheckCircle, XCircle,
     Download, ChevronLeft, Clock, Monitor, Globe, User, Tag,
-    Info, FastForward, Bug, Layers, Terminal, Server, Shield, Activity, Calendar, FileSpreadsheet
+    Info, FastForward, Bug, Layers, Terminal, Server, Shield, Activity, Calendar, FileSpreadsheet,
+    Radio, FlagTriangleRight,
 } from 'lucide-react';
 
-import { useTestSuiteById, useExportTestSuiteExcel } from '@/hooks/useTestSuites';
+import { useTestSuiteById, useExportTestSuiteExcel, useFinalizeTestSuiteRun } from '@/hooks/useTestSuites';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+    AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 import PdfExportButton from '@/components/reports/PdfExportButton';
 import StatusPieChart from '@/components/reports/StatusPieChart';
@@ -21,6 +26,9 @@ import DeployDecisionCard from '@/components/reports/DeployDecisionCard';
 import AddRunDetailDialog from '@/components/reports/AddRunDetailDialog';
 
 const RUN_DETAIL_ADD_ROLES = ['ADMIN', 'TESTER', 'DEVELOPER'] as const;
+// Sesuai matriks izin backend: PUT /testsuite/{id}/finalize butuh role global ADMIN/TESTER/DEVELOPER
+// (persis sama dengan role yang boleh menambah detail run), jadi cukup pakai daftar yang sama.
+const RUN_FINALIZE_ROLES = RUN_DETAIL_ADD_ROLES;
 
 // --- ISO Standard Formatter ---
 // elapsedTime dari backend dalam milidetik.
@@ -44,12 +52,24 @@ const TestRunDetailPage: React.FC = () => {
     const { suiteId } = useParams<{ suiteId: string }>();
     const navigate = useNavigate();
     const testSuiteId = suiteId ? parseInt(suiteId) : undefined;
-    const { data: testRun, isLoading, error } = useTestSuiteById(testSuiteId);
+    const { data: testRun, isLoading, error } = useTestSuiteById(testSuiteId, { liveRefetch: true });
     const [pieChartBase64, setPieChartBase64] = useState<string>('');
     const chartRef = useRef<HTMLDivElement>(null);
     const { hasRole } = useAuth();
     const canAddRunDetail = hasRole([...RUN_DETAIL_ADD_ROLES]);
+    const canFinalizeRun = hasRole([...RUN_FINALIZE_ROLES]);
     const exportExcelMutation = useExportTestSuiteExcel();
+    const finalizeMutation = useFinalizeTestSuiteRun();
+    const [showFinalizeConfirm, setShowFinalizeConfirm] = useState(false);
+
+    // Jam berjalan (live) untuk run yang masih IN PROGRESS (endDate null) — di-tick setiap detik
+    // selagi berjalan, dihentikan otomatis begitu run difinalisasi.
+    const [liveNow, setLiveNow] = useState(() => Date.now());
+    useEffect(() => {
+        if (!testRun || testRun.endDate) return;
+        const id = setInterval(() => setLiveNow(Date.now()), 1000);
+        return () => clearInterval(id);
+    }, [testRun]);
 
     useEffect(() => {
         if (testRun && chartRef.current) {
@@ -58,6 +78,21 @@ const TestRunDetailPage: React.FC = () => {
                 .catch(err => console.error('Capture Error:', err));
         }
     }, [testRun]);
+
+    const handleFinalize = () => {
+        if (!testRun) return;
+        const now = Date.now();
+        finalizeMutation.mutate(
+            {
+                testSuiteId: testRun.id,
+                payload: {
+                    endDate: new Date(now).toISOString(),
+                    elapsedTime: Math.max(0, now - new Date(testRun.startDate).getTime()),
+                },
+            },
+            { onSuccess: () => setShowFinalizeConfirm(false) }
+        );
+    };
 
     if (!testSuiteId || isLoading || error || !testRun) {
         return (
@@ -83,6 +118,8 @@ const TestRunDetailPage: React.FC = () => {
     }
 
     const total = (testRun.statusTotalPassed + testRun.statusTotalFailed + testRun.statusTotalError + testRun.statusTotalSkipped) || 1;
+    const isInProgress = !testRun.endDate;
+    const liveElapsedMs = isInProgress ? Math.max(0, liveNow - new Date(testRun.startDate).getTime()) : testRun.elapsedTime;
 
     const statusCards = [
         { label: 'PASSED', count: testRun.statusTotalPassed, color: 'emerald', icon: CheckCircle, desc: 'Success Criteria Met' },
@@ -101,7 +138,7 @@ const TestRunDetailPage: React.FC = () => {
         { label: 'User Agent / Browser', value: testRun.browser, icon: Globe },
         { label: 'Classification Tag', value: testRun.tag, icon: Shield },
         { label: 'Test Cycle Stage', value: testRun.testStage, icon: Info },
-        { label: 'Cumulative Duration', value: formatDuration(testRun.elapsedTime), icon: Clock },
+        { label: 'Cumulative Duration', value: formatDuration(liveElapsedMs), icon: Clock },
         { label: 'Testing Officer', value: testRun.executedByUsername, icon: User },
         { label: 'Execution Timestamp', value: new Date(testRun.startDate).toLocaleString('id-ID'), icon: Calendar },
     ];
@@ -125,6 +162,15 @@ const TestRunDetailPage: React.FC = () => {
                                 TEST REPORT: {testRun.name}
                             </h1>
                             <Badge className="bg-primary text-primary-foreground font-mono px-4 py-1 text-lg shadow-lg">ID_{testRun.id}</Badge>
+                            {isInProgress ? (
+                                <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-mono px-4 py-1 text-sm shadow-lg flex items-center gap-2 w-fit">
+                                    <Radio className="h-3.5 w-3.5 animate-pulse" /> LIVE — IN PROGRESS
+                                </Badge>
+                            ) : (
+                                <Badge className="bg-slate-700 text-slate-200 border border-slate-600 font-mono px-4 py-1 text-sm shadow-lg w-fit">
+                                    FINALIZED
+                                </Badge>
+                            )}
                         </div>
                         <p className="text-slate-300 text-lg max-w-4xl font-medium leading-relaxed opacity-90 border-l-2 border-primary/50 pl-4">
                             {testRun.description || "The test objective was executed according to standard operating procedures. No additional notes provided."}
@@ -132,6 +178,15 @@ const TestRunDetailPage: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-3">
+                        {isInProgress && canFinalizeRun && (
+                            <Button
+                                size="lg"
+                                className="bg-emerald-600 hover:bg-emerald-700 font-black px-6 shadow-lg shadow-emerald-900/40"
+                                onClick={() => setShowFinalizeConfirm(true)}
+                            >
+                                <FlagTriangleRight className="h-5 w-5 mr-2" /> SELESAIKAN RUN
+                            </Button>
+                        )}
                         <Button
                             size="lg"
                             variant="outline"
@@ -254,6 +309,33 @@ const TestRunDetailPage: React.FC = () => {
                     <RunDetailList runDetails={testRun.runDetails} testSuiteId={testRun.id} />
                 </div>
             </div>
+
+            {/* Konfirmasi Finalisasi Run — mengunci endDate/elapsedTime, mengubah status dari
+                IN PROGRESS menjadi selesai. Tetap bisa ditambah/diedit hasilnya setelahnya,
+                tapi run tidak akan lagi dianggap "berjalan". */}
+            <AlertDialog open={showFinalizeConfirm} onOpenChange={setShowFinalizeConfirm}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Selesaikan Test Run Ini?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {testRun.runDetails.length === 0
+                                ? `Belum ada satu pun hasil test case yang dicatat pada run "${testRun.name}". Run tetap bisa difinalisasi, tapi pertimbangkan untuk menambah hasil dulu jika belum selesai.`
+                                : `Waktu selesai dan durasi run "${testRun.name}" akan dikunci sesuai waktu saat ini. Anda tetap bisa menambah atau mengubah hasil test case setelahnya, tapi run tidak lagi berstatus IN PROGRESS.`}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={finalizeMutation.isPending}>Batal</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-emerald-600 hover:bg-emerald-700"
+                            onClick={handleFinalize}
+                            disabled={finalizeMutation.isPending}
+                        >
+                            {finalizeMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FlagTriangleRight className="h-4 w-4 mr-2" />}
+                            Ya, Selesaikan Run
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

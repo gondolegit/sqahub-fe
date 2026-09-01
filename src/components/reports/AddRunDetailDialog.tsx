@@ -1,6 +1,10 @@
 // src/components/reports/AddRunDetailDialog.tsx
+//
+// Dialog "checklist-style" untuk eksekusi live: dialog TETAP TERBUKA setelah setiap simpan
+// (bukan langsung tertutup) sehingga tester bisa lanjut ke test case berikutnya tanpa membuka
+// ulang dialog — cocok untuk mencatat hasil satu per satu selagi run masih berjalan.
 import React, { useMemo, useState } from 'react';
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2, PlusCircle, CheckCircle2 } from 'lucide-react';
 
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger,
@@ -28,6 +32,7 @@ const AddRunDetailDialog: React.FC<AddRunDetailDialogProps> = ({ testSuiteId, pr
     const [status, setStatus] = useState<RunDetailStatus>('PASSED');
     const [actualResult, setActualResult] = useState('');
     const [remarks, setRemarks] = useState('');
+    const [justSavedName, setJustSavedName] = useState<string | null>(null);
 
     const { data: testCasesPage } = useTestCasesByProject(open ? projectId : undefined);
     const addMutation = useAddRunDetail(testSuiteId);
@@ -44,8 +49,17 @@ const AddRunDetailDialog: React.FC<AddRunDetailDialogProps> = ({ testSuiteId, pr
         setRemarks('');
     };
 
+    const handleOpenChange = (next: boolean) => {
+        setOpen(next);
+        if (!next) {
+            resetForm();
+            setJustSavedName(null);
+        }
+    };
+
     const handleSubmit = () => {
         if (!testCaseId) return;
+        const savedTc = availableTestCases.find((tc) => tc.id === Number(testCaseId));
         addMutation.mutate(
             {
                 idTestCase: Number(testCaseId),
@@ -58,15 +72,17 @@ const AddRunDetailDialog: React.FC<AddRunDetailDialogProps> = ({ testSuiteId, pr
             },
             {
                 onSuccess: () => {
+                    // Dialog SENGAJA tidak ditutup — reset form untuk test case berikutnya agar
+                    // eksekusi bisa lanjut checklist-style tanpa membuka ulang dialog ini.
                     resetForm();
-                    setOpen(false);
+                    setJustSavedName(savedTc?.name ?? null);
                 },
             }
         );
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
                     <PlusCircle className="h-4 w-4 mr-2" /> Tambah Hasil Test Case
@@ -75,12 +91,24 @@ const AddRunDetailDialog: React.FC<AddRunDetailDialogProps> = ({ testSuiteId, pr
             <DialogContent className="sm:max-w-[480px]">
                 <DialogHeader>
                     <DialogTitle>Tambah Hasil Test Case</DialogTitle>
-                    <DialogDescription>Catat hasil eksekusi satu test case tambahan ke dalam run ini.</DialogDescription>
+                    <DialogDescription>
+                        Catat hasil eksekusi satu per satu — dialog tetap terbuka setelah disimpan
+                        agar Anda bisa langsung lanjut ke test case berikutnya.
+                    </DialogDescription>
                 </DialogHeader>
+
+                {justSavedName && (
+                    <div className="flex items-center gap-2 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
+                        <CheckCircle2 className="h-4 w-4 shrink-0" /> Tersimpan: {justSavedName}
+                    </div>
+                )}
 
                 <div className="space-y-4 py-2">
                     <div className="space-y-1.5">
-                        <Label>Test Case</Label>
+                        <div className="flex items-center justify-between">
+                            <Label>Test Case</Label>
+                            <span className="text-xs text-muted-foreground">{availableTestCases.length} tersisa</span>
+                        </div>
                         <Select value={testCaseId} onValueChange={setTestCaseId}>
                             <SelectTrigger><SelectValue placeholder="Pilih test case..." /></SelectTrigger>
                             <SelectContent>
@@ -116,10 +144,10 @@ const AddRunDetailDialog: React.FC<AddRunDetailDialogProps> = ({ testSuiteId, pr
                 </div>
 
                 <DialogFooter>
-                    <Button variant="ghost" onClick={() => setOpen(false)}>Batal</Button>
+                    <Button variant="ghost" onClick={() => handleOpenChange(false)}>Selesai</Button>
                     <Button onClick={handleSubmit} disabled={!testCaseId || addMutation.isPending}>
                         {addMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                        Simpan
+                        Simpan &amp; Lanjut
                     </Button>
                 </DialogFooter>
             </DialogContent>
