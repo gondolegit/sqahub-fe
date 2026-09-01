@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Document, Page, Text, View, StyleSheet, Image
 } from '@react-pdf/renderer';
@@ -208,6 +209,7 @@ interface ReportDocumentProps {
 }
 
 const ReportDocument: React.FC<ReportDocumentProps> = ({ testSuite, pieChartImage }) => {
+    const { t } = useTranslation();
     // Sinkronisasi logika perhitungan dengan TestRunDetailPage.tsx
     const total = (testSuite.statusTotalPassed + testSuite.statusTotalFailed +
         testSuite.statusTotalError + testSuite.statusTotalSkipped) || 1;
@@ -216,11 +218,11 @@ const ReportDocument: React.FC<ReportDocumentProps> = ({ testSuite, pieChartImag
 
     // Meniru array statusCards dari TestRunDetailPage
     const statusCards = [
-        { label: 'PASSED', count: testSuite.statusTotalPassed, color: COLORS.EMERALD, desc: 'Success Criteria Met' },
-        { label: 'FAILED', count: testSuite.statusTotalFailed, color: COLORS.RED, desc: 'Requirement Not Met' },
-        { label: 'ERROR', count: testSuite.statusTotalError, color: COLORS.AMBER, desc: 'System Fault' },
-        { label: 'SKIPPED', count: testSuite.statusTotalSkipped, color: COLORS.INDIGO, desc: 'Out of Scope' },
-    ];
+        { statusKey: 'passed', count: testSuite.statusTotalPassed, color: COLORS.EMERALD },
+        { statusKey: 'failed', count: testSuite.statusTotalFailed, color: COLORS.RED },
+        { statusKey: 'error', count: testSuite.statusTotalError, color: COLORS.AMBER },
+        { statusKey: 'skipped', count: testSuite.statusTotalSkipped, color: COLORS.INDIGO },
+    ] as const;
 
     return (
         <Document author="SQAHUB Enterprise" title={`ISO_REPORT_${testSuite.name}`}>
@@ -228,20 +230,20 @@ const ReportDocument: React.FC<ReportDocumentProps> = ({ testSuite, pieChartImag
 
                 {/* --- 1. DASHBOARD HEADER --- */}
                 <View style={styles.headerBanner}>
-                    <Text style={styles.confidentialTag}>STRICTLY CONFIDENTIAL - ISO/IEC 29119 STANDARD</Text>
-                    <Text style={styles.reportTitle}>TEST REPORT: {testSuite.name}</Text>
+                    <Text style={styles.confidentialTag}>{t('pdfReport.confidentialTag')}</Text>
+                    <Text style={styles.reportTitle}>{t('pdfReport.titlePrefix')}{testSuite.name}</Text>
                     <Text style={styles.reportSubtitle}>
-                        Execution ID: SQH-{testSuite.id} | Generated on: {new Date().toLocaleString('id-ID')}
+                        {t('pdfReport.subtitle', { id: testSuite.id, date: new Date().toLocaleString('id-ID') })}
                     </Text>
                 </View>
 
                 {/* --- 2. STATUS COUNTER GRID (Sesuai Dashboard) --- */}
                 <View style={styles.kpiContainer}>
                     {statusCards.map((stat) => (
-                        <View key={stat.label} style={[styles.kpiCard, { borderTopColor: stat.color }]}>
-                            <Text style={styles.kpiLabel}>{stat.label}</Text>
+                        <View key={stat.statusKey} style={[styles.kpiCard, { borderTopColor: stat.color }]}>
+                            <Text style={styles.kpiLabel}>{t(`pdfReport.statusLabels.${stat.statusKey}`)}</Text>
                             <Text style={[styles.kpiValue, { color: stat.color }]}>{stat.count}</Text>
-                            <Text style={styles.kpiDesc}>{stat.desc}</Text>
+                            <Text style={styles.kpiDesc}>{t(`pdfReport.statusDesc.${stat.statusKey}`)}</Text>
                         </View>
                     ))}
                 </View>
@@ -249,24 +251,24 @@ const ReportDocument: React.FC<ReportDocumentProps> = ({ testSuite, pieChartImag
                 {/* --- 3. METADATA CONTEXT --- */}
                 <View style={styles.sectionHeader}>
                     <View style={{ width: 4, height: 12, backgroundColor: COLORS.ACCENT, marginRight: 6 }} />
-                    <Text style={styles.sectionTitle}>Test Execution Context & Configuration</Text>
+                    <Text style={styles.sectionTitle}>{t('pdfReport.contextTitle')}</Text>
                 </View>
 
                 <View style={styles.metadataGrid}>
-                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>Project</Text><Text style={styles.metadataValue}>{testSuite.projectName || '-'}</Text></View>
-                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>Mode</Text><Text style={styles.metadataValue}>{testSuite.executionType || '-'}</Text></View>
-                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>Environment</Text><Text style={styles.metadataValue}>{testSuite.testEnvironment || '-'}</Text></View>
-                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>OS</Text><Text style={styles.metadataValue}>{testSuite.os || '-'}</Text></View>
-                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>Version</Text><Text style={styles.metadataValue}>{testSuite.version || '-'}</Text></View>
-                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>Agent</Text><Text style={styles.metadataValue}>{testSuite.browser || '-'}</Text></View>
-                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>Officer</Text><Text style={styles.metadataValue}>{testSuite.executedByUsername || '-'}</Text></View>
-                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>Pass Rate</Text><Text style={[styles.metadataValue, { color: COLORS.ACCENT }]}>{passRate.toFixed(2)}%</Text></View>
+                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>{t('pdfReport.metadata.project')}</Text><Text style={styles.metadataValue}>{testSuite.projectName || '-'}</Text></View>
+                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>{t('pdfReport.metadata.mode')}</Text><Text style={styles.metadataValue}>{testSuite.executionType || '-'}</Text></View>
+                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>{t('pdfReport.metadata.environment')}</Text><Text style={styles.metadataValue}>{testSuite.testEnvironment || '-'}</Text></View>
+                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>{t('pdfReport.metadata.os')}</Text><Text style={styles.metadataValue}>{testSuite.os || '-'}</Text></View>
+                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>{t('pdfReport.metadata.version')}</Text><Text style={styles.metadataValue}>{testSuite.version || '-'}</Text></View>
+                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>{t('pdfReport.metadata.agent')}</Text><Text style={styles.metadataValue}>{testSuite.browser || '-'}</Text></View>
+                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>{t('pdfReport.metadata.officer')}</Text><Text style={styles.metadataValue}>{testSuite.executedByUsername || '-'}</Text></View>
+                    <View style={styles.metadataItem}><Text style={styles.metadataLabel}>{t('pdfReport.metadata.passRate')}</Text><Text style={[styles.metadataValue, { color: COLORS.ACCENT }]}>{passRate.toFixed(2)}%</Text></View>
                 </View>
 
                 {/* --- 4. VISUAL ANALYSIS (PIE CHART) --- */}
                 <View style={styles.sectionHeader}>
                     <View style={{ width: 4, height: 12, backgroundColor: COLORS.ACCENT, marginRight: 6 }} />
-                    <Text style={styles.sectionTitle}>Statistical Distribution & Summary</Text>
+                    <Text style={styles.sectionTitle}>{t('pdfReport.visualTitle')}</Text>
                 </View>
 
                 <View style={styles.visualSection} wrap={false}>
@@ -274,15 +276,19 @@ const ReportDocument: React.FC<ReportDocumentProps> = ({ testSuite, pieChartImag
                         {pieChartImage ? (
                             <Image src={pieChartImage} style={{ width: 140, height: 140 }} />
                         ) : (
-                            <Text style={{ fontSize: 7, color: COLORS.TEXT_MUTED }}>[ Chart Analysis Not Rendered ]</Text>
+                            <Text style={{ fontSize: 7, color: COLORS.TEXT_MUTED }}>{t('pdfReport.chartNotRendered')}</Text>
                         )}
                     </View>
                     <View style={styles.descriptionWrapper}>
                         <Text style={styles.descText}>
                             {testSuite.description ||
-                                `The test objective for ${testSuite.name} was executed according to SOP. Out of ${total} items,
-                            ${testSuite.statusTotalPassed} passed successfully. Resulting in a functional stability
-                            index of ${passRate.toFixed(2)}% for system version ${testSuite.version || 'N/A'}.`}
+                                t('pdfReport.defaultDescription', {
+                                    name: testSuite.name,
+                                    total,
+                                    passed: testSuite.statusTotalPassed,
+                                    passRate: passRate.toFixed(2),
+                                    version: testSuite.version || 'N/A',
+                                })}
                         </Text>
                     </View>
                 </View>
@@ -290,15 +296,15 @@ const ReportDocument: React.FC<ReportDocumentProps> = ({ testSuite, pieChartImag
                 {/* --- 5. DETAILED SPECIFICATION TABLE --- */}
                 <View style={styles.sectionHeader}>
                     <View style={{ width: 4, height: 12, backgroundColor: COLORS.ACCENT, marginRight: 6 }} />
-                    <Text style={styles.sectionTitle}>Test Specification Results</Text>
+                    <Text style={styles.sectionTitle}>{t('pdfReport.resultsTitle')}</Text>
                 </View>
 
                 <View>
                     <View style={styles.tableHeader} fixed>
-                        <Text style={[styles.tableHeaderText, styles.colId]}>TC_ID</Text>
-                        <Text style={[styles.tableHeaderText, styles.colStatus]}>Outcome</Text>
-                        <Text style={[styles.tableHeaderText, styles.colName]}>Specification</Text>
-                        <Text style={[styles.tableHeaderText, styles.colResult]}>Observed Outcome</Text>
+                        <Text style={[styles.tableHeaderText, styles.colId]}>{t('pdfReport.table.tcId')}</Text>
+                        <Text style={[styles.tableHeaderText, styles.colStatus]}>{t('pdfReport.table.outcome')}</Text>
+                        <Text style={[styles.tableHeaderText, styles.colName]}>{t('pdfReport.table.specification')}</Text>
+                        <Text style={[styles.tableHeaderText, styles.colResult]}>{t('pdfReport.table.observedOutcome')}</Text>
                     </View>
 
                     {(testSuite.runDetails || []).map((detail: RunDetail) => (
@@ -320,8 +326,8 @@ const ReportDocument: React.FC<ReportDocumentProps> = ({ testSuite, pieChartImag
 
                 {/* --- FOOTER --- */}
                 <View style={styles.footer} fixed>
-                    <Text>SQAHUB.ORG | Enterprise Quality Assurance Report Engine</Text>
-                    <Text render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
+                    <Text>{t('pdfReport.footerBrand')}</Text>
+                    <Text render={({ pageNumber, totalPages }) => t('pdfReport.footerPage', { pageNumber, totalPages })} />
                 </View>
 
             </Page>

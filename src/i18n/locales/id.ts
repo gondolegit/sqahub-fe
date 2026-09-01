@@ -683,5 +683,33 @@ export default {
       "cancel": "Batal",
       "confirm": "Ya, Selesaikan Run"
     }
+  },
+  "pdfReport": {
+    "confidentialTag": "STRICTLY CONFIDENTIAL - ISO/IEC 29119 STANDARD",
+    "titlePrefix": "TEST REPORT: ",
+    "subtitle": "Execution ID: SQH-{{id}} | Generated on: {{date}}",
+    "statusLabels": { "passed": "PASSED", "failed": "FAILED", "error": "ERROR", "skipped": "SKIPPED" },
+    "statusDesc": { "passed": "Success Criteria Met", "failed": "Requirement Not Met", "error": "System Fault", "skipped": "Out of Scope" },
+    "contextTitle": "Test Execution Context & Configuration",
+    "metadata": { "project": "Project", "mode": "Mode", "environment": "Environment", "os": "OS", "version": "Version", "agent": "Agent", "officer": "Officer", "passRate": "Pass Rate" },
+    "visualTitle": "Statistical Distribution & Summary",
+    "chartNotRendered": "[ Chart Analysis Not Rendered ]",
+    "defaultDescription": "The test objective for {{name}} was executed according to SOP. Out of {{total}} items, {{passed}} passed successfully. Resulting in a functional stability index of {{passRate}}% for system version {{version}}.",
+    "resultsTitle": "Test Specification Results",
+    "table": { "tcId": "TC_ID", "outcome": "Outcome", "specification": "Specification", "observedOutcome": "Observed Outcome" },
+    "footerBrand": "SQAHUB.ORG | Enterprise Quality Assurance Report Engine",
+    "footerPage": "Page {{pageNumber}} of {{totalPages}}"
+  },
+  "userManagement": {
+    "title": "Manajemen Pengguna",
+    "listTitle": "Daftar Pengguna Sistem",
+    "listDescription": "Kelola akun pengguna, peran, dan status akses di sini. Halaman ini hanya tersedia untuk peran ADMIN.",
+    "accessGranted": "Akses Diizinkan. Selamat datang, Admin {{username}}!",
+    "guestFallback": "Guest",
+    "comingSoon": "*Implementasi fitur Create/Read/Update/Delete Pengguna akan dilakukan di fase selanjutnya.",
+    "accessDenied": "Akses Ditolak. Anda tidak memiliki peran ADMIN.",
+    "placeholderTitle": "Konten User Management",
+    "placeholderDescription": "Tabel daftar pengguna akan ditempatkan di sini.",
+    "placeholderBox": "(Tabel Pengguna Aktif/Role)"
   }
 } as const;

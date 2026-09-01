@@ -683,5 +683,33 @@ export default {
       "cancel": "取消",
       "confirm": "是，结束运行"
     }
+  },
+  "pdfReport": {
+    "confidentialTag": "严格保密 - ISO/IEC 29119 标准",
+    "titlePrefix": "测试报告：",
+    "subtitle": "执行 ID：SQH-{{id}} | 生成时间：{{date}}",
+    "statusLabels": { "passed": "通过", "failed": "失败", "error": "错误", "skipped": "已跳过" },
+    "statusDesc": { "passed": "满足成功标准", "failed": "未满足需求", "error": "系统故障", "skipped": "超出范围" },
+    "contextTitle": "测试执行上下文与配置",
+    "metadata": { "project": "项目", "mode": "模式", "environment": "环境", "os": "操作系统", "version": "版本", "agent": "代理", "officer": "负责人", "passRate": "通过率" },
+    "visualTitle": "统计分布与总结",
+    "chartNotRendered": "【图表分析未生成】",
+    "defaultDescription": "「{{name}}」的测试目标已按标准操作流程执行。在共计 {{total}} 项中，{{passed}} 项成功通过，系统版本 {{version}} 的功能稳定性指数为 {{passRate}}%。",
+    "resultsTitle": "测试规格结果",
+    "table": { "tcId": "用例编号", "outcome": "结果", "specification": "规格说明", "observedOutcome": "观察到的结果" },
+    "footerBrand": "SQAHUB.ORG | 企业级质量保证报告引擎",
+    "footerPage": "第 {{pageNumber}} 页，共 {{totalPages}} 页"
+  },
+  "userManagement": {
+    "title": "用户管理",
+    "listTitle": "系统用户列表",
+    "listDescription": "在此管理用户账号、角色和访问状态。此页面仅限 ADMIN 角色访问。",
+    "accessGranted": "访问已授权。欢迎，管理员 {{username}}！",
+    "guestFallback": "访客",
+    "comingSoon": "*用户的增删改查功能将在后续阶段实现。",
+    "accessDenied": "访问被拒绝。您没有 ADMIN 角色。",
+    "placeholderTitle": "用户管理内容",
+    "placeholderDescription": "用户列表表格将在此处显示。",
+    "placeholderBox": "（启用用户/角色表格）"
   }
 } as const;

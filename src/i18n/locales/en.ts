@@ -683,5 +683,33 @@ export default {
       "cancel": "Cancel",
       "confirm": "Yes, Finalize Run"
     }
+  },
+  "pdfReport": {
+    "confidentialTag": "STRICTLY CONFIDENTIAL - ISO/IEC 29119 STANDARD",
+    "titlePrefix": "TEST REPORT: ",
+    "subtitle": "Execution ID: SQH-{{id}} | Generated on: {{date}}",
+    "statusLabels": { "passed": "PASSED", "failed": "FAILED", "error": "ERROR", "skipped": "SKIPPED" },
+    "statusDesc": { "passed": "Success Criteria Met", "failed": "Requirement Not Met", "error": "System Fault", "skipped": "Out of Scope" },
+    "contextTitle": "Test Execution Context & Configuration",
+    "metadata": { "project": "Project", "mode": "Mode", "environment": "Environment", "os": "OS", "version": "Version", "agent": "Agent", "officer": "Officer", "passRate": "Pass Rate" },
+    "visualTitle": "Statistical Distribution & Summary",
+    "chartNotRendered": "[ Chart Analysis Not Rendered ]",
+    "defaultDescription": "The test objective for {{name}} was executed according to SOP. Out of {{total}} items, {{passed}} passed successfully. Resulting in a functional stability index of {{passRate}}% for system version {{version}}.",
+    "resultsTitle": "Test Specification Results",
+    "table": { "tcId": "TC_ID", "outcome": "Outcome", "specification": "Specification", "observedOutcome": "Observed Outcome" },
+    "footerBrand": "SQAHUB.ORG | Enterprise Quality Assurance Report Engine",
+    "footerPage": "Page {{pageNumber}} of {{totalPages}}"
+  },
+  "userManagement": {
+    "title": "User Management",
+    "listTitle": "System User List",
+    "listDescription": "Manage user accounts, roles, and access status here. This page is only available to the ADMIN role.",
+    "accessGranted": "Access Granted. Welcome, Admin {{username}}!",
+    "guestFallback": "Guest",
+    "comingSoon": "*Create/Read/Update/Delete user features will be implemented in a future phase.",
+    "accessDenied": "Access Denied. You do not have the ADMIN role.",
+    "placeholderTitle": "User Management Content",
+    "placeholderDescription": "The user list table will be placed here.",
+    "placeholderBox": "(Active Users/Roles Table)"
   }
 } as const;
