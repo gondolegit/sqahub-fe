@@ -342,6 +342,24 @@ export default {
       "submit": "上传并导入",
       "importAnother": "导入其他文件",
       "done": "完成"
+    },
+    "bulk": {
+      "selectedCount": "已选择 {{count}} 个测试用例",
+      "selectAllVisible": "全选本页",
+      "selectRow": "选择该行",
+      "clearSelection": "取消选择",
+      "setTag": "设置标签",
+      "move": "移动",
+      "delete": "删除",
+      "setTagDialogTitle": "批量设置标签",
+      "setTagDialogDescription": "新标签将应用于已选择的 {{count}} 个测试用例，替换原有标签。",
+      "tagPlaceholder": "例如：Smoke、P1（留空以清除标签）",
+      "moveDialogTitle": "移动测试用例",
+      "moveDialogDescription": "将已选择的 {{count}} 个测试用例移动到其他功能。",
+      "targetFeatureLabel": "目标功能",
+      "targetFeaturePlaceholder": "选择目标功能",
+      "deleteConfirmTitle": "删除已选测试用例？",
+      "deleteConfirmDescription": "您将一次性删除 {{count}} 个测试用例，删除后无法恢复。"
     }
   },
   "testSuites": {

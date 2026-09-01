@@ -64,3 +64,17 @@ export interface TestCaseImportResponse {
     failedCount: number;
     errors: TestCaseImportRowError[];
 }
+
+// --- Bulk actions (delete / tag / move) ---
+
+export interface BulkOperationError {
+    id: number;
+    message: string;
+}
+
+export interface BulkOperationResponse {
+    totalRequested: number;
+    successCount: number;
+    failedCount: number;
+    errors: BulkOperationError[];
+}

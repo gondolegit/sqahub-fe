@@ -342,6 +342,24 @@ export default {
       "submit": "Upload & Import",
       "importAnother": "Import Another File",
       "done": "Done"
+    },
+    "bulk": {
+      "selectedCount": "{{count}} test case(s) selected",
+      "selectAllVisible": "Select all on this page",
+      "selectRow": "Select row",
+      "clearSelection": "Clear selection",
+      "setTag": "Set Tag",
+      "move": "Move",
+      "delete": "Delete",
+      "setTagDialogTitle": "Bulk Set Tag",
+      "setTagDialogDescription": "The new tag will be applied to {{count}} selected test cases, replacing their previous tag.",
+      "tagPlaceholder": "e.g. Smoke, P1 (leave blank to clear the tag)",
+      "moveDialogTitle": "Move Test Cases",
+      "moveDialogDescription": "Move {{count}} selected test cases to another Feature.",
+      "targetFeatureLabel": "Target Feature",
+      "targetFeaturePlaceholder": "Choose a target Feature",
+      "deleteConfirmTitle": "Delete Selected Test Cases?",
+      "deleteConfirmDescription": "You are about to delete {{count}} test cases at once. This cannot be undone."
     }
   },
   "testSuites": {

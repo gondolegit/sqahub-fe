@@ -14,6 +14,7 @@ import {
 import { Loader2, PlusCircle, Frown, ArrowLeft, Search, Pencil, Trash, ClipboardList, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pagination } from '@/components/ui/pagination';
@@ -21,11 +22,12 @@ import { toast } from 'sonner';
 
 // --- TYPES & HOOKS ---
 import type { TestCase, DeleteTestCaseParams } from '@/types/testCase';
-import { useFeatureDetail } from '@/hooks/useFeatures';
+import { useFeatureDetail, useFeatures } from '@/hooks/useFeatures';
 import { useTestCasesByFeature, useDeleteTestCase } from '@/hooks/useTestCases';
 import { useAuth } from '@/contexts/AuthContext';
 import TestCaseFormDialog from '@/components/testcase/TestCaseFormDialog';
 import ImportTestCaseDialog from '@/components/testcase/ImportTestCaseDialog';
+import BulkActionsToolbar from '@/components/testcase/BulkActionsToolbar';
 
 const PAGE_SIZE = 10;
 // Sesuai matriks izin backend: create/edit/delete TestCase butuh role global ADMIN atau TESTER.
@@ -55,10 +57,12 @@ const TestCasesPage: React.FC = () => {
     const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
     const [initialTcData, setInitialTcData] = useState<TestCaseWithMode | null>(null);
     const [caseToDelete, setCaseToDelete] = useState<{ id: number; name: string } | null>(null);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     // --- DATA FETCHING ---
     const { data: featureDetail, isLoading: isLoadingFeature } =
         useFeatureDetail(isValidId ? featureId : -1);
+    const { data: allFeaturesInProject } = useFeatures(projectId > 0 ? projectId : -1);
 
     const {
         data: testCasesPage,
@@ -80,6 +84,21 @@ const TestCasesPage: React.FC = () => {
             tc.tag?.toLowerCase().includes(query)
         );
     }, [testCases, searchQuery]);
+
+    const allVisibleSelected = filteredTestCases.length > 0 && filteredTestCases.every((tc) => selectedIds.includes(tc.id));
+
+    const toggleSelectAllVisible = () => {
+        if (allVisibleSelected) {
+            const visibleIds = new Set(filteredTestCases.map((tc) => tc.id));
+            setSelectedIds((prev) => prev.filter((id) => !visibleIds.has(id)));
+        } else {
+            setSelectedIds((prev) => Array.from(new Set([...prev, ...filteredTestCases.map((tc) => tc.id)])));
+        }
+    };
+
+    const toggleSelectOne = (id: number) => {
+        setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+    };
 
     // --- HANDLERS ---
     const handleOpenCreateDialog = () => {
@@ -194,6 +213,16 @@ const TestCasesPage: React.FC = () => {
                 )}
             </div>
 
+            {/* Bulk Actions Toolbar */}
+            {canManageTestCases && selectedIds.length > 0 && (
+                <BulkActionsToolbar
+                    selectedIds={selectedIds}
+                    idFeature={featureId}
+                    features={allFeaturesInProject}
+                    onDone={() => setSelectedIds([])}
+                />
+            )}
+
             {/* Main Table */}
             <Card>
                 <CardContent className="p-0">
@@ -201,6 +230,15 @@ const TestCasesPage: React.FC = () => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    {canManageTestCases && (
+                                        <TableHead className="w-[40px]">
+                                            <Checkbox
+                                                checked={allVisibleSelected}
+                                                onCheckedChange={toggleSelectAllVisible}
+                                                aria-label={t('testCases.bulk.selectAllVisible')}
+                                            />
+                                        </TableHead>
+                                    )}
                                     <TableHead className="w-[80px]">{t('testCases.table.id')}</TableHead>
                                     <TableHead>{t('testCases.table.name')}</TableHead>
                                     <TableHead>{t('testCases.table.type')}</TableHead>
@@ -211,7 +249,16 @@ const TestCasesPage: React.FC = () => {
                             </TableHeader>
                             <TableBody>
                                 {filteredTestCases.map((tc) => (
-                                    <TableRow key={tc.id}>
+                                    <TableRow key={tc.id} data-state={selectedIds.includes(tc.id) ? 'selected' : undefined}>
+                                        {canManageTestCases && (
+                                            <TableCell>
+                                                <Checkbox
+                                                    checked={selectedIds.includes(tc.id)}
+                                                    onCheckedChange={() => toggleSelectOne(tc.id)}
+                                                    aria-label={`${t('testCases.bulk.selectRow')}: ${tc.name}`}
+                                                />
+                                            </TableCell>
+                                        )}
                                         <TableCell className="font-mono text-xs">{tc.id}</TableCell>
                                         <TableCell className="font-medium">{tc.name}</TableCell>
                                         <TableCell>
@@ -267,7 +314,7 @@ const TestCasesPage: React.FC = () => {
                                 totalPages={testCasesPage.totalPages}
                                 totalElements={testCasesPage.totalElements}
                                 pageSize={testCasesPage.size}
-                                onPageChange={setPage}
+                                onPageChange={(newPage) => { setPage(newPage); setSelectedIds([]); }}
                             />
                         </div>
                     )}

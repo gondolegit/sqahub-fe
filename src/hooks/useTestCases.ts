@@ -12,6 +12,7 @@ import type {
     UpdateTestCaseParams,
     DeleteTestCaseParams,
     TestCaseImportResponse,
+    BulkOperationResponse,
 } from '@/types/testCase'; // Asumsi jalur import Anda
 import type { Page } from '@/types/index';
 
@@ -213,6 +214,109 @@ export const useDownloadImportTemplate = () => {
         },
         onError: (error) => {
             toast.error("Gagal Mengunduh Template", { description: getErrorMessage(error, "Terjadi kesalahan saat mengunduh template.") });
+        },
+    });
+};
+
+// #########################################
+// --- HOOKS BULK ACTIONS ---
+// #########################################
+
+interface BulkDeleteParams {
+    ids: number[];
+    idFeature: number;
+}
+
+// 6d. BULK DELETE — beberapa Test Case sekaligus, satu ID gagal tidak menggagalkan yang lain
+// (backend selalu HTTP 200 berisi ringkasan; pemanggil memeriksa failedCount sendiri).
+export const useBulkDeleteTestCases = () => {
+    const queryClient = useQueryClient();
+    return useMutation<BulkOperationResponse, ApiError, BulkDeleteParams>({
+        mutationFn: async ({ ids }) => {
+            const response = await API.post('/testcase/bulk-delete', { ids });
+            return response.data;
+        },
+        onSuccess: (result, variables) => {
+            if (result.successCount > 0) {
+                queryClient.invalidateQueries({ queryKey: [TC_QUERY_KEY, 'feature', variables.idFeature] });
+            }
+            if (result.failedCount === 0) {
+                toast.success("Test Case Dihapus", { description: `${result.successCount} test case berhasil dihapus.` });
+            } else if (result.successCount > 0) {
+                toast.warning("Sebagian Berhasil Dihapus", {
+                    description: `${result.successCount} berhasil, ${result.failedCount} gagal dihapus.`,
+                });
+            } else {
+                toast.error("Gagal Menghapus", { description: `Semua ${result.failedCount} test case gagal dihapus.` });
+            }
+        },
+        onError: (error) => {
+            toast.error("Gagal Menghapus Test Case", { description: getErrorMessage(error, "Terjadi kesalahan saat menghapus.") });
+        },
+    });
+};
+
+interface BulkTagParams {
+    ids: number[];
+    tag: string;
+    idFeature: number;
+}
+
+// 6e. BULK UPDATE TAG — set tag yang sama untuk beberapa Test Case sekaligus
+export const useBulkUpdateTag = () => {
+    const queryClient = useQueryClient();
+    return useMutation<BulkOperationResponse, ApiError, BulkTagParams>({
+        mutationFn: async ({ ids, tag }) => {
+            const response = await API.put('/testcase/bulk-tag', { ids, tag });
+            return response.data;
+        },
+        onSuccess: (result, variables) => {
+            if (result.successCount > 0) {
+                queryClient.invalidateQueries({ queryKey: [TC_QUERY_KEY, 'feature', variables.idFeature] });
+            }
+            if (result.failedCount === 0) {
+                toast.success("Tag Diperbarui", { description: `Tag berhasil diubah untuk ${result.successCount} test case.` });
+            } else {
+                toast.warning("Sebagian Berhasil Diperbarui", {
+                    description: `${result.successCount} berhasil, ${result.failedCount} gagal diperbarui.`,
+                });
+            }
+        },
+        onError: (error) => {
+            toast.error("Gagal Memperbarui Tag", { description: getErrorMessage(error, "Terjadi kesalahan saat memperbarui tag.") });
+        },
+    });
+};
+
+interface BulkMoveParams {
+    ids: number[];
+    targetFeatureId: number;
+    idFeature: number; // Feature ASAL, dipakai untuk invalidasi list halaman saat ini
+}
+
+// 6f. BULK MOVE — pindahkan beberapa Test Case sekaligus ke Feature lain
+export const useBulkMoveTestCases = () => {
+    const queryClient = useQueryClient();
+    return useMutation<BulkOperationResponse, ApiError, BulkMoveParams>({
+        mutationFn: async ({ ids, targetFeatureId }) => {
+            const response = await API.put('/testcase/bulk-move', { ids, targetFeatureId });
+            return response.data;
+        },
+        onSuccess: (result, variables) => {
+            if (result.successCount > 0) {
+                queryClient.invalidateQueries({ queryKey: [TC_QUERY_KEY, 'feature', variables.idFeature] });
+                queryClient.invalidateQueries({ queryKey: [TC_QUERY_KEY, 'feature', variables.targetFeatureId] });
+            }
+            if (result.failedCount === 0) {
+                toast.success("Test Case Dipindahkan", { description: `${result.successCount} test case berhasil dipindahkan.` });
+            } else {
+                toast.warning("Sebagian Berhasil Dipindahkan", {
+                    description: `${result.successCount} berhasil, ${result.failedCount} gagal dipindahkan.`,
+                });
+            }
+        },
+        onError: (error) => {
+            toast.error("Gagal Memindahkan Test Case", { description: getErrorMessage(error, "Terjadi kesalahan saat memindahkan.") });
         },
     });
 };

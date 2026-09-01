@@ -342,6 +342,24 @@ export default {
       "submit": "Unggah & Import",
       "importAnother": "Import File Lain",
       "done": "Selesai"
+    },
+    "bulk": {
+      "selectedCount": "{{count}} test case dipilih",
+      "selectAllVisible": "Pilih semua di halaman ini",
+      "selectRow": "Pilih baris",
+      "clearSelection": "Batalkan pilihan",
+      "setTag": "Ubah Tag",
+      "move": "Pindahkan",
+      "delete": "Hapus",
+      "setTagDialogTitle": "Ubah Tag Massal",
+      "setTagDialogDescription": "Tag baru akan diterapkan ke {{count}} test case yang dipilih, menggantikan tag sebelumnya.",
+      "tagPlaceholder": "Contoh: Smoke, P1 (kosongkan untuk menghapus tag)",
+      "moveDialogTitle": "Pindahkan Test Case",
+      "moveDialogDescription": "Pindahkan {{count}} test case yang dipilih ke Feature lain.",
+      "targetFeatureLabel": "Feature Tujuan",
+      "targetFeaturePlaceholder": "Pilih Feature tujuan",
+      "deleteConfirmTitle": "Hapus Test Case Terpilih?",
+      "deleteConfirmDescription": "Anda akan menghapus {{count}} test case sekaligus. Data yang dihapus tidak dapat dikembalikan."
     }
   },
   "testSuites": {
