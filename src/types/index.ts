@@ -5,7 +5,12 @@ import type { AxiosInstance } from 'axios';
 export type UserRole = 'ADMIN' | 'TESTER' | 'DEVELOPER' | 'AUTOMATION';
 
 // Role keanggotaan proyek (sistem izin terpisah dari UserRole di atas, per-user per-project).
-export type ProjectMemberRole = 'MANAGER' | 'TESTER' | 'DEVELOPER' | 'VIEWER';
+// Diverifikasi langsung dari source backend (ProjectMemberService.mapRoleStringToPermissionLevel):
+// ADMIN -> PermissionLevel.ADMIN, TESTER/DEVELOPER -> CAN_EDIT, VIEWER -> CAN_VIEW.
+// "OWNER" hanya muncul di response (pembuat proyek, disisipkan otomatis) - tidak valid dikirim
+// sebagai request (add/update member), dan backend menolaknya untuk diubah/dihapus.
+export type AssignableProjectMemberRole = 'ADMIN' | 'TESTER' | 'DEVELOPER' | 'VIEWER';
+export type ProjectMemberRole = AssignableProjectMemberRole | 'OWNER';
 
 export interface User {
   id: string;
@@ -86,7 +91,8 @@ export interface ApiErrorResponse {
 
 // --- PROJECT MEMBERS ---
 export interface ProjectMember {
-  id: number;
+  // null untuk entri OWNER (disisipkan otomatis oleh backend, bukan baris nyata di tabel project_members)
+  id: number | null;
   idProject: number;
   idUser: number;
   username: string;
@@ -97,7 +103,7 @@ export interface ProjectMember {
 
 export interface ProjectMemberRequest {
   idUser: number;
-  role: ProjectMemberRole;
+  role: AssignableProjectMemberRole;
 }
 
 // --- API KEYS ---

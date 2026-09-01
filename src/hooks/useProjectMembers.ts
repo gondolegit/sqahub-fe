@@ -23,7 +23,7 @@ export const useProjectMembers = (projectId: number | undefined) => {
     });
 };
 
-// POST /project/{projectId}/members — caller harus MANAGER
+// POST /project/{projectId}/members — caller harus OWNER/ADMIN proyek ini
 export const useAddProjectMember = (projectId: number | undefined) => {
     const queryClient = useQueryClient();
     return useMutation<ProjectMember, ApiError, ProjectMemberRequest>({
@@ -36,12 +36,12 @@ export const useAddProjectMember = (projectId: number | undefined) => {
             queryClient.invalidateQueries({ queryKey: [PROJECT_MEMBERS_QUERY_KEY, projectId] });
         },
         onError: (error) => {
-            toast.error("Gagal Menambah Anggota", { description: getErrorMessage(error, "Pastikan Anda MANAGER proyek ini dan User ID valid.") });
+            toast.error("Gagal Menambah Anggota", { description: getErrorMessage(error, "Pastikan Anda OWNER/ADMIN proyek ini dan User ID valid.") });
         },
     });
 };
 
-// PUT /project/{projectId}/members/{userId} — caller harus MANAGER
+// PUT /project/{projectId}/members/{userId} — caller harus OWNER/ADMIN proyek ini
 export const useUpdateProjectMember = (projectId: number | undefined) => {
     const queryClient = useQueryClient();
     return useMutation<ProjectMember, ApiError, ProjectMemberRequest>({
@@ -59,7 +59,7 @@ export const useUpdateProjectMember = (projectId: number | undefined) => {
     });
 };
 
-// DELETE /project/{projectId}/members/{userId} — caller harus MANAGER
+// DELETE /project/{projectId}/members/{userId} — caller harus OWNER/ADMIN proyek ini
 export const useRemoveProjectMember = (projectId: number | undefined) => {
     const queryClient = useQueryClient();
     return useMutation<void, ApiError, number>({

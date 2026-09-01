@@ -21,12 +21,16 @@ import {
     useProjectMembers, useAddProjectMember, useUpdateProjectMember, useRemoveProjectMember,
 } from '@/hooks/useProjectMembers';
 import { useAuth } from '@/contexts/AuthContext';
-import type { Project, ProjectMember, ProjectMemberRole } from '@/types/index';
+import type { Project, ProjectMember, ProjectMemberRole, AssignableProjectMemberRole } from '@/types/index';
 
-const MEMBER_ROLES: ProjectMemberRole[] = ['MANAGER', 'TESTER', 'DEVELOPER', 'VIEWER'];
+// Sesuai ProjectMemberService.mapRoleStringToPermissionLevel di backend — "MANAGER" BUKAN nilai
+// role yang valid untuk dikirim (server melempar IllegalArgumentException). "OWNER" hanya bisa
+// muncul di response (disisipkan otomatis untuk pembuat proyek), tidak pernah bisa di-assign.
+const ASSIGNABLE_ROLES: AssignableProjectMemberRole[] = ['ADMIN', 'TESTER', 'DEVELOPER', 'VIEWER'];
 
 const ROLE_BADGE_CLASSES: Record<ProjectMemberRole, string> = {
-    MANAGER: 'bg-violet-100 text-violet-700 border-violet-200',
+    OWNER: 'bg-amber-100 text-amber-700 border-amber-200',
+    ADMIN: 'bg-violet-100 text-violet-700 border-violet-200',
     TESTER: 'bg-blue-100 text-blue-700 border-blue-200',
     DEVELOPER: 'bg-emerald-100 text-emerald-700 border-emerald-200',
     VIEWER: 'bg-slate-100 text-slate-600 border-slate-200',
@@ -54,11 +58,14 @@ const ProjectMembersDialog: React.FC<ProjectMembersDialogProps> = ({ project, op
     const updateMutation = useUpdateProjectMember(projectId);
     const removeMutation = useRemoveProjectMember(projectId);
 
-    // Sesuai spec backend: hanya MANAGER proyek ini yang boleh mengelola anggota (bukan role global).
-    const isManager = !!user && members?.some((m) => String(m.idUser) === user.id && m.role === 'MANAGER');
+    // Sesuai ProjectMemberService.isDeleteAccessAllowed di backend: hanya OWNER atau ADMIN proyek
+    // ini (bukan role global) yang boleh menambah/mengubah/mengeluarkan anggota.
+    const canManageMembers = !!user && members?.some(
+        (m) => String(m.idUser) === user.id && (m.role === 'OWNER' || m.role === 'ADMIN')
+    );
 
     const [newUserId, setNewUserId] = useState('');
-    const [newRole, setNewRole] = useState<ProjectMemberRole>('TESTER');
+    const [newRole, setNewRole] = useState<AssignableProjectMemberRole>('TESTER');
     const [memberToRemove, setMemberToRemove] = useState<ProjectMember | null>(null);
 
     const handleAdd = (e: React.FormEvent) => {
@@ -84,8 +91,8 @@ const ProjectMembersDialog: React.FC<ProjectMembersDialogProps> = ({ project, op
                     </DialogHeader>
 
                     <div className="p-6 space-y-6">
-                        {/* Form tambah anggota — hanya MANAGER proyek ini yang boleh mengelola tim */}
-                        {isManager ? (
+                        {/* Form tambah anggota — hanya OWNER/ADMIN proyek ini yang boleh mengelola tim */}
+                        {canManageMembers ? (
                             <>
                                 <form onSubmit={handleAdd} className="flex flex-col sm:flex-row items-end gap-3 rounded-xl border border-dashed p-4 bg-slate-50/40">
                                     <div className="flex-1 w-full space-y-1.5">
@@ -102,10 +109,10 @@ const ProjectMembersDialog: React.FC<ProjectMembersDialogProps> = ({ project, op
                                     </div>
                                     <div className="w-full sm:w-40 space-y-1.5">
                                         <Label className="text-xs font-bold uppercase text-slate-500">Peran</Label>
-                                        <Select value={newRole} onValueChange={(v) => setNewRole(v as ProjectMemberRole)}>
+                                        <Select value={newRole} onValueChange={(v) => setNewRole(v as AssignableProjectMemberRole)}>
                                             <SelectTrigger><SelectValue /></SelectTrigger>
                                             <SelectContent>
-                                                {MEMBER_ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                                {ASSIGNABLE_ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -122,7 +129,7 @@ const ProjectMembersDialog: React.FC<ProjectMembersDialogProps> = ({ project, op
                         ) : (
                             <p className="flex items-center gap-1.5 text-xs text-slate-400 rounded-lg bg-slate-50 p-3">
                                 <Info className="h-3.5 w-3.5 shrink-0" />
-                                Hanya MANAGER proyek ini yang bisa menambah, mengubah peran, atau mengeluarkan anggota.
+                                Hanya OWNER atau ADMIN proyek ini yang bisa menambah, mengubah peran, atau mengeluarkan anggota.
                             </p>
                         )}
 
@@ -148,58 +155,63 @@ const ProjectMembersDialog: React.FC<ProjectMembersDialogProps> = ({ project, op
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {members.map((m) => (
-                                            <TableRow key={m.id}>
-                                                <TableCell>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary shrink-0">
-                                                            {initials(m.username)}
+                                        {members.map((m) => {
+                                            // Backend selalu menolak mengubah/menghapus baris OWNER (creator proyek) —
+                                            // jangan tawarkan aksi yang dijamin gagal, walau viewer-nya OWNER/ADMIN lain.
+                                            const canEditThisRow = canManageMembers && m.role !== 'OWNER';
+                                            return (
+                                                <TableRow key={m.idUser}>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary shrink-0">
+                                                                {initials(m.username)}
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className="font-semibold text-sm truncate">{m.username}</p>
+                                                                <p className="text-xs text-slate-400 truncate">{m.email}</p>
+                                                            </div>
                                                         </div>
-                                                        <div className="min-w-0">
-                                                            <p className="font-semibold text-sm truncate">{m.username}</p>
-                                                            <p className="text-xs text-slate-400 truncate">{m.email}</p>
-                                                        </div>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {isManager ? (
-                                                        <Select
-                                                            value={m.role}
-                                                            onValueChange={(role) => updateMutation.mutate({ idUser: m.idUser, role: role as ProjectMemberRole })}
-                                                            disabled={updateMutation.isPending}
-                                                        >
-                                                            <SelectTrigger className="h-8 w-[130px]">
-                                                                <Badge variant="outline" className={`${ROLE_BADGE_CLASSES[m.role]} border-none font-semibold`}>
-                                                                    {m.role === 'MANAGER' && <ShieldCheck className="h-3 w-3 mr-1" />}
-                                                                    {m.role}
-                                                                </Badge>
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {MEMBER_ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    ) : (
-                                                        <Badge variant="outline" className={`${ROLE_BADGE_CLASSES[m.role]} border-none font-semibold`}>
-                                                            {m.role === 'MANAGER' && <ShieldCheck className="h-3 w-3 mr-1" />}
-                                                            {m.role}
-                                                        </Badge>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    {isManager && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 text-slate-400 hover:text-destructive"
-                                                            onClick={() => setMemberToRemove(m)}
-                                                            aria-label={`Keluarkan ${m.username} dari proyek`}
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    )}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {canEditThisRow ? (
+                                                            <Select
+                                                                value={m.role}
+                                                                onValueChange={(role) => updateMutation.mutate({ idUser: m.idUser, role: role as AssignableProjectMemberRole })}
+                                                                disabled={updateMutation.isPending}
+                                                            >
+                                                                <SelectTrigger className="h-8 w-[130px]">
+                                                                    <Badge variant="outline" className={`${ROLE_BADGE_CLASSES[m.role]} border-none font-semibold`}>
+                                                                        {m.role === 'ADMIN' && <ShieldCheck className="h-3 w-3 mr-1" />}
+                                                                        {m.role}
+                                                                    </Badge>
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {ASSIGNABLE_ROLES.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        ) : (
+                                                            <Badge variant="outline" className={`${ROLE_BADGE_CLASSES[m.role]} border-none font-semibold`}>
+                                                                {(m.role === 'ADMIN' || m.role === 'OWNER') && <ShieldCheck className="h-3 w-3 mr-1" />}
+                                                                {m.role}
+                                                            </Badge>
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        {canEditThisRow && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-slate-400 hover:text-destructive"
+                                                                onClick={() => setMemberToRemove(m)}
+                                                                aria-label={`Keluarkan ${m.username} dari proyek`}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
                                     </TableBody>
                                 </Table>
                             )}
