@@ -42,6 +42,20 @@ export default {
     "loadError": "Failed to load notifications",
     "viewAll": "View all"
   },
+  "search": {
+    "trigger": "Search...",
+    "title": "Global Search",
+    "description": "Search across Projects, Features, Test Cases, and Test Suite Runs.",
+    "placeholder": "Search Projects, Features, Test Cases, Test Suites...",
+    "hint": "Type at least 2 characters to start searching.",
+    "noResults": "No results for \"{{query}}\".",
+    "groups": {
+      "projects": "Projects",
+      "features": "Features",
+      "testCases": "Test Cases",
+      "testSuites": "Test Suite Runs"
+    }
+  },
   "auth": {
     "login": {
       "brand": "SQAHUB",

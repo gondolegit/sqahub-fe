@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Menu, LogOut, KeyRound, ChevronDown } from 'lucide-react';
+import { Menu, LogOut, KeyRound, ChevronDown, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import ThemeToggle from './ThemeToggle';
 import LanguageSwitcher from './LanguageSwitcher';
 import NotificationBell from './NotificationBell';
+import GlobalSearchDialog from './GlobalSearchDialog';
 
 interface HeaderProps {
     toggleSidebar: () => void;
@@ -21,6 +22,19 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
     const { user, logout } = useAuth();
     const { t } = useTranslation();
     const username = user?.username || "User";
+    const [searchOpen, setSearchOpen] = useState(false);
+
+    // Shortcut global Ctrl/Cmd+K untuk membuka Global Search dari mana saja di dalam MainLayout.
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                setSearchOpen(true);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     return (
         <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 bg-card border-b lg:px-6">
@@ -40,6 +54,29 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             </div>
 
             <div className="flex items-center space-x-2 md:space-x-4">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSearchOpen(true)}
+                    className="hidden sm:flex items-center gap-2 text-muted-foreground font-normal w-56 justify-between px-3"
+                >
+                    <span className="flex items-center gap-2">
+                        <Search className="h-3.5 w-3.5" /> {t('search.trigger')}
+                    </span>
+                    <kbd className="pointer-events-none inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
+                        Ctrl K
+                    </kbd>
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSearchOpen(true)}
+                    className="sm:hidden"
+                    aria-label={t('search.trigger')}
+                >
+                    <Search className="h-5 w-5" />
+                </Button>
+                <GlobalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
                 <LanguageSwitcher />
                 <ThemeToggle />
                 <NotificationBell />

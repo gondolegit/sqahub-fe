@@ -42,6 +42,20 @@ export default {
     "loadError": "加载通知失败",
     "viewAll": "查看全部"
   },
+  "search": {
+    "trigger": "搜索...",
+    "title": "全局搜索",
+    "description": "跨项目、功能、测试用例和测试套件运行进行搜索。",
+    "placeholder": "搜索项目、功能、测试用例、测试套件...",
+    "hint": "请输入至少 2 个字符开始搜索。",
+    "noResults": "未找到与\"{{query}}\"相关的结果。",
+    "groups": {
+      "projects": "项目",
+      "features": "功能",
+      "testCases": "测试用例",
+      "testSuites": "测试套件运行"
+    }
+  },
   "auth": {
     "login": {
       "brand": "SQAHUB",

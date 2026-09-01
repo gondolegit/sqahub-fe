@@ -42,6 +42,20 @@ export default {
     "loadError": "Gagal memuat notifikasi",
     "viewAll": "Lihat semua"
   },
+  "search": {
+    "trigger": "Cari...",
+    "title": "Pencarian Global",
+    "description": "Cari Project, Feature, Test Case, atau Test Suite Run.",
+    "placeholder": "Cari Project, Feature, Test Case, Test Suite...",
+    "hint": "Ketik minimal 2 karakter untuk mulai mencari.",
+    "noResults": "Tidak ada hasil untuk \"{{query}}\".",
+    "groups": {
+      "projects": "Proyek",
+      "features": "Feature",
+      "testCases": "Test Case",
+      "testSuites": "Test Suite Run"
+    }
+  },
   "auth": {
     "login": {
       "brand": "SQAHUB",

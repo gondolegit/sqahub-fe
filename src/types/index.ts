@@ -139,6 +139,24 @@ export interface Notification {
   createdAt: string;
 }
 
+// --- GLOBAL SEARCH ---
+export type SearchResultType = 'PROJECT' | 'FEATURE' | 'TEST_CASE' | 'TEST_SUITE';
+
+export interface GlobalSearchResultItem {
+  type: SearchResultType;
+  id: number;
+  title: string;
+  subtitle: string | null;
+  link: string;
+  projectId: number;
+  projectName: string;
+}
+
+export interface GlobalSearchResponse {
+  query: string;
+  results: GlobalSearchResultItem[];
+}
+
 // --- ACTIVITY LOG ---
 export interface ActivityLog {
   id: number;
