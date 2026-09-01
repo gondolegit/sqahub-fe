@@ -32,8 +32,7 @@ const ActivityLogPage = lazy(() => import('./pages/ActivityLogPage'));
 // Halaman Test Suites
 const TestSuitesPage = lazy(() => import('./pages/TestSuitePage'));
 const TestRunDetailPage = lazy(() => import('./pages/TestRunDetailPage'));
-
-const ReportsPage = () => <div className="p-4"><h1>Quality Reports (QAM/TESTER Only)</h1></div>;
+const QualityDashboardPage = lazy(() => import('./pages/QualityDashboardPage'));
 
 const RouteFallback = () => (
     <div className="flex h-screen items-center justify-center">
@@ -107,15 +106,10 @@ const App: React.FC = () => {
                                 }
                             />
 
-                            {/* Rute Khusus Peran: Reports (ADMIN, TESTER) */}
-                            <Route
-                                path="/reports"
-                                element={
-                                    <ProtectedRoute allowedRoles={['ADMIN' as UserRole, 'TESTER' as UserRole]}>
-                                        <ReportsPage />
-                                    </ProtectedRoute>
-                                }
-                            />
+                            {/* Quality Dashboard — tanpa batasan role di rute; akses per-proyek sudah
+                                diverifikasi backend (ProjectMemberService.isViewAccessAllowed), sama
+                                seperti halaman Projects/Test Suites lainnya. */}
+                            <Route path="/reports" element={<QualityDashboardPage />} />
 
                             {/* API Keys — semua user login boleh melihat kuncinya sendiri */}
                             <Route path="/settings/api-keys" element={<ApiKeysPage />} />

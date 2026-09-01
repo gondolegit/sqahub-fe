@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, X, ListChecks, KeyRound, ScrollText } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, X, ListChecks, KeyRound, ScrollText, Gauge } from 'lucide-react';
 import { cn } from "@/lib/utils"; // Gunakan utilitas classname shadcn
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,6 +23,7 @@ const navItems: NavItem[] = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Projects', href: '/projects', icon: FolderKanban },
     { name: 'Test Suites', href: '/test-suites', icon: ListChecks },
+    { name: 'Quality Dashboard', href: '/reports', icon: Gauge },
     { name: 'API Keys', href: '/settings/api-keys', icon: KeyRound },
     { name: 'Activity Log', href: '/admin/activity-log', icon: ScrollText, requiredRoles: ['ADMIN'] },
 ];

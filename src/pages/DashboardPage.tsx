@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
-    FolderKanban, ListChecks, KeyRound, ArrowRight, Sparkles, ShieldCheck, ScrollText,
+    FolderKanban, ListChecks, KeyRound, ArrowRight, Sparkles, ShieldCheck, ScrollText, Gauge,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProjects } from '@/hooks/useProjects';
@@ -20,6 +20,7 @@ const ROLE_BADGE_CLASSES: Record<string, string> = {
 const QUICK_LINKS = [
     { title: 'Projects', description: 'Kelola seluruh proyek pengujian Anda', href: '/projects', icon: FolderKanban, gradient: 'from-blue-500 to-blue-600' },
     { title: 'Test Suites', description: 'Lihat riwayat eksekusi & buat run baru', href: '/test-suites', icon: ListChecks, gradient: 'from-emerald-500 to-emerald-600' },
+    { title: 'Quality Dashboard', description: 'Tren pass rate & cakupan test case per proyek', href: '/reports', icon: Gauge, gradient: 'from-violet-500 to-violet-600' },
     { title: 'API Keys', description: 'Integrasikan dengan Katalon, Jenkins, dll.', href: '/settings/api-keys', icon: KeyRound, gradient: 'from-amber-500 to-amber-600' },
 ];
 
