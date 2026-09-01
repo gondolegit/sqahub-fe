@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -57,6 +58,7 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
     idFeature,
     idProject
 }) => {
+    const { t } = useTranslation();
     const isEditMode = initialData?.mode === 'edit';
     const isViewMode = initialData?.mode === 'view';
 
@@ -143,10 +145,10 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
             <DialogContent className="sm:max-w-[750px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>
-                        {isViewMode ? `Detail: ${initialData?.name}` : isEditMode ? "Edit Test Case" : "Buat Test Case Baru"}
+                        {isViewMode ? `${t('testCases.form.viewTitlePrefix')}${initialData?.name}` : isEditMode ? t('testCases.form.editTitle') : t('testCases.form.createTitle')}
                     </DialogTitle>
                     <DialogDescription>
-                        {isViewMode ? "Mode pratinjau data pengujian." : "Lengkapi informasi pengujian di bawah ini."}
+                        {isViewMode ? t('testCases.form.viewDescription') : t('testCases.form.createDescription')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -158,9 +160,9 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                                 name="name"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Nama Test Case</FormLabel>
+                                        <FormLabel>{t('testCases.form.nameLabel')}</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Contoh: Validasi Login Berhasil" {...field} disabled={isDisabled} />
+                                            <Input placeholder={t('testCases.form.namePlaceholder')} {...field} disabled={isDisabled} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -171,11 +173,11 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                                 name="type"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Tipe</FormLabel>
+                                        <FormLabel>{t('testCases.form.typeLabel')}</FormLabel>
                                         <Select onValueChange={field.onChange} value={field.value} disabled={isDisabled}>
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Pilih Tipe" />
+                                                    <SelectValue placeholder={t('testCases.form.typePlaceholder')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -195,9 +197,9 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                             name="description"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Deskripsi</FormLabel>
+                                    <FormLabel>{t('testCases.form.descriptionLabel')}</FormLabel>
                                     <FormControl>
-                                        <Textarea placeholder="Jelaskan tujuan pengujian..." {...field} disabled={isDisabled} />
+                                        <Textarea placeholder={t('testCases.form.descriptionPlaceholder')} {...field} disabled={isDisabled} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -210,7 +212,7 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                                 name="preCondition"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Pre-Condition</FormLabel>
+                                        <FormLabel>{t('testCases.form.preConditionLabel')}</FormLabel>
                                         <FormControl>
                                             <Textarea {...field} disabled={isDisabled} className="h-24 resize-none" />
                                         </FormControl>
@@ -223,7 +225,7 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                                 name="expectedResult"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Expected Result</FormLabel>
+                                        <FormLabel>{t('testCases.form.expectedResultLabel')}</FormLabel>
                                         <FormControl>
                                             <Textarea {...field} disabled={isDisabled} className="h-24 resize-none" />
                                         </FormControl>
@@ -238,9 +240,9 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                             name="testSteps"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Test Steps</FormLabel>
+                                    <FormLabel>{t('testCases.form.testStepsLabel')}</FormLabel>
                                     <FormControl>
-                                        <Textarea placeholder="1. Buka halaman login..." {...field} disabled={isDisabled} className="h-32" />
+                                        <Textarea placeholder={t('testCases.form.testStepsPlaceholder')} {...field} disabled={isDisabled} className="h-32" />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -253,7 +255,7 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                                 name="testData"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Test Data</FormLabel>
+                                        <FormLabel>{t('testCases.form.testDataLabel')}</FormLabel>
                                         <FormControl>
                                             <Input {...field} value={field.value || ''} disabled={isDisabled} />
                                         </FormControl>
@@ -266,9 +268,9 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                                 name="tag"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Tag</FormLabel>
+                                        <FormLabel>{t('testCases.form.tagLabel')}</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="P1, Smoke, Login" {...field} value={field.value || ''} disabled={isDisabled} />
+                                            <Input placeholder={t('testCases.form.tagPlaceholder')} {...field} value={field.value || ''} disabled={isDisabled} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -281,7 +283,7 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                             name="postCondition"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Post-Condition</FormLabel>
+                                    <FormLabel>{t('testCases.form.postConditionLabel')}</FormLabel>
                                     <FormControl>
                                         <Input {...field} disabled={isDisabled} />
                                     </FormControl>
@@ -293,16 +295,16 @@ const TestCaseFormDialog: React.FC<TestCaseFormDialogProps> = ({
                         <div className="flex justify-end gap-3 pt-6">
                             {isViewMode ? (
                                 <Button type="button" className="w-full" variant="secondary" onClick={() => onOpenChange(false)}>
-                                    Tutup Pratinjau
+                                    {t('testCases.form.closePreview')}
                                 </Button>
                             ) : (
                                 <>
                                     <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={isPending}>
-                                        Batal
+                                        {t('testCases.form.cancel')}
                                     </Button>
                                     <Button type="submit" disabled={isPending} className="min-w-[140px]">
                                         {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                        {isEditMode ? 'Update Test Case' : 'Buat Test Case'}
+                                        {isEditMode ? t('testCases.form.submitEdit') : t('testCases.form.submitCreate')}
                                     </Button>
                                 </>
                             )}

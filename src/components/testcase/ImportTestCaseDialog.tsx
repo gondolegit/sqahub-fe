@@ -5,6 +5,7 @@
 // (importedCount/failedCount + daftar error per baris) yang ditampilkan di sini agar pengguna
 // tahu persis baris mana yang perlu diperbaiki, tanpa harus menebak dari pesan generik.
 import React, { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog';
@@ -29,6 +30,7 @@ interface ImportTestCaseDialogProps {
 const ACCEPTED_EXTENSIONS = '.csv,.xlsx,.xls';
 
 const ImportTestCaseDialog: React.FC<ImportTestCaseDialogProps> = ({ open, onOpenChange, idFeature }) => {
+    const { t } = useTranslation();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [result, setResult] = useState<TestCaseImportResponse | null>(null);
@@ -59,19 +61,18 @@ const ImportTestCaseDialog: React.FC<ImportTestCaseDialogProps> = ({ open, onOpe
             <DialogContent className="sm:max-w-[560px] p-0 overflow-hidden">
                 <DialogHeader className="p-6 pb-4 border-b bg-muted/60">
                     <DialogTitle className="flex items-center gap-2 text-lg">
-                        <UploadCloud className="h-5 w-5 text-primary" /> Import Test Case
+                        <UploadCloud className="h-5 w-5 text-primary" /> {t('testCases.importDialog.title')}
                     </DialogTitle>
                     <DialogDescription>
-                        Unggah file .csv atau .xlsx berisi banyak test case sekaligus — semua baris akan
-                        ditambahkan ke feature yang sedang Anda buka.
+                        {t('testCases.importDialog.description')}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="p-6 space-y-5">
                     <div className="flex items-center justify-between gap-3 rounded-xl border border-dashed p-4 bg-muted/40">
                         <div className="text-sm">
-                            <p className="font-semibold text-foreground">Belum punya file?</p>
-                            <p className="text-xs text-muted-foreground">Unduh template siap-isi dengan contoh & petunjuk kolom.</p>
+                            <p className="font-semibold text-foreground">{t('testCases.importDialog.noFileYet')}</p>
+                            <p className="text-xs text-muted-foreground">{t('testCases.importDialog.downloadTemplateHint')}</p>
                         </div>
                         <Button
                             type="button"
@@ -85,13 +86,13 @@ const ImportTestCaseDialog: React.FC<ImportTestCaseDialogProps> = ({ open, onOpe
                             ) : (
                                 <Download className="h-4 w-4 mr-2" />
                             )}
-                            Template
+                            {t('testCases.importDialog.downloadTemplate')}
                         </Button>
                     </div>
 
                     {!result ? (
                         <div className="space-y-2">
-                            <Label className="text-xs font-bold uppercase text-muted-foreground">File Import</Label>
+                            <Label className="text-xs font-bold uppercase text-muted-foreground">{t('testCases.importDialog.fileLabel')}</Label>
                             <Input
                                 ref={fileInputRef}
                                 type="file"
@@ -99,7 +100,7 @@ const ImportTestCaseDialog: React.FC<ImportTestCaseDialogProps> = ({ open, onOpe
                                 onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
                             />
                             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                <FileSpreadsheet className="h-3.5 w-3.5 shrink-0" /> Format: .csv, .xlsx, atau .xls — kolom wajib: Nama Test Case, Tipe, Test Steps, Expected Result.
+                                <FileSpreadsheet className="h-3.5 w-3.5 shrink-0" /> {t('testCases.importDialog.formatHint')}
                             </p>
                         </div>
                     ) : (
@@ -107,26 +108,26 @@ const ImportTestCaseDialog: React.FC<ImportTestCaseDialogProps> = ({ open, onOpe
                             <div className="grid grid-cols-3 gap-2 text-center text-xs">
                                 <div className="rounded-lg bg-muted p-2">
                                     <div className="font-bold text-foreground text-lg">{result.totalRows}</div>
-                                    <div className="text-muted-foreground">Total Baris</div>
+                                    <div className="text-muted-foreground">{t('testCases.importDialog.totalRows')}</div>
                                 </div>
                                 <div className="rounded-lg bg-emerald-50 dark:bg-emerald-500/10 p-2">
                                     <div className="font-bold text-emerald-700 dark:text-emerald-400 text-lg">{result.importedCount}</div>
-                                    <div className="text-emerald-600 dark:text-emerald-400/80">Berhasil</div>
+                                    <div className="text-emerald-600 dark:text-emerald-400/80">{t('testCases.importDialog.success')}</div>
                                 </div>
                                 <div className="rounded-lg bg-red-50 dark:bg-red-500/10 p-2">
                                     <div className="font-bold text-red-700 dark:text-red-400 text-lg">{result.failedCount}</div>
-                                    <div className="text-red-600 dark:text-red-400/80">Gagal</div>
+                                    <div className="text-red-600 dark:text-red-400/80">{t('testCases.importDialog.failed')}</div>
                                 </div>
                             </div>
 
                             {result.failedCount === 0 ? (
                                 <div className="flex items-center gap-2 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 px-3 py-2.5 text-sm text-emerald-700 dark:text-emerald-400">
-                                    <CheckCircle2 className="h-4 w-4 shrink-0" /> Semua baris berhasil diimpor tanpa error.
+                                    <CheckCircle2 className="h-4 w-4 shrink-0" /> {t('testCases.importDialog.allSuccess')}
                                 </div>
                             ) : (
                                 <div className="space-y-1.5">
                                     <p className="flex items-center gap-1.5 text-xs font-bold uppercase text-muted-foreground">
-                                        <AlertTriangle className="h-3.5 w-3.5 text-amber-500" /> Rincian Baris Gagal
+                                        <AlertTriangle className="h-3.5 w-3.5 text-amber-500" /> {t('testCases.importDialog.rowErrorsTitle')}
                                     </p>
                                     <ScrollArea className="h-[180px] rounded-lg border">
                                         <div className="divide-y">
@@ -135,7 +136,7 @@ const ImportTestCaseDialog: React.FC<ImportTestCaseDialogProps> = ({ open, onOpe
                                                     <XCircle className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
                                                     <div className="min-w-0">
                                                         <p className="font-semibold text-foreground">
-                                                            Baris {err.rowNumber}{err.testCaseName ? `: ${err.testCaseName}` : ''}
+                                                            {t('testCases.importDialog.rowLabel', { row: err.rowNumber })}{err.testCaseName ? `: ${err.testCaseName}` : ''}
                                                         </p>
                                                         <p className="text-muted-foreground">{err.message}</p>
                                                     </div>
@@ -156,22 +157,22 @@ const ImportTestCaseDialog: React.FC<ImportTestCaseDialogProps> = ({ open, onOpe
                 <DialogFooter className="p-6 pt-0">
                     {!result ? (
                         <>
-                            <Button variant="ghost" onClick={() => handleOpenChange(false)}>Batal</Button>
+                            <Button variant="ghost" onClick={() => handleOpenChange(false)}>{t('testCases.importDialog.cancel')}</Button>
                             <Button onClick={handleUpload} disabled={!selectedFile || importMutation.isPending}>
                                 {importMutation.isPending ? (
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                 ) : (
                                     <UploadCloud className="h-4 w-4 mr-2" />
                                 )}
-                                Unggah &amp; Import
+                                {t('testCases.importDialog.submit')}
                             </Button>
                         </>
                     ) : (
                         <>
                             <Button variant="outline" onClick={resetState}>
-                                <RotateCcw className="h-4 w-4 mr-2" /> Import File Lain
+                                <RotateCcw className="h-4 w-4 mr-2" /> {t('testCases.importDialog.importAnother')}
                             </Button>
-                            <Button onClick={() => handleOpenChange(false)}>Selesai</Button>
+                            <Button onClick={() => handleOpenChange(false)}>{t('testCases.importDialog.done')}</Button>
                         </>
                     )}
                 </DialogFooter>

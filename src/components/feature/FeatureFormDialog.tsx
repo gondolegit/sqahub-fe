@@ -1,6 +1,7 @@
 // src/components/feature/FeatureFormDialog.tsx
 
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -79,8 +80,9 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
     initialData, 
     projectId 
 }) => {
+    const { t } = useTranslation();
     const isEditMode = !!initialData;
-    
+
     // Hooks Mutation dari React Query
     const createMutation = useCreateFeature();
     const updateMutation = useUpdateFeature();
@@ -145,12 +147,12 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle>
-                        {isEditMode ? `Edit Fitur: ${initialData?.name}` : "Buat Fitur Baru"}
+                        {isEditMode ? t('features.form.editTitle', { name: initialData?.name }) : t('features.form.createTitle')}
                     </DialogTitle>
                     <DialogDescription>
-                        {isEditMode 
-                            ? "Ubah detail fungsionalitas fitur yang sudah ada." 
-                            : "Masukkan detail fungsionalitas baru untuk proyek ini."}
+                        {isEditMode
+                            ? t('features.form.editDescription')
+                            : t('features.form.createDescription')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -163,19 +165,19 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
                             name="name"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Nama Fitur</FormLabel>
+                                    <FormLabel>{t('features.form.nameLabel')}</FormLabel>
                                     <FormControl>
-                                        <Input 
-                                            placeholder="Contoh: Otentikasi JWT" 
-                                            {...field} 
-                                            disabled={isPending} 
+                                        <Input
+                                            placeholder={t('features.form.namePlaceholder')}
+                                            {...field}
+                                            disabled={isPending}
                                         />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                             {/* Tipe Fitur */}
                             <FormField
@@ -183,15 +185,15 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
                                 name="type"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Tipe</FormLabel>
-                                        <Select 
-                                            onValueChange={field.onChange} 
-                                            value={field.value} 
+                                        <FormLabel>{t('features.form.typeLabel')}</FormLabel>
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            value={field.value}
                                             disabled={isPending}
                                         >
                                             <FormControl>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Pilih Tipe" />
+                                                    <SelectValue placeholder={t('features.form.typePlaceholder')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
@@ -213,10 +215,10 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
                                 name="status"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Status</FormLabel>
-                                        <Select 
-                                            onValueChange={field.onChange} 
-                                            value={field.value} 
+                                        <FormLabel>{t('features.form.statusLabel')}</FormLabel>
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            value={field.value}
                                             disabled={isPending}
                                         >
                                             <FormControl>
@@ -225,9 +227,9 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value="active">Active</SelectItem>
-                                                <SelectItem value="pending">Pending</SelectItem>
-                                                <SelectItem value="deprecated">Deprecated</SelectItem>
+                                                <SelectItem value="active">{t('features.status.active')}</SelectItem>
+                                                <SelectItem value="pending">{t('features.status.pending')}</SelectItem>
+                                                <SelectItem value="deprecated">{t('features.status.deprecated')}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -242,13 +244,13 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
                             name="description"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Deskripsi</FormLabel>
+                                    <FormLabel>{t('features.form.descriptionLabel')}</FormLabel>
                                     <FormControl>
-                                        <Textarea 
-                                            placeholder="Jelaskan alur atau fungsi fitur ini..." 
+                                        <Textarea
+                                            placeholder={t('features.form.descriptionPlaceholder')}
                                             className="min-h-[100px]"
-                                            {...field} 
-                                            disabled={isPending} 
+                                            {...field}
+                                            disabled={isPending}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -262,13 +264,13 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
                             name="tag"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Tag (Opsional)</FormLabel>
+                                    <FormLabel>{t('features.form.tagLabel')}</FormLabel>
                                     <FormControl>
-                                        <Input 
-                                            placeholder="Contoh: v1.0, sprint-1" 
-                                            {...field} 
-                                            value={field.value || ''} 
-                                            disabled={isPending} 
+                                        <Input
+                                            placeholder={t('features.form.tagPlaceholder')}
+                                            {...field}
+                                            value={field.value || ''}
+                                            disabled={isPending}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -277,17 +279,17 @@ const FeatureFormDialog: React.FC<FeatureFormDialogProps> = ({
                         />
 
                         <div className="flex justify-end gap-3 pt-4">
-                            <Button 
-                                type="button" 
-                                variant="outline" 
+                            <Button
+                                type="button"
+                                variant="outline"
                                 onClick={() => onOpenChange(false)}
                                 disabled={isPending}
                             >
-                                Batal
+                                {t('features.form.cancel')}
                             </Button>
                             <Button type="submit" disabled={isPending}>
                                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {isEditMode ? 'Simpan Perubahan' : 'Buat Fitur'}
+                                {isEditMode ? t('features.form.submitEdit') : t('features.form.submitCreate')}
                             </Button>
                         </div>
                     </form>

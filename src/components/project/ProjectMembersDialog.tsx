@@ -1,5 +1,6 @@
 // src/components/project/ProjectMembersDialog.tsx
 import React, { useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { Users, UserPlus, Trash2, Loader2, Info, ShieldCheck } from 'lucide-react';
 
 import {
@@ -51,6 +52,7 @@ const initials = (name: string) =>
         .join('') || '?';
 
 const ProjectMembersDialog: React.FC<ProjectMembersDialogProps> = ({ project, open, onOpenChange }) => {
+    const { t } = useTranslation();
     const projectId = project?.id;
     const { user } = useAuth();
     const { data: members, isLoading, isError } = useProjectMembers(projectId);
@@ -83,10 +85,10 @@ const ProjectMembersDialog: React.FC<ProjectMembersDialogProps> = ({ project, op
                 <DialogContent className="sm:max-w-[640px] p-0 overflow-hidden">
                     <DialogHeader className="p-6 pb-4 border-b bg-muted/60">
                         <DialogTitle className="flex items-center gap-2 text-xl">
-                            <Users className="h-5 w-5 text-primary" /> Tim Proyek
+                            <Users className="h-5 w-5 text-primary" /> {t('projectMembers.title')}
                         </DialogTitle>
                         <DialogDescription>
-                            Kelola siapa saja yang punya akses ke <span className="font-semibold text-foreground">{project?.name}</span> dan perannya.
+                            <Trans i18nKey="projectMembers.description" values={{ name: project?.name }} components={{ bold: <span className="font-semibold text-foreground" /> }} />
                         </DialogDescription>
                     </DialogHeader>
 
@@ -96,19 +98,19 @@ const ProjectMembersDialog: React.FC<ProjectMembersDialogProps> = ({ project, op
                             <>
                                 <form onSubmit={handleAdd} className="flex flex-col sm:flex-row items-end gap-3 rounded-xl border border-dashed p-4 bg-muted/40">
                                     <div className="flex-1 w-full space-y-1.5">
-                                        <Label htmlFor="newUserId" className="text-xs font-bold uppercase text-muted-foreground">User ID</Label>
+                                        <Label htmlFor="newUserId" className="text-xs font-bold uppercase text-muted-foreground">{t('projectMembers.userIdLabel')}</Label>
                                         <Input
                                             id="newUserId"
                                             type="number"
                                             min={1}
-                                            placeholder="Mis. 7"
+                                            placeholder={t('projectMembers.userIdPlaceholder')}
                                             value={newUserId}
                                             onChange={(e) => setNewUserId(e.target.value)}
                                             required
                                         />
                                     </div>
                                     <div className="w-full sm:w-40 space-y-1.5">
-                                        <Label className="text-xs font-bold uppercase text-muted-foreground">Peran</Label>
+                                        <Label className="text-xs font-bold uppercase text-muted-foreground">{t('projectMembers.roleLabel')}</Label>
                                         <Select value={newRole} onValueChange={(v) => setNewRole(v as AssignableProjectMemberRole)}>
                                             <SelectTrigger><SelectValue /></SelectTrigger>
                                             <SelectContent>
@@ -118,18 +120,18 @@ const ProjectMembersDialog: React.FC<ProjectMembersDialogProps> = ({ project, op
                                     </div>
                                     <Button type="submit" disabled={addMutation.isPending} className="w-full sm:w-auto">
                                         {addMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4 mr-2" />}
-                                        Tambah
+                                        {t('projectMembers.addButton')}
                                     </Button>
                                 </form>
                                 <p className="-mt-4 flex items-start gap-1.5 text-xs text-muted-foreground">
                                     <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                                    Masukkan User ID numerik pengguna yang sudah terdaftar di SQAHub.
+                                    {t('projectMembers.addHint')}
                                 </p>
                             </>
                         ) : (
                             <p className="flex items-center gap-1.5 text-xs text-muted-foreground rounded-lg bg-muted p-3">
                                 <Info className="h-3.5 w-3.5 shrink-0" />
-                                Hanya OWNER atau ADMIN proyek ini yang bisa menambah, mengubah peran, atau mengeluarkan anggota.
+                                {t('projectMembers.restrictedHint')}
                             </p>
                         )}
 
@@ -137,21 +139,21 @@ const ProjectMembersDialog: React.FC<ProjectMembersDialogProps> = ({ project, op
                         <ScrollArea className="h-[320px] rounded-lg border">
                             {isLoading ? (
                                 <div className="flex items-center justify-center h-full p-10 text-muted-foreground">
-                                    <Loader2 className="h-5 w-5 animate-spin mr-2" /> Memuat anggota...
+                                    <Loader2 className="h-5 w-5 animate-spin mr-2" /> {t('projectMembers.loading')}
                                 </div>
                             ) : isError ? (
                                 <div className="p-10 text-center text-sm text-destructive">
-                                    Gagal memuat anggota tim (mungkin Anda tidak punya akses ke proyek ini).
+                                    {t('projectMembers.loadError')}
                                 </div>
                             ) : !members || members.length === 0 ? (
-                                <div className="p-10 text-center text-sm text-muted-foreground">Belum ada anggota tercatat.</div>
+                                <div className="p-10 text-center text-sm text-muted-foreground">{t('projectMembers.empty')}</div>
                             ) : (
                                 <Table>
                                     <TableHeader className="bg-muted sticky top-0">
                                         <TableRow>
-                                            <TableHead>Anggota</TableHead>
-                                            <TableHead>Peran</TableHead>
-                                            <TableHead className="text-right">Aksi</TableHead>
+                                            <TableHead>{t('projectMembers.memberColumn')}</TableHead>
+                                            <TableHead>{t('projectMembers.roleColumn')}</TableHead>
+                                            <TableHead className="text-right">{t('projectMembers.actionsColumn')}</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -203,7 +205,7 @@ const ProjectMembersDialog: React.FC<ProjectMembersDialogProps> = ({ project, op
                                                                 size="icon"
                                                                 className="h-8 w-8 text-muted-foreground hover:text-destructive"
                                                                 onClick={() => setMemberToRemove(m)}
-                                                                aria-label={`Keluarkan ${m.username} dari proyek`}
+                                                                aria-label={`${t('projectMembers.removeAction')}: ${m.username}`}
                                                             >
                                                                 <Trash2 className="h-4 w-4" />
                                                             </Button>
@@ -223,13 +225,13 @@ const ProjectMembersDialog: React.FC<ProjectMembersDialogProps> = ({ project, op
             <AlertDialog open={!!memberToRemove} onOpenChange={(o) => !o && setMemberToRemove(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Keluarkan Anggota?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('projectMembers.removeConfirmTitle')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            {memberToRemove?.username} akan kehilangan akses ke proyek "{project?.name}".
+                            {t('projectMembers.removeConfirmDescription', { username: memberToRemove?.username, project: project?.name })}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogCancel>{t('projectMembers.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             className="bg-destructive hover:bg-destructive/90"
                             onClick={() => {
@@ -237,7 +239,7 @@ const ProjectMembersDialog: React.FC<ProjectMembersDialogProps> = ({ project, op
                                 setMemberToRemove(null);
                             }}
                         >
-                            Keluarkan
+                            {t('projectMembers.removeAction')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

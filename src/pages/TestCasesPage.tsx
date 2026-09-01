@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -37,6 +38,7 @@ interface TestCaseWithMode extends TestCase {
 
 const TestCasesPage: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const { hasRole } = useAuth();
     const canManageTestCases = hasRole([...TESTCASE_MANAGE_ROLES]);
     const { projectId: projectIdStr, featureId: featureIdStr } =
@@ -111,10 +113,10 @@ const TestCasesPage: React.FC = () => {
         deleteMutation.mutate(params, {
             onSuccess: () => {
                 setCaseToDelete(null);
-                toast.success("Berhasil", { description: "Test case telah dihapus." });
+                toast.success(t('testCases.deleteSuccessTitle'), { description: t('testCases.deleteSuccessDescription') });
             },
             onError: (err) => {
-                toast.error("Gagal", { description: err.response?.data?.message || err.message || "Gagal menghapus data." });
+                toast.error(t('testCases.deleteErrorTitle'), { description: err.response?.data?.message || err.message || t('testCases.deleteErrorDescription') });
                 setCaseToDelete(null);
             }
         });
@@ -125,8 +127,8 @@ const TestCasesPage: React.FC = () => {
         return (
             <div className="flex flex-col items-center justify-center p-20 text-destructive">
                 <Frown className="h-12 w-12 mb-4" />
-                <p className="text-xl font-bold">Error: Feature ID tidak ditemukan.</p>
-                <Button variant="link" onClick={() => navigate(-1)}>Kembali</Button>
+                <p className="text-xl font-bold">{t('testCases.invalidFeatureId')}</p>
+                <Button variant="link" onClick={() => navigate(-1)}>{t('testCases.backToProject')}</Button>
             </div>
         );
     }
@@ -135,7 +137,7 @@ const TestCasesPage: React.FC = () => {
          return (
              <div className="flex flex-col items-center justify-center p-20 space-y-4">
                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                 <p className="text-muted-foreground animate-pulse">Menyiapkan data test case...</p>
+                 <p className="text-muted-foreground animate-pulse">{t('testCases.loading')}</p>
              </div>
          );
      }
@@ -144,8 +146,8 @@ const TestCasesPage: React.FC = () => {
         return (
             <div className="flex flex-col items-center justify-center p-20 text-destructive">
                 <Frown className="h-12 w-12 mb-4" />
-                <p className="text-xl font-bold">Gagal memuat data Test Case.</p>
-                <Button className="mt-4" onClick={() => window.location.reload()}>Coba Lagi</Button>
+                <p className="text-xl font-bold">{t('testCases.loadError')}</p>
+                <Button className="mt-4" onClick={() => window.location.reload()}>{t('testCases.retry')}</Button>
             </div>
         );
     }
@@ -157,14 +159,14 @@ const TestCasesPage: React.FC = () => {
                 <CardHeader className="flex flex-row items-center justify-between space-y-0">
                     <div>
                         <CardTitle className="text-2xl font-bold tracking-tight">
-                            Test Cases: {featureDetail?.name || featureId}
+                            {t('testCases.titlePrefix')}{featureDetail?.name || featureId}
                         </CardTitle>
                         <CardDescription>
-                            Proyek ID: {projectId} • Total: {testCasesPage?.totalElements ?? 0} items
+                            {t('testCases.subtitle', { projectId, count: testCasesPage?.totalElements ?? 0 })}
                         </CardDescription>
                     </div>
                     <Button variant="outline" size="sm" onClick={() => navigate(`/projects/${projectId}/features`)}>
-                        <ArrowLeft className="h-4 w-4 mr-2" /> Kembali
+                        <ArrowLeft className="h-4 w-4 mr-2" /> {t('common.back')}
                     </Button>
                 </CardHeader>
             </Card>
@@ -174,7 +176,7 @@ const TestCasesPage: React.FC = () => {
                 <div className="relative w-full max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Cari test case di halaman ini..."
+                        placeholder={t('testCases.searchPlaceholder')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-10"
@@ -183,10 +185,10 @@ const TestCasesPage: React.FC = () => {
                 {canManageTestCases && (
                     <div className="flex gap-2 w-full sm:w-auto">
                         <Button variant="outline" onClick={() => setIsImportDialogOpen(true)} className="w-full sm:w-auto">
-                            <Upload className="mr-2 h-4 w-4" /> Import
+                            <Upload className="mr-2 h-4 w-4" /> {t('testCases.import')}
                         </Button>
                         <Button onClick={handleOpenCreateDialog} className="w-full sm:w-auto">
-                            <PlusCircle className="mr-2 h-4 w-4" /> Tambah Baru
+                            <PlusCircle className="mr-2 h-4 w-4" /> {t('testCases.addNew')}
                         </Button>
                     </div>
                 )}
@@ -199,12 +201,12 @@ const TestCasesPage: React.FC = () => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="w-[80px]">ID</TableHead>
-                                    <TableHead>Nama</TableHead>
-                                    <TableHead>Tipe</TableHead>
-                                    <TableHead>Tag</TableHead>
-                                    <TableHead>Author</TableHead>
-                                    <TableHead className="text-right">Aksi</TableHead>
+                                    <TableHead className="w-[80px]">{t('testCases.table.id')}</TableHead>
+                                    <TableHead>{t('testCases.table.name')}</TableHead>
+                                    <TableHead>{t('testCases.table.type')}</TableHead>
+                                    <TableHead>{t('testCases.table.tag')}</TableHead>
+                                    <TableHead>{t('testCases.table.author')}</TableHead>
+                                    <TableHead className="text-right">{t('testCases.table.actions')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -221,12 +223,12 @@ const TestCasesPage: React.FC = () => {
                                         <TableCell className="text-sm">{tc.createdByUsername}</TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-1">
-                                                <Button variant="ghost" size="icon" onClick={() => handleViewDetail(tc)} title="Detail" aria-label={`Lihat detail ${tc.name}`}>
+                                                <Button variant="ghost" size="icon" onClick={() => handleViewDetail(tc)} title={t('testCases.detail')} aria-label={`${t('testCases.detail')}: ${tc.name}`}>
                                                     <ClipboardList className="h-4 w-4 text-blue-500" />
                                                 </Button>
                                                 {canManageTestCases && (
                                                     <>
-                                                        <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(tc)} title="Edit" aria-label={`Edit ${tc.name}`}>
+                                                        <Button variant="ghost" size="icon" onClick={() => handleOpenEditDialog(tc)} title={t('testCases.edit')} aria-label={`${t('testCases.edit')}: ${tc.name}`}>
                                                             <Pencil className="h-4 w-4" />
                                                         </Button>
                                                         <Button
@@ -234,7 +236,7 @@ const TestCasesPage: React.FC = () => {
                                                             size="icon"
                                                             onClick={() => setCaseToDelete({ id: tc.id, name: tc.name })}
                                                             disabled={deleteMutation.isPending && deleteMutation.variables?.testCaseId === tc.id}
-                                                            aria-label={`Hapus ${tc.name}`}
+                                                            aria-label={`${t('testCases.delete')}: ${tc.name}`}
                                                         >
                                                             {deleteMutation.isPending && deleteMutation.variables?.testCaseId === tc.id ? (
                                                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -253,9 +255,9 @@ const TestCasesPage: React.FC = () => {
                     ) : (
                         <div className="flex flex-col items-center justify-center p-12 text-center">
                             <p className="text-muted-foreground mb-4">
-                                {searchQuery ? `Hasil pencarian "${searchQuery}" tidak ditemukan.` : "Belum ada Test Case untuk fitur ini."}
+                                {searchQuery ? t('testCases.emptySearch', { query: searchQuery }) : t('testCases.emptyNoData')}
                             </p>
-                            {!searchQuery && canManageTestCases && <Button onClick={handleOpenCreateDialog}>Buat Test Case Pertama</Button>}
+                            {!searchQuery && canManageTestCases && <Button onClick={handleOpenCreateDialog}>{t('testCases.createFirst')}</Button>}
                         </div>
                     )}
                     {testCasesPage && testCasesPage.totalPages > 1 && (
@@ -292,19 +294,19 @@ const TestCasesPage: React.FC = () => {
             <AlertDialog open={!!caseToDelete} onOpenChange={(open) => !open && setCaseToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Hapus Test Case?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('testCases.deleteConfirmTitle')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Anda akan menghapus <strong>{caseToDelete?.name}</strong>. Data yang dihapus tidak dapat dikembalikan.
+                            <Trans i18nKey="testCases.deleteConfirmDescription" values={{ name: caseToDelete?.name }} components={{ bold: <strong /> }} />
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={deleteMutation.isPending}>Batal</AlertDialogCancel>
+                        <AlertDialogCancel disabled={deleteMutation.isPending}>{t('common.cancel')}</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDeleteTestCase}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             disabled={deleteMutation.isPending}
                         >
-                            {deleteMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Ya, Hapus'}
+                            {deleteMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : t('testCases.deleteConfirmAction')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

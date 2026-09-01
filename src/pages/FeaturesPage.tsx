@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQueries } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import API from '@/utils/api';
@@ -54,6 +55,7 @@ interface FeatureWithCount extends Feature {
 
 const FeaturesPage: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const { projectId: projectIdStr } = useParams<{ projectId: string }>();
     const projectId = projectIdStr ? parseInt(projectIdStr) : undefined;
     const isValidId = projectId && !isNaN(projectId);
@@ -67,7 +69,7 @@ const FeaturesPage: React.FC = () => {
     const { data: projectDetail, isLoading: isLoadingProject } = useProjectDetail(isValidId ? projectId : -1);
     const deleteMutation = useDeleteFeature();
 
-    const projectName = projectDetail?.name || `Proyek ID: ${projectId}`;
+    const projectName = projectDetail?.name || t('features.projectFallback', { id: projectId });
 
     // --- Data Mapping & Stats ---
     const featureQueries = features?.map(feature => ({
@@ -106,18 +108,18 @@ const FeaturesPage: React.FC = () => {
         if (!featureToDelete) return;
         deleteMutation.mutate({ featureId: featureToDelete.id, projectId: projectId! }, {
             onSuccess: () => {
-                toast.success("Fitur Dihapus", { description: `Fitur '${featureToDelete.name}' berhasil dihapus.` });
+                toast.success(t('features.deleteSuccessTitle'), { description: t('features.deleteSuccessDescription', { name: featureToDelete.name }) });
                 setFeatureToDelete(null);
             },
             onError: (err) => {
                 const message = isAxiosError<{ message?: string }>(err) ? err.response?.data?.message || err.message : err.message;
-                toast.error("Gagal", { description: message });
+                toast.error(t('features.deleteErrorTitle'), { description: message });
                 setFeatureToDelete(null);
             }
         });
     };
 
-    if (!isValidId) return <div className="p-8 text-center"><Frown className="mx-auto h-12 w-12 text-red-500" /><p>ID Tidak Valid</p></div>;
+    if (!isValidId) return <div className="p-8 text-center"><Frown className="mx-auto h-12 w-12 text-red-500" /><p>{t('features.invalidId')}</p></div>;
     if (isLoadingTotal) return <div className="flex justify-center p-20"><Loader2 className="animate-spin h-8 w-8 text-blue-600" /></div>;
 
     return (
@@ -127,36 +129,36 @@ const FeaturesPage: React.FC = () => {
                 <div>
                     <div className="flex items-center gap-2 text-blue-600 mb-1 cursor-pointer hover:underline" onClick={() => navigate('/projects')}>
                         <ArrowLeft className="h-4 w-4" />
-                        <span className="text-sm font-medium">Kembali ke Proyek</span>
+                        <span className="text-sm font-medium">{t('features.backToProjects')}</span>
                     </div>
                     <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{projectName}</h1>
                     <p className="text-muted-foreground mt-1 flex items-center gap-2">
-                        <Layers className="h-4 w-4" /> Kelola cakupan testing fitur aplikasi
+                        <Layers className="h-4 w-4" /> {t('features.subtitle')}
                     </p>
                 </div>
                 <Button onClick={handleOpenCreateDialog} className="bg-blue-600 hover:bg-blue-700 shadow-lg">
-                    <PlusCircle className="mr-2 h-4 w-4" /> Tambah Fitur
+                    <PlusCircle className="mr-2 h-4 w-4" /> {t('features.addFeature')}
                 </Button>
             </div>
 
             {/* --- DASHBOARD STATS --- */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <StatCard title="Total Fitur" value={featuresWithCount.length} icon={<Layers className="text-blue-500" />} color="blue" />
-                <StatCard title="Fitur Aktif" value={activeFeatures} icon={<CheckCircle2 className="text-emerald-500" />} color="emerald" />
-                <StatCard title="Total Test Case" value={totalTCs} icon={<BarChart3 className="text-purple-500" />} color="purple" />
+                <StatCard title={t('features.stats.totalFeatures')} value={featuresWithCount.length} icon={<Layers className="text-blue-500" />} color="blue" />
+                <StatCard title={t('features.stats.activeFeatures')} value={activeFeatures} icon={<CheckCircle2 className="text-emerald-500" />} color="emerald" />
+                <StatCard title={t('features.stats.totalTestCases')} value={totalTCs} icon={<BarChart3 className="text-purple-500" />} color="purple" />
             </div>
 
             {/* --- MAIN CONTENT --- */}
             <Card className="border-none shadow-xl bg-card/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0 pb-6 border-b">
                     <div className="w-full md:w-auto">
-                        <CardTitle>Daftar Fitur</CardTitle>
-                        <CardDescription>Cari dan kelola fungsionalitas aplikasi.</CardDescription>
+                        <CardTitle>{t('features.listTitle')}</CardTitle>
+                        <CardDescription>{t('features.listSubtitle')}</CardDescription>
                     </div>
                     <div className="relative w-full md:w-80">
                         <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Cari fitur..."
+                            placeholder={t('features.searchPlaceholder')}
                             className="pl-9 bg-muted/50"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -168,11 +170,11 @@ const FeaturesPage: React.FC = () => {
                         <Table>
                             <TableHeader className="bg-muted/50">
                                 <TableRow>
-                                    <TableHead className="font-bold text-foreground">Fitur & Deskripsi</TableHead>
-                                    <TableHead className="hidden md:table-cell font-bold text-foreground">Status</TableHead>
-                                    <TableHead className="hidden md:table-cell font-bold text-foreground">Tipe</TableHead>
-                                    <TableHead className="text-center font-bold text-foreground">Test Cases</TableHead>
-                                    <TableHead className="text-right font-bold text-foreground">Aksi</TableHead>
+                                    <TableHead className="font-bold text-foreground">{t('features.table.nameDescription')}</TableHead>
+                                    <TableHead className="hidden md:table-cell font-bold text-foreground">{t('features.table.status')}</TableHead>
+                                    <TableHead className="hidden md:table-cell font-bold text-foreground">{t('features.table.type')}</TableHead>
+                                    <TableHead className="text-center font-bold text-foreground">{t('features.table.testCases')}</TableHead>
+                                    <TableHead className="text-right font-bold text-foreground">{t('features.table.actions')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -215,16 +217,16 @@ const FeaturesPage: React.FC = () => {
                                                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><MoreHorizontal className="h-4 w-4" /></Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end" className="w-40">
-                                                    <DropdownMenuLabel>Aksi</DropdownMenuLabel>
+                                                    <DropdownMenuLabel>{t('features.actionsMenu')}</DropdownMenuLabel>
                                                     <DropdownMenuItem onClick={() => handleViewTestCases(f.id)}>
-                                                        <Eye className="mr-2 h-4 w-4" /> Lihat TC
+                                                        <Eye className="mr-2 h-4 w-4" /> {t('features.viewTestCases')}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => handleOpenEditDialog(f)}>
-                                                        <Pencil className="mr-2 h-4 w-4" /> Edit
+                                                        <Pencil className="mr-2 h-4 w-4" /> {t('features.edit')}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
                                                     <DropdownMenuItem onClick={() => handlePrepareDelete(f)} className="text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/15">
-                                                        <Trash className="mr-2 h-4 w-4" /> Hapus
+                                                        <Trash className="mr-2 h-4 w-4" /> {t('features.delete')}
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -234,7 +236,7 @@ const FeaturesPage: React.FC = () => {
                             </TableBody>
                         </Table>
                     ) : (
-                        <div className="p-20 text-center"><Search className="mx-auto h-12 w-12 text-muted-foreground/30 mb-4" /><p className="text-muted-foreground font-medium italic">Data tidak ditemukan</p></div>
+                        <div className="p-20 text-center"><Search className="mx-auto h-12 w-12 text-muted-foreground/30 mb-4" /><p className="text-muted-foreground font-medium italic">{t('features.notFound')}</p></div>
                     )}
                 </CardContent>
             </Card>
@@ -245,12 +247,12 @@ const FeaturesPage: React.FC = () => {
             <AlertDialog open={!!featureToDelete} onOpenChange={(o) => !o && setFeatureToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Hapus Fitur?</AlertDialogTitle>
-                        <AlertDialogDescription>Semua test case di "{featureToDelete?.name}" akan ikut terhapus permanen.</AlertDialogDescription>
+                        <AlertDialogTitle>{t('features.deleteConfirmTitle')}</AlertDialogTitle>
+                        <AlertDialogDescription>{t('features.deleteConfirmDescription', { name: featureToDelete?.name })}</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Batal</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteFeature} className="bg-red-600 hover:bg-red-700">Hapus Permanen</AlertDialogAction>
+                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteFeature} className="bg-red-600 hover:bg-red-700">{t('features.deleteConfirmAction')}</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
@@ -287,6 +289,7 @@ const StatCard = ({ title, value, icon, color }: StatCardProps) => {
 };
 
 const StatusBadge = ({ status }: { status: string }) => {
+    const { t } = useTranslation();
     const config: Record<string, string> = {
         active: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30",
         pending: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/30",
@@ -294,7 +297,7 @@ const StatusBadge = ({ status }: { status: string }) => {
     };
     return (
         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${config[status] || "bg-muted text-muted-foreground"}`}>
-            {status}
+            {t(`features.status.${status}`, status)}
         </span>
     );
 };
