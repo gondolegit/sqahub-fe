@@ -34,6 +34,14 @@ export default {
     "closeMenu": "Tutup menu navigasi",
     "logout": "Logout"
   },
+  "notifications": {
+    "title": "Notifikasi",
+    "openLabel": "Buka notifikasi",
+    "markAllAsRead": "Tandai semua dibaca",
+    "empty": "Belum ada notifikasi",
+    "loadError": "Gagal memuat notifikasi",
+    "viewAll": "Lihat semua"
+  },
   "auth": {
     "login": {
       "brand": "SQAHUB",

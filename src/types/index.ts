@@ -126,6 +126,19 @@ export interface ApiKeyRequest {
   expiresAt?: string | null;
 }
 
+// --- NOTIFICATIONS ---
+export type NotificationType = 'PROJECT_MEMBER_ADDED' | 'TEST_RUN_FINALIZED' | 'DEPLOY_NOT_READY';
+
+export interface Notification {
+  id: number;
+  type: NotificationType;
+  title: string;
+  message: string;
+  link: string | null;
+  isRead: boolean;
+  createdAt: string;
+}
+
 // --- ACTIVITY LOG ---
 export interface ActivityLog {
   id: number;

@@ -34,6 +34,14 @@ export default {
     "closeMenu": "关闭导航菜单",
     "logout": "退出登录"
   },
+  "notifications": {
+    "title": "通知",
+    "openLabel": "打开通知",
+    "markAllAsRead": "全部标为已读",
+    "empty": "暂无通知",
+    "loadError": "加载通知失败",
+    "viewAll": "查看全部"
+  },
   "auth": {
     "login": {
       "brand": "SQAHUB",

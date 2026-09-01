@@ -11,6 +11,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import ThemeToggle from './ThemeToggle';
 import LanguageSwitcher from './LanguageSwitcher';
+import NotificationBell from './NotificationBell';
 
 interface HeaderProps {
     toggleSidebar: () => void;
@@ -41,6 +42,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             <div className="flex items-center space-x-2 md:space-x-4">
                 <LanguageSwitcher />
                 <ThemeToggle />
+                <NotificationBell />
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className="hidden sm:flex items-center gap-1.5">

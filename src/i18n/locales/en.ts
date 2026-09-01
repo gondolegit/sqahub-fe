@@ -34,6 +34,14 @@ export default {
     "closeMenu": "Close navigation menu",
     "logout": "Logout"
   },
+  "notifications": {
+    "title": "Notifications",
+    "openLabel": "Open notifications",
+    "markAllAsRead": "Mark all as read",
+    "empty": "No notifications yet",
+    "loadError": "Failed to load notifications",
+    "viewAll": "View all"
+  },
   "auth": {
     "login": {
       "brand": "SQAHUB",
