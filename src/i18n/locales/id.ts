@@ -232,6 +232,7 @@ export default {
     "subtitle": "Kelola cakupan testing fitur aplikasi",
     "addFeature": "Tambah Fitur",
     "generateFromRequirements": "Generate dari Requirement",
+    "generateAutomationScript": "Generate Automation Script",
     "invalidId": "ID Tidak Valid",
     "stats": {
       "totalFeatures": "Total Fitur",
@@ -436,6 +437,18 @@ export default {
     "submit": "Unggah & Generate",
     "generateAnother": "Generate File Lain",
     "done": "Selesai"
+  },
+  "generateAutomationScript": {
+    "title": "Generate Automation Script",
+    "description": "Unggah file berisi definisi elemen (Module Name, Scenario Name, Field Name, Element Locator, Action, Input Data) — hasilnya file .zip berisi Page Object + spec test siap pakai.",
+    "frameworkLabel": "Framework",
+    "comingSoon": "Segera Hadir",
+    "noFileYet": "Belum punya file?",
+    "downloadTemplateHint": "Unduh template siap-isi dengan contoh & petunjuk kolom.",
+    "downloadTemplate": "Template",
+    "fileLabel": "File Elemen",
+    "formatHint": "Format: .csv, .xlsx, atau .xls — kolom wajib: Module Name, Scenario Name, Field Name, Element Locator, Action.",
+    "submit": "Unggah & Generate"
   },
   "testSuites": {
     "pageTitle": "Riwayat Test Suites",

@@ -15,7 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import {
     Loader2, PlusCircle, Frown, ArrowLeft, Search,
     Pencil, Trash, Layers, BarChart3, CheckCircle2,
-    MoreHorizontal, Eye, Tag, Sparkles
+    MoreHorizontal, Eye, Tag, Sparkles, Code2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from 'sonner';
 import FeatureFormDialog from '@/components/feature/FeatureFormDialog';
 import GenerateFromRequirementsDialog from '@/components/feature/GenerateFromRequirementsDialog';
+import GenerateAutomationScriptDialog from '@/components/feature/GenerateAutomationScriptDialog';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -70,6 +71,7 @@ const FeaturesPage: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [isFeatureDialogOpen, setIsFeatureDialogOpen] = useState(false);
     const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
+    const [isAutomationDialogOpen, setIsAutomationDialogOpen] = useState(false);
     const [initialFeatureData, setInitialFeatureData] = useState<Feature | null>(null);
     const [featureToDelete, setFeatureToDelete] = useState<{ id: number; name: string } | null>(null);
 
@@ -146,9 +148,14 @@ const FeaturesPage: React.FC = () => {
                 </div>
                 <div className="flex gap-2">
                     {canGenerate && (
-                        <Button variant="outline" onClick={() => setIsGenerateDialogOpen(true)}>
-                            <Sparkles className="mr-2 h-4 w-4" /> {t('features.generateFromRequirements')}
-                        </Button>
+                        <>
+                            <Button variant="outline" onClick={() => setIsGenerateDialogOpen(true)}>
+                                <Sparkles className="mr-2 h-4 w-4" /> {t('features.generateFromRequirements')}
+                            </Button>
+                            <Button variant="outline" onClick={() => setIsAutomationDialogOpen(true)}>
+                                <Code2 className="mr-2 h-4 w-4" /> {t('features.generateAutomationScript')}
+                            </Button>
+                        </>
                     )}
                     <Button onClick={handleOpenCreateDialog} className="bg-blue-600 hover:bg-blue-700 shadow-lg">
                         <PlusCircle className="mr-2 h-4 w-4" /> {t('features.addFeature')}
@@ -260,6 +267,8 @@ const FeaturesPage: React.FC = () => {
             <FeatureFormDialog open={isFeatureDialogOpen} onOpenChange={setIsFeatureDialogOpen} initialData={initialFeatureData} projectId={projectId!} />
 
             <GenerateFromRequirementsDialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen} projectId={projectId!} />
+
+            <GenerateAutomationScriptDialog open={isAutomationDialogOpen} onOpenChange={setIsAutomationDialogOpen} projectId={projectId!} />
 
             <AlertDialog open={!!featureToDelete} onOpenChange={(o) => !o && setFeatureToDelete(null)}>
                 <AlertDialogContent>

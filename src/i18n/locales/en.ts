@@ -232,6 +232,7 @@ export default {
     "subtitle": "Manage the application's feature test coverage",
     "addFeature": "Add Feature",
     "generateFromRequirements": "Generate from Requirements",
+    "generateAutomationScript": "Generate Automation Script",
     "invalidId": "Invalid ID",
     "stats": {
       "totalFeatures": "Total Features",
@@ -436,6 +437,18 @@ export default {
     "submit": "Upload & Generate",
     "generateAnother": "Generate Another File",
     "done": "Done"
+  },
+  "generateAutomationScript": {
+    "title": "Generate Automation Script",
+    "description": "Upload a file with element definitions (Module Name, Scenario Name, Field Name, Element Locator, Action, Input Data) — you get back a .zip with ready-to-use Page Objects and spec tests.",
+    "frameworkLabel": "Framework",
+    "comingSoon": "Coming Soon",
+    "noFileYet": "Don't have a file yet?",
+    "downloadTemplateHint": "Download a ready-to-fill template with an example and column guidance.",
+    "downloadTemplate": "Template",
+    "fileLabel": "Elements File",
+    "formatHint": "Format: .csv, .xlsx, or .xls — required columns: Module Name, Scenario Name, Field Name, Element Locator, Action.",
+    "submit": "Upload & Generate"
   },
   "testSuites": {
     "pageTitle": "Test Suite History",

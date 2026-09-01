@@ -232,6 +232,7 @@ export default {
     "subtitle": "管理应用程序功能的测试覆盖范围",
     "addFeature": "添加功能",
     "generateFromRequirements": "从需求生成",
+    "generateAutomationScript": "生成自动化脚本",
     "invalidId": "无效的 ID",
     "stats": {
       "totalFeatures": "功能总数",
@@ -436,6 +437,18 @@ export default {
     "submit": "上传并生成",
     "generateAnother": "生成其他文件",
     "done": "完成"
+  },
+  "generateAutomationScript": {
+    "title": "生成自动化脚本",
+    "description": "上传包含元素定义（Module Name、Scenario Name、Field Name、Element Locator、Action、Input Data）的文件——将生成包含可直接使用的 Page Object 和测试脚本的 .zip 文件。",
+    "frameworkLabel": "框架",
+    "comingSoon": "即将推出",
+    "noFileYet": "还没有文件？",
+    "downloadTemplateHint": "下载带示例和列说明的可直接填写模板。",
+    "downloadTemplate": "模板",
+    "fileLabel": "元素文件",
+    "formatHint": "格式：.csv、.xlsx 或 .xls —— 必填列：Module Name、Scenario Name、Field Name、Element Locator、Action。",
+    "submit": "上传并生成"
   },
   "testSuites": {
     "pageTitle": "测试套件历史",

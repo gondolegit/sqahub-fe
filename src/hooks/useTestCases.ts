@@ -281,6 +281,71 @@ export const useDownloadRequirementTemplate = () => {
     });
 };
 
+/**
+ * 6c4. GENERATE skrip automation Playwright (TypeScript, Page Object Model) dari file elemen
+ * form, per Project. Respons berupa file .zip yang langsung dipicu untuk diunduh browser; jumlah
+ * baris yang dilewati (kalau ada) dibaca dari header X-Generation-Warnings-Count agar pengguna
+ * tahu untuk memeriksa README_WARNINGS.txt di dalam ZIP tanpa perlu membukanya lebih dulu.
+ */
+export const useGenerateAutomationScript = (projectId: number | undefined) => {
+    return useMutation<number, ApiError, File>({
+        mutationFn: async (file) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            // ENDPOINT: POST /api/v1/testcase/project/{projectId}/generate-automation-script
+            const response = await API.post(`/testcase/project/${projectId}/generate-automation-script`, formData, {
+                responseType: 'blob',
+            });
+
+            const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = 'playwright-automation-scripts.zip';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(blobUrl);
+
+            const warningsCount = parseInt(response.headers['x-generation-warnings-count'] ?? '0', 10);
+            return Number.isNaN(warningsCount) ? 0 : warningsCount;
+        },
+        onSuccess: (warningsCount) => {
+            if (warningsCount === 0) {
+                toast.success("Skrip Automation Berhasil Dibuat", { description: "File .zip sudah diunduh." });
+            } else {
+                toast.warning("Skrip Automation Dibuat (Sebagian Baris Dilewati)", {
+                    description: `${warningsCount} baris dilewati — lihat README_WARNINGS.txt di dalam file .zip.`,
+                });
+            }
+        },
+        onError: (error) => {
+            toast.error("Gagal Generate Automation Script", { description: getErrorMessage(error, "Terjadi kesalahan saat memproses file.") });
+        },
+    });
+};
+
+/**
+ * 6c5. Unduh template Excel siap-isi untuk generate automation script.
+ */
+export const useDownloadAutomationScriptTemplate = () => {
+    return useMutation<void, ApiError, void>({
+        mutationFn: async () => {
+            const response = await API.get('/testcase/generate-automation-script/template', { responseType: 'blob' });
+            const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = 'template-generate-automation-script.xlsx';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(blobUrl);
+        },
+        onError: (error) => {
+            toast.error("Gagal Mengunduh Template", { description: getErrorMessage(error, "Terjadi kesalahan saat mengunduh template.") });
+        },
+    });
+};
+
 // #########################################
 // --- HOOKS BULK ACTIONS ---
 // #########################################
