@@ -231,6 +231,7 @@ export default {
     "projectFallback": "项目 ID：{{id}}",
     "subtitle": "管理应用程序功能的测试覆盖范围",
     "addFeature": "添加功能",
+    "generateFromRequirements": "从需求生成",
     "invalidId": "无效的 ID",
     "stats": {
       "totalFeatures": "功能总数",
@@ -416,6 +417,25 @@ export default {
       "deleteConfirmTitle": "删除已选测试用例？",
       "deleteConfirmDescription": "您将一次性删除 {{count}} 个测试用例，删除后无法恢复。"
     }
+  },
+  "generateFromRequirements": {
+    "title": "从需求生成测试用例",
+    "description": "上传包含模块名称（Module Name）和 Gherkin 风格验收标准（Given-When-Then）的需求文件——每一行会自动生成一条完整的测试用例。尚不存在的模块会被创建为新功能。",
+    "noFileYet": "还没有文件？",
+    "downloadTemplateHint": "下载带示例和列说明的可直接填写模板。",
+    "downloadTemplate": "模板",
+    "fileLabel": "需求文件",
+    "formatHint": "格式：.csv、.xlsx 或 .xls —— 必填列：Module Name、Scenario Name、Acceptance Criteria (Gherkin)。",
+    "totalRows": "总行数",
+    "generated": "成功",
+    "failed": "失败",
+    "featuresCreated": "根据尚不存在的模块名称自动创建了 {{count}} 个新功能。",
+    "allSuccess": "所有行均已成功生成测试用例，没有错误。",
+    "rowErrorsTitle": "失败行详情",
+    "rowLabel": "第 {{row}} 行",
+    "submit": "上传并生成",
+    "generateAnother": "生成其他文件",
+    "done": "完成"
   },
   "testSuites": {
     "pageTitle": "测试套件历史",

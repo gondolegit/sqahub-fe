@@ -231,6 +231,7 @@ export default {
     "projectFallback": "Project ID: {{id}}",
     "subtitle": "Manage the application's feature test coverage",
     "addFeature": "Add Feature",
+    "generateFromRequirements": "Generate from Requirements",
     "invalidId": "Invalid ID",
     "stats": {
       "totalFeatures": "Total Features",
@@ -416,6 +417,25 @@ export default {
       "deleteConfirmTitle": "Delete Selected Test Cases?",
       "deleteConfirmDescription": "You are about to delete {{count}} test cases at once. This cannot be undone."
     }
+  },
+  "generateFromRequirements": {
+    "title": "Generate Test Cases from Requirements",
+    "description": "Upload a requirement file with Module Name + Gherkin-style Acceptance Criteria (Given-When-Then) — each row automatically becomes a full Test Case. Modules that don't exist yet are created as new Features.",
+    "noFileYet": "Don't have a file yet?",
+    "downloadTemplateHint": "Download a ready-to-fill template with an example and column guidance.",
+    "downloadTemplate": "Template",
+    "fileLabel": "Requirement File",
+    "formatHint": "Format: .csv, .xlsx, or .xls — required columns: Module Name, Scenario Name, Acceptance Criteria (Gherkin).",
+    "totalRows": "Total Rows",
+    "generated": "Generated",
+    "failed": "Failed",
+    "featuresCreated": "{{count}} new Feature(s) were auto-created from Module Names that didn't exist yet.",
+    "allSuccess": "All rows were generated into Test Cases without errors.",
+    "rowErrorsTitle": "Failed Row Details",
+    "rowLabel": "Row {{row}}",
+    "submit": "Upload & Generate",
+    "generateAnother": "Generate Another File",
+    "done": "Done"
   },
   "testSuites": {
     "pageTitle": "Test Suite History",

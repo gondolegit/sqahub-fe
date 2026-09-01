@@ -231,6 +231,7 @@ export default {
     "projectFallback": "Proyek ID: {{id}}",
     "subtitle": "Kelola cakupan testing fitur aplikasi",
     "addFeature": "Tambah Fitur",
+    "generateFromRequirements": "Generate dari Requirement",
     "invalidId": "ID Tidak Valid",
     "stats": {
       "totalFeatures": "Total Fitur",
@@ -416,6 +417,25 @@ export default {
       "deleteConfirmTitle": "Hapus Test Case Terpilih?",
       "deleteConfirmDescription": "Anda akan menghapus {{count}} test case sekaligus. Data yang dihapus tidak dapat dikembalikan."
     }
+  },
+  "generateFromRequirements": {
+    "title": "Generate Test Case dari Requirement",
+    "description": "Unggah file requirement berisi Module Name + Acceptance Criteria bergaya Gherkin (Given-When-Then) — setiap baris otomatis menjadi Test Case lengkap. Module yang belum ada akan dibuat sebagai Feature baru.",
+    "noFileYet": "Belum punya file?",
+    "downloadTemplateHint": "Unduh template siap-isi dengan contoh & petunjuk kolom.",
+    "downloadTemplate": "Template",
+    "fileLabel": "File Requirement",
+    "formatHint": "Format: .csv, .xlsx, atau .xls — kolom wajib: Module Name, Scenario Name, Acceptance Criteria (Gherkin).",
+    "totalRows": "Total Baris",
+    "generated": "Berhasil",
+    "failed": "Gagal",
+    "featuresCreated": "{{count}} Feature baru dibuat otomatis dari Module Name yang belum ada.",
+    "allSuccess": "Semua baris berhasil digenerate menjadi Test Case tanpa error.",
+    "rowErrorsTitle": "Rincian Baris Gagal",
+    "rowLabel": "Baris {{row}}",
+    "submit": "Unggah & Generate",
+    "generateAnother": "Generate File Lain",
+    "done": "Selesai"
   },
   "testSuites": {
     "pageTitle": "Riwayat Test Suites",

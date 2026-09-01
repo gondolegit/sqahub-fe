@@ -65,6 +65,16 @@ export interface TestCaseImportResponse {
     errors: TestCaseImportRowError[];
 }
 
+// --- Smart generation dari requirement file (Module Name + Gherkin Given-When-Then) ---
+
+export interface RequirementImportResponse {
+    totalRows: number;
+    generatedCount: number;
+    failedCount: number;
+    featuresCreatedCount: number;
+    errors: TestCaseImportRowError[];
+}
+
 // --- Bulk actions (delete / tag / move) ---
 
 export interface BulkOperationError {

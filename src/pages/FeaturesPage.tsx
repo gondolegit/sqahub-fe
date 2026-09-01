@@ -10,11 +10,12 @@ import {
     type Feature,
 } from '@/hooks/useFeatures';
 import { useProjectDetail } from '@/hooks/useProjects';
+import { useAuth } from '@/contexts/AuthContext';
 
-import { 
-    Loader2, PlusCircle, Frown, ArrowLeft, Search, 
-    Pencil, Trash, Layers, BarChart3, CheckCircle2, 
-    MoreHorizontal, Eye, Tag
+import {
+    Loader2, PlusCircle, Frown, ArrowLeft, Search,
+    Pencil, Trash, Layers, BarChart3, CheckCircle2,
+    MoreHorizontal, Eye, Tag, Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import FeatureFormDialog from '@/components/feature/FeatureFormDialog';
+import GenerateFromRequirementsDialog from '@/components/feature/GenerateFromRequirementsDialog';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -53,15 +55,21 @@ interface FeatureWithCount extends Feature {
     testCaseCount: number;
 }
 
+// Sesuai matriks izin backend: generate Test Case dari requirement butuh role global ADMIN/TESTER.
+const GENERATE_ROLES = ['ADMIN', 'TESTER'] as const;
+
 const FeaturesPage: React.FC = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const { hasRole } = useAuth();
+    const canGenerate = hasRole([...GENERATE_ROLES]);
     const { projectId: projectIdStr } = useParams<{ projectId: string }>();
     const projectId = projectIdStr ? parseInt(projectIdStr) : undefined;
     const isValidId = projectId && !isNaN(projectId);
 
     const [searchQuery, setSearchQuery] = useState('');
     const [isFeatureDialogOpen, setIsFeatureDialogOpen] = useState(false);
+    const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
     const [initialFeatureData, setInitialFeatureData] = useState<Feature | null>(null);
     const [featureToDelete, setFeatureToDelete] = useState<{ id: number; name: string } | null>(null);
 
@@ -136,9 +144,16 @@ const FeaturesPage: React.FC = () => {
                         <Layers className="h-4 w-4" /> {t('features.subtitle')}
                     </p>
                 </div>
-                <Button onClick={handleOpenCreateDialog} className="bg-blue-600 hover:bg-blue-700 shadow-lg">
-                    <PlusCircle className="mr-2 h-4 w-4" /> {t('features.addFeature')}
-                </Button>
+                <div className="flex gap-2">
+                    {canGenerate && (
+                        <Button variant="outline" onClick={() => setIsGenerateDialogOpen(true)}>
+                            <Sparkles className="mr-2 h-4 w-4" /> {t('features.generateFromRequirements')}
+                        </Button>
+                    )}
+                    <Button onClick={handleOpenCreateDialog} className="bg-blue-600 hover:bg-blue-700 shadow-lg">
+                        <PlusCircle className="mr-2 h-4 w-4" /> {t('features.addFeature')}
+                    </Button>
+                </div>
             </div>
 
             {/* --- DASHBOARD STATS --- */}
@@ -243,7 +258,9 @@ const FeaturesPage: React.FC = () => {
 
             {/* --- Dialogs --- */}
             <FeatureFormDialog open={isFeatureDialogOpen} onOpenChange={setIsFeatureDialogOpen} initialData={initialFeatureData} projectId={projectId!} />
-            
+
+            <GenerateFromRequirementsDialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen} projectId={projectId!} />
+
             <AlertDialog open={!!featureToDelete} onOpenChange={(o) => !o && setFeatureToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>

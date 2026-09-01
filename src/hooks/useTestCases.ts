@@ -13,6 +13,7 @@ import type {
     DeleteTestCaseParams,
     TestCaseImportResponse,
     BulkOperationResponse,
+    RequirementImportResponse,
 } from '@/types/testCase'; // Asumsi jalur import Anda
 import type { Page } from '@/types/index';
 
@@ -207,6 +208,68 @@ export const useDownloadImportTemplate = () => {
             const link = document.createElement('a');
             link.href = blobUrl;
             link.download = 'template-import-test-case.xlsx';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(blobUrl);
+        },
+        onError: (error) => {
+            toast.error("Gagal Mengunduh Template", { description: getErrorMessage(error, "Terjadi kesalahan saat mengunduh template.") });
+        },
+    });
+};
+
+/**
+ * 6c2. GENERATE Test Case dari file requirement (Module Name + Gherkin Given-When-Then), per
+ * Project (bukan per Feature — satu file boleh mencakup beberapa Module/Feature sekaligus).
+ * Baris yang gagal validasi TIDAK melempar error di sini, sama seperti useImportTestCases.
+ */
+export const useGenerateFromRequirements = (projectId: number | undefined) => {
+    const queryClient = useQueryClient();
+    const generate = async (file: File): Promise<RequirementImportResponse> => {
+        const formData = new FormData();
+        formData.append('file', file);
+        // ENDPOINT: POST /api/v1/testcase/project/{projectId}/generate-from-requirements
+        const response = await API.post(`/testcase/project/${projectId}/generate-from-requirements`, formData);
+        return response.data;
+    };
+
+    return useMutation<RequirementImportResponse, ApiError, File>({
+        mutationFn: generate,
+        onSuccess: (result) => {
+            if (result.generatedCount > 0) {
+                queryClient.invalidateQueries({ queryKey: [TC_QUERY_KEY, 'project', projectId] });
+                if (result.featuresCreatedCount > 0) {
+                    queryClient.invalidateQueries({ queryKey: ['features', projectId] });
+                }
+            }
+            if (result.failedCount === 0) {
+                toast.success("Generate Selesai", { description: `${result.generatedCount} test case berhasil dibuat.` });
+            } else if (result.generatedCount > 0) {
+                toast.warning("Generate Sebagian Berhasil", {
+                    description: `${result.generatedCount} berhasil, ${result.failedCount} baris gagal — lihat rincian di bawah.`,
+                });
+            } else {
+                toast.error("Generate Gagal", { description: `Semua ${result.failedCount} baris gagal divalidasi — lihat rincian di bawah.` });
+            }
+        },
+        onError: (error) => {
+            toast.error("Gagal Memproses File", { description: getErrorMessage(error, "Terjadi kesalahan saat memproses file requirement.") });
+        },
+    });
+};
+
+/**
+ * 6c3. Unduh template Excel siap-isi untuk generate Test Case dari requirement.
+ */
+export const useDownloadRequirementTemplate = () => {
+    return useMutation<void, ApiError, void>({
+        mutationFn: async () => {
+            const response = await API.get('/testcase/generate-from-requirements/template', { responseType: 'blob' });
+            const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = 'template-generate-test-case-from-requirements.xlsx';
             document.body.appendChild(link);
             link.click();
             link.remove();
